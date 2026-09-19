@@ -6,7 +6,9 @@ dates), never live inputs — the engine re-fetches prices every run (spec E2/E3
 Run:  python db/seed_build.py   → overwrites db/pattaz.db and writes db/seed.sql
 """
 from __future__ import annotations
-import sqlite3, pathlib, datetime as dt
+import datetime as dt
+import pathlib
+import sqlite3
 
 HERE = pathlib.Path(__file__).parent
 DB, SCHEMA, DUMP = HERE / "pattaz.db", HERE / "schema.sql", HERE / "seed.sql"
@@ -306,8 +308,10 @@ for k in (2,4,5,9,11,12,13,14,15,16,17,18,19,20,21,22,24,25,26,27,30,32):
     D.append((k,None,f"D{k} — index only; full prose in LEDGER ARCHIVE (04→07-Sep deltas)",None,"INDEX_ONLY"))
 
 def build() -> None:
-    if DB.exists(): DB.unlink()
-    con = sqlite3.connect(DB); con.executescript(SCHEMA.read_text())
+    if DB.exists():
+        DB.unlink()
+    con = sqlite3.connect(DB)
+    con.executescript(SCHEMA.read_text())
     con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", N)
     con.executemany("INSERT INTO triggers VALUES (?,?,?,?,?,?,?,?,?,?)", T)
     con.executemany("INSERT INTO holdings VALUES (?,?,?,?,?,?)", H)
@@ -319,4 +323,5 @@ def build() -> None:
     con.close()
 
 if __name__ == "__main__":
-    build(); print(f"built {DB} and {DUMP}")
+    build()
+    print(f"built {DB} and {DUMP}")

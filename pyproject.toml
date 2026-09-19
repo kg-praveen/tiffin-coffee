@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "tiffin-coffee-app"
 version = "0.1.0"
@@ -5,13 +9,21 @@ requires-python = ">=3.12"
 dependencies = ["pydantic>=2", "yfinance>=0.2", "kiteconnect>=5", "pandas>=2", "python-dotenv>=1"]
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "import-linter>=2"]
+
+[tool.setuptools.packages.find]
+include = ["engine*", "store*", "tools*", "usecases*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 100
 [tool.mypy]
 strict = true
 files = ["engine", "store"]
 [tool.importlinter]
-root_package = "engine"
+root_packages = ["engine", "store", "tools", "usecases"]
+include_external_packages = true
 [[tool.importlinter.contracts]]
 name = "engine is pure"
 type = "forbidden"
