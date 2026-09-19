@@ -6,6 +6,7 @@ dates), never live inputs — the engine re-fetches prices every run (spec E2/E3
 Run:  python db/seed_build.py   → overwrites db/pattaz.db and writes db/seed.sql
 """
 from __future__ import annotations
+
 import datetime as dt
 import pathlib
 import sqlite3
@@ -46,7 +47,7 @@ n("RITES","RITES","CAPGOODS_PSU","DEFAULT","ADD","GBL",BOARD,GBL,psu=1)
 n("POWERGRID","Power Grid Corp","POWER","REGULATED","ADD","GBL",BOARD,GBL,psu=1,notes="Was ABOVE trigger on 12-Sep — dropped from buy band; trigger stands")
 n("SBIN","State Bank of India","LENDING_BANKS","LENDER","ADD","GBL",BOARD,GBL,psu=1,notes="At justified P/B ~1.6x; PSU cap applies")
 n("HDFCBANK","HDFC Bank","LENDING_BANKS","LENDER","HOLD","OWNED",BOARD,None,"AGREE_NOTE","ledger §8 05-Sep",notes="P-board BLOCKED (at/over target); crash-shelf ~419 (D47); 10-Sep 5sh = control exception D62")
-n("MUTHOOTFIN","Muthoot Finance","GOLD_NBFC","LENDER","ADD","GBN",BOARD,GBN,"DISAGREE_NOTE","ledger §8 05-Sep (approved, unlocked)",notes="Starter only; tripwires: gold −20% · RBI LTV · ROE floor · P/B above his objection")
+n("MUTHOOTFIN","Muthoot Finance","GOLD_NBFC","LENDER","ADD","GBN",BOARD,GBN,"DISAGREE_NOTE","ledger §8 05-Sep (approved, unlocked)",notes="Starter only; tripwires: gold -20% · RBI LTV · ROE floor · P/B above his objection")
 n("FIVESTAR","Five-Star Business Finance","LENDING_BANKS","LENDER","HOLD","OWNED",BOARD,None,notes="D53 HOLD")
 n("CHAMBLFERT","Chambal Fertilisers","AGRI_INPUTS","CYCLICAL","ADD","GBN","2026-09-17",exp("2026-09-17",30),cyc=1,notes="D59/D61 starter 10sh; NEXT BUY 10sh ≤415; tranche-2 gated on FY27 OCF/PAT toward 70%+; kill <~40% with rising borrowings; subsidy rule D60")
 n("COROMANDEL","Coromandel International","AGRI_INPUTS","CYCLICAL","WATCH","GBL",BOARD,GBL,cyc=1,notes="Trigger 1,225 (far); subsidy-linked sovereign flag per D60 check")
@@ -315,7 +316,7 @@ def build() -> None:
     con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", N)
     con.executemany("INSERT INTO triggers VALUES (?,?,?,?,?,?,?,?,?,?)", T)
     con.executemany("INSERT INTO holdings VALUES (?,?,?,?,?,?)", H)
-    con.executemany("INSERT INTO cells VALUES (?,?,?,?,?,?,?)", [c + (LEDGER,) for c in C])
+    con.executemany("INSERT INTO cells VALUES (?,?,?,?,?,?,?)", [(*c, LEDGER) for c in C])
     con.executemany("INSERT INTO policy VALUES (?,?,?,?,?)", P)
     con.executemany("INSERT INTO decisions VALUES (?,?,?,?,?)", sorted(D))
     con.commit()

@@ -90,7 +90,7 @@ class TestTriggers:
         triggers = repo.get_triggers_for("PETRONET")
         assert len(triggers) == 1
         assert triggers[0].kind == "BUY"
-        assert triggers[0].level == Decimal("383")
+        assert triggers[0].level == Decimal(383)
         assert triggers[0].active is True
 
 

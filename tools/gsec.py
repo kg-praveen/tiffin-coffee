@@ -5,7 +5,7 @@ The yield is fetched live each session (E3). Returns a Stamped Decimal.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import yfinance as yf
@@ -38,13 +38,13 @@ def fetch_gsec_yield() -> Stamped[Decimal]:
             info = ticker.info
             rate = info.get("regularMarketPrice") or info.get("regularMarketPreviousClose")
             if rate is not None and float(rate) > 0:
-                now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                now = datetime.now(UTC).isoformat(timespec="seconds")
                 return Stamped(
                     value=Decimal(str(rate)),
                     source=f"yfinance:{ticker_sym}",
                     as_of=now,
                 )
-        except Exception:
+        except (ValueError, KeyError, ConnectionError, OSError):
             continue
 
     raise ValueError(

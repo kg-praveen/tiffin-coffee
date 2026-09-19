@@ -6,7 +6,7 @@ Returns Stamped values only. Network failures raise; the caller decides whether 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import yfinance as yf
@@ -34,7 +34,7 @@ def fetch_price(yf_ticker: str) -> PriceSnapshot:
     if not info or info.get("regularMarketPrice") is None:
         raise ValueError(f"ticker {yf_ticker!r} did not resolve or returned no price")
 
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    now = datetime.now(UTC).isoformat(timespec="seconds")
     source = f"yfinance:{yf_ticker}"
 
     price_raw = info.get("regularMarketPreviousClose") or info.get("regularMarketPrice")

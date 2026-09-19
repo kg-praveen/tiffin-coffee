@@ -11,8 +11,7 @@ import sqlite3
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional
-
+from typing import Self
 
 # ---------------------------------------------------------------- models ---
 
@@ -20,7 +19,7 @@ from typing import Optional
 class PolicyRow:
     key: str
     value: str
-    unit: Optional[str]
+    unit: str | None
     source: str
     adopted_on: str
 
@@ -29,25 +28,25 @@ class PolicyRow:
 class NameRow:
     symbol: str
     name: str
-    yf_ticker: Optional[str]
+    yf_ticker: str | None
     ticker_verified: bool
-    cell: Optional[str]
-    sector_class: Optional[str]
-    classified_on: Optional[str]
-    classification_source: Optional[str]
+    cell: str | None
+    sector_class: str | None
+    classified_on: str | None
+    classification_source: str | None
     status: str
-    bucket: Optional[str]
-    verdict_date: Optional[str]
-    decay_expiry: Optional[str]
-    p5_status: Optional[str]
-    p5_note_ref: Optional[str]
+    bucket: str | None
+    verdict_date: str | None
+    decay_expiry: str | None
+    p5_status: str | None
+    p5_note_ref: str | None
     flag_sovereign: bool
     flag_psu: bool
     flag_cyclical: bool
     flag_probe_open: bool
     flag_fraud_tail: bool
     flag_exit_decided: bool
-    notes: Optional[str]
+    notes: str | None
     as_of: str
 
 
@@ -56,13 +55,13 @@ class TriggerRow:
     symbol: str
     kind: str
     level: Decimal
-    basis_eps_date: Optional[str]
-    derivation: Optional[str]
+    basis_eps_date: str | None
+    derivation: str | None
     set_on: str
-    valid_until: Optional[str]
-    gtt_id: Optional[str]
+    valid_until: str | None
+    gtt_id: str | None
     active: bool
-    notes: Optional[str]
+    notes: str | None
 
 
 @dataclass(frozen=True)
@@ -70,7 +69,7 @@ class HoldingRow:
     account: str
     symbol: str
     qty: int
-    avg_cost: Optional[Decimal]
+    avg_cost: Decimal | None
     as_of: str
     source: str
 
@@ -79,19 +78,19 @@ class HoldingRow:
 class CellRow:
     cell: str
     members: str
-    active_adds: Optional[str]
+    active_adds: str | None
     max_adds: int
     is_full: bool
-    notes: Optional[str]
+    notes: str | None
     as_of: str
 
 
 @dataclass(frozen=True)
 class DecisionRow:
     d_no: int
-    decided_on: Optional[str]
+    decided_on: str | None
     title: str
-    detail: Optional[str]
+    detail: str | None
     status: str
 
 
@@ -110,7 +109,7 @@ class PattazRepo:
     def close(self) -> None:
         self._con.close()
 
-    def __enter__(self) -> PattazRepo:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *exc: object) -> None:
@@ -137,7 +136,7 @@ class PattazRepo:
         rows = self._con.execute("SELECT * FROM names").fetchall()
         return [self._to_name_row(r) for r in rows]
 
-    def get_name(self, symbol: str) -> Optional[NameRow]:
+    def get_name(self, symbol: str) -> NameRow | None:
         row = self._con.execute(
             "SELECT * FROM names WHERE symbol = ?", (symbol,)
         ).fetchone()
@@ -242,7 +241,7 @@ class PattazRepo:
 
     # --- decisions ---
 
-    def load_decisions(self, status: Optional[str] = None) -> list[DecisionRow]:
+    def load_decisions(self, status: str | None = None) -> list[DecisionRow]:
         if status:
             rows = self._con.execute(
                 "SELECT * FROM decisions WHERE status = ?", (status,)
@@ -275,8 +274,9 @@ class PattazRepo:
         """Append a session record. Spec: sessions is append-only; a run that
         produced no plate still writes a session."""
         self._con.execute(
-            "INSERT INTO sessions (run_id, ran_at, usecase, inputs_json, outputs_json, drops_json, rules_fired) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO sessions"
+            " (run_id, ran_at, usecase, inputs_json, outputs_json, drops_json, rules_fired)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
                 run_id,
                 ran_at,

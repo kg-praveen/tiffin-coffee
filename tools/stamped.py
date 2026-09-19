@@ -13,7 +13,7 @@ from pydantic import BaseModel
 T = TypeVar("T")
 
 
-class Stamped(BaseModel, Generic[T], frozen=True):
+class Stamped(BaseModel, Generic[T], frozen=True):  # noqa: UP046
     """Immutable provenance envelope for a fetched or derived value (E2)."""
 
     value: T

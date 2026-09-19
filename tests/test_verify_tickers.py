@@ -7,6 +7,7 @@ from __future__ import annotations
 import sqlite3
 from decimal import Decimal
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 from store.repo import PattazRepo
@@ -51,7 +52,7 @@ class TestTickerFormat:
 class TestNullTickers:
     """Names with NULL yf_ticker — these need manual assignment."""
 
-    EXPECTED_NULL = {
+    EXPECTED_NULL: ClassVar[set[str]] = {
         "TMCV", "GROWW", "INDIGRID", "MINDSPACE", "EMBASSY",
         "NXST", "PGINVIT", "CUBEINVIT", "RTNINDIA", "GLOBALSURF", "TATAMOTORS",
     }
@@ -80,7 +81,8 @@ class TestVerifyLogic:
                 symbol TEXT PRIMARY KEY, name TEXT NOT NULL, yf_ticker TEXT,
                 ticker_verified INTEGER NOT NULL DEFAULT 0, cell TEXT, sector_class TEXT,
                 classified_on TEXT, classification_source TEXT,
-                status TEXT NOT NULL CHECK (status IN ('ADD','HOLD','SELL','SOLD','WATCH','NEVER_ADD')),
+                status TEXT NOT NULL
+                    CHECK (status IN ('ADD','HOLD','SELL','SOLD','WATCH','NEVER_ADD')),
                 bucket TEXT, verdict_date TEXT, decay_expiry TEXT,
                 p5_status TEXT, p5_note_ref TEXT,
                 flag_sovereign INTEGER NOT NULL DEFAULT 0,

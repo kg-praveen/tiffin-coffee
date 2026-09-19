@@ -5,6 +5,7 @@ Spec: E2 — a bare number crossing a layer boundary is a build failure.
 from decimal import Decimal
 
 import pytest
+from pydantic import ValidationError
 
 from tools.stamped import Stamped
 
@@ -12,8 +13,8 @@ from tools.stamped import Stamped
 class TestStampedContract:
     def test_frozen(self) -> None:
         s = Stamped(value=Decimal("100.50"), source="test", as_of="2026-09-19")
-        with pytest.raises(Exception):
-            s.value = Decimal("200")  # type: ignore[misc]
+        with pytest.raises(ValidationError):
+            s.value = Decimal(200)  # type: ignore[misc]
 
     def test_generic_decimal(self) -> None:
         s = Stamped[Decimal](value=Decimal("7.04"), source="gsec", as_of="2026-09-19")
@@ -31,7 +32,7 @@ class TestStampedContract:
         assert a == b
 
     def test_requires_all_fields(self) -> None:
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             Stamped(value=1, source="x")  # type: ignore[call-arg]
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             Stamped(value=1, as_of="x")  # type: ignore[call-arg]

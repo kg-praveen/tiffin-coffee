@@ -36,13 +36,14 @@ def verify_all_tickers(db_path: str | Path) -> tuple[list[str], list[tuple[str, 
 
     for name_row in to_verify:
         ticker = name_row.yf_ticker
-        assert ticker is not None
+        if ticker is None:
+            continue
         try:
             snap = fetch_price(ticker)
             repo.set_ticker_verified(name_row.symbol, ticker)
             verified.append(name_row.symbol)
             print(f"  OK  {name_row.symbol:15s} → {ticker:18s}  price={snap.price.value}")
-        except (ValueError, Exception) as e:
+        except (ValueError, ConnectionError, OSError) as e:
             failed.append((name_row.symbol, ticker, str(e)))
             print(f"  FAIL {name_row.symbol:15s} → {ticker:18s}  {e}")
         time.sleep(0.3)  # rate-limit
