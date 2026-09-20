@@ -191,7 +191,7 @@ CREATE TABLE names (
   as_of             TEXT NOT NULL              -- date this row's state was last confirmed
 );
 INSERT INTO "names" VALUES('PETRONET','Petronet LNG','PETRONET.NS',0,'ENERGY_GAS','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,0,0,0,'Tranches gated on Dahej funding disclosure; re-underwrite if D/E>0.5','2026-09-17');
-INSERT INTO "names" VALUES('NTPC','NTPC','NTPC.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,0,0,0,'Conditional on the Coal India exit (same cell)','2026-09-17');
+INSERT INTO "names" VALUES('NTPC','NTPC','NTPC.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,0,0,0,'CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen','2026-09-17');
 INSERT INTO "names" VALUES('INFY','Infosys','INFY.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,0,0,0,0,0,'Gate on USD/CC revenue, never INR PAT','2026-09-17');
 INSERT INTO "names" VALUES('TCS','Tata Consultancy Services','TCS.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,0,0,0,0,0,'Re-verify at Oct Q2','2026-09-17');
 INSERT INTO "names" VALUES('ITC','ITC','ITC.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED','2026-09-12',NULL,'BUY',NULL,0,0,0,0,0,0,'Hold, no add; crash-shelf 228; income-floor claim withdrawn until dividend prints','2026-09-17');
@@ -240,7 +240,7 @@ INSERT INTO "names" VALUES('BANKBARODA','Bank of Baroda','BANKBARODA.NS',0,'LEND
 INSERT INTO "names" VALUES('CANBK','Canara Bank','CANBK.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','WATCH','WITHDRAWN',NULL,NULL,NULL,NULL,0,1,0,0,0,0,'Watch Q2 provisions; PSU cap','2026-09-17');
 INSERT INTO "names" VALUES('PNB','Punjab National Bank','PNB.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,1,1,0,0,0,0,'P1 / PSU cap','2026-09-17');
 INSERT INTO "names" VALUES('PFC','Power Finance Corp','PFC.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,1,1,0,0,0,0,'P1 / PSU cap','2026-09-17');
-INSERT INTO "names" VALUES('REC','REC','REC.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,1,1,0,0,0,0,'P1 / PSU cap','2026-09-17');
+INSERT INTO "names" VALUES('REC','REC','RECLTD.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,1,1,0,0,0,0,'P1 / PSU cap','2026-09-17');
 INSERT INTO "names" VALUES('TATASTEEL','Tata Steel','TATASTEEL.NS',0,'METALS_CYCLICAL','CYCLICAL','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED',NULL,NULL,'HOLD',NULL,0,0,1,0,0,1,'NEVER ADD; on-strength harvest list; Tata Sons stake story = a tip (no-tip rule)','2026-09-17');
 INSERT INTO "names" VALUES('HINDZINC','Hindustan Zinc','HINDZINC.NS',0,'METALS_CYCLICAL','CYCLICAL','2026-09-17','ledger v4.9 §5/§7','SELL','OWNED',NULL,NULL,NULL,NULL,0,0,1,0,0,1,'On-strength sell (green days)','2026-09-17');
 INSERT INTO "names" VALUES('JSWSTEEL','JSW Steel','JSWSTEEL.NS',0,'METALS_CYCLICAL','CYCLICAL','2026-09-17','ledger v4.9 §5/§7','SELL','OWNED',NULL,NULL,NULL,NULL,0,0,1,0,0,1,'On-strength sell','2026-09-17');
@@ -282,10 +282,10 @@ INSERT INTO "names" VALUES('HINDOILEXP','Hindustan Oil Exploration','HINDOILEXP.
 INSERT INTO "names" VALUES('DABUR','Dabur','DABUR.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
 INSERT INTO "names" VALUES('GODREJCP','Godrej Consumer','GODREJCP.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
 INSERT INTO "names" VALUES('BATAINDIA','Bata India','BATAINDIA.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
-INSERT INTO "names" VALUES('JYOTHYLAB','Jyothy Labs','JYOTHYLAB.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'⚠️ E6 CONFLICT: ledger v4.9 §8 = never-add; 19-Sep chat proposed GBL pending underwrite. Register wins until overturned in writing (D56)','2026-09-17');
+INSERT INTO "names" VALUES('JYOTHYLAB','Jyothy Labs','JYOTHYLAB.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','WATCH','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'⚠️ E6 CONFLICT: ledger v4.9 §8 = never-add; 19-Sep chat proposed GBL pending underwrite. Register wins until overturned in writing (D56); Re-evaluation flagged 2026-09-20; was NEVER_ADD','2026-09-17');
 INSERT INTO "names" VALUES('MHRIL','Mahindra Holidays','MHRIL.NS',0,'HOTELS','DEFAULT','2026-09-17','ledger v4.9 §5/§7','WATCH','GBL','2026-09-19','2026-12-18',NULL,NULL,0,0,0,0,0,0,'19-Sep chat: GBL pending underwrite — NOT in ledger v4.9; verify before any action','2026-09-17');
 INSERT INTO "names" VALUES('IIFL','IIFL Finance','IIFL.NS',0,'FIN_OTHER','LENDER','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'Promoter <26%; governance','2026-09-17');
-INSERT INTO "names" VALUES('THANGAMAYIL','Thangamayil Jewellery','THANGAMAYIL.NS',0,'RETAIL','RETAIL','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,'AVOID',NULL,0,0,0,0,0,0,'55x, 6x book','2026-09-17');
+INSERT INTO "names" VALUES('THANGAMAYIL','Thangamayil Jewellery','THANGAMAYL.NS',0,'RETAIL','RETAIL','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,'AVOID',NULL,0,0,0,0,0,0,'55x, 6x book','2026-09-17');
 INSERT INTO "names" VALUES('SULA','Sula Vineyards','SULA.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'Promoter below 26% kill-switch','2026-09-17');
 INSERT INTO "names" VALUES('DIVISLAB','Divi''s Laboratories','DIVISLAB.NS',0,'PHARMA_US','PHARMA','2026-09-17','ledger v4.9 §5/§7','NEVER_ADD','HARD_PASS',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'Valuation','2026-09-17');
 INSERT INTO "names" VALUES('RTNINDIA','RattanIndia Enterprises',NULL,0,'HARVEST','DEFAULT','2026-09-17','ledger v4.9 §5/§7','SELL','OWNED',NULL,NULL,NULL,NULL,0,0,0,0,0,1,'Harvest loss THIS FY (open action 0b)','2026-09-17');
@@ -312,6 +312,10 @@ INSERT INTO "names" VALUES('JUNIORBEES','Nippon Nifty Next 50 BeES','JUNIORBEES.
 INSERT INTO "names" VALUES('GOLDBEES','Nippon Gold BeES','GOLDBEES.NS',0,'BALLAST','NON_EARNING','2026-09-17','ledger v4.9 §5/§7','ADD','BALLAST',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'No valuation gate; thermostat governs (>40% NW gates fresh metal buying)','2026-09-17');
 INSERT INTO "names" VALUES('SILVERBEES','Nippon Silver ETF','SILVERBEES.NS',0,'SILVER',NULL,NULL,NULL,'HOLD','OWNED',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'Unclassified → Layer-4; 60u in Praveen''s Integrated','2026-09-17');
 INSERT INTO "names" VALUES('TATAPOWER','Tata Power','TATAPOWER.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED',NULL,NULL,NULL,NULL,0,0,0,0,0,0,'Hold; ''30 P/E very expensive''','2026-09-17');
+INSERT INTO "names" VALUES('HINDUNILVR','Hindustan Unilever','HINDUNILVR.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
+INSERT INTO "names" VALUES('ASIANPAINT','Asian Paints','ASIANPAINT.NS',0,'FMCG','DEFAULT','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
+INSERT INTO "names" VALUES('MARUTI','Maruti Suzuki','MARUTI.NS',0,'AUTO_PV_FARM','AUTO_OEM','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
+INSERT INTO "names" VALUES('ICICIPRULI','ICICI Prudential Life','ICICIPRULI.NS',0,'INSURANCE','INSURER','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17');
 CREATE TABLE policy (
   key             TEXT PRIMARY KEY,
   value           TEXT NOT NULL,
@@ -387,7 +391,7 @@ CREATE TABLE triggers (
   PRIMARY KEY (symbol, kind)
 );
 INSERT INTO "triggers" VALUES('PETRONET','BUY',383.0,'2026-09-01','14.2x fair on TTM EPS (D54 anchor 7.04%)','2026-09-12','2026-11-15',NULL,1,NULL);
-INSERT INTO "triggers" VALUES('NTPC','BUY',407.0,'2026-09-01','14.2x fair; regulated≠directed','2026-09-12','2026-11-15',NULL,1,'Conditional on Coal India exit');
+INSERT INTO "triggers" VALUES('NTPC','BUY',407.0,'2026-09-01','14.2x fair; regulated≠directed','2026-09-12','2026-11-15',NULL,1,'CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen');
 INSERT INTO "triggers" VALUES('INFY','BUY',1099.0,'2026-09-01','~15x band; USD/CC guard','2026-09-12','2026-11-15',NULL,1,NULL);
 INSERT INTO "triggers" VALUES('TCS','BUY',1939.0,'2026-09-01','~fair on TTM EPS','2026-09-12','2026-11-15',NULL,1,'Re-verify at Oct Q2');
 INSERT INTO "triggers" VALUES('ITC','CRASH_SHELF',228.0,'2026-09-01','fwd EPS ~12-13 post tax shock','2026-09-12','2026-11-15',NULL,1,'Hold-only name: shelf, not an add');

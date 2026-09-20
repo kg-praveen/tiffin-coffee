@@ -46,7 +46,7 @@ class TestPolicy:
 class TestNames:
     def test_load_names_count(self, repo: PattazRepo) -> None:
         names = repo.load_names()
-        assert len(names) == 122
+        assert len(names) == 126
 
     def test_get_name_infy(self, repo: PattazRepo) -> None:
         n = repo.get_name("INFY")

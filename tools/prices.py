@@ -5,13 +5,17 @@ Returns Stamped values only. Network failures raise; the caller decides whether 
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import logging
+from collections.abc import Sequence
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
 
 import yfinance as yf
 
 from tools.stamped import Stamped
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -22,6 +26,14 @@ class PriceSnapshot:
     price: Stamped[Decimal]
     low_52w: Stamped[Decimal]
     high_52w: Stamped[Decimal]
+
+
+@dataclass(frozen=True)
+class BatchPriceResult:
+    """Result of a batch price fetch — successes keyed by symbol, failures with reasons."""
+
+    prices: dict[str, PriceSnapshot] = field(default_factory=dict)
+    failures: dict[str, str] = field(default_factory=dict)
 
 
 def fetch_price(yf_ticker: str) -> PriceSnapshot:
@@ -52,3 +64,31 @@ def fetch_price(yf_ticker: str) -> PriceSnapshot:
         low_52w=Stamped(value=Decimal(str(low_raw)), source=source, as_of=now),
         high_52w=Stamped(value=Decimal(str(high_raw)), source=source, as_of=now),
     )
+
+
+def fetch_prices_batch(yf_tickers: Sequence[str]) -> BatchPriceResult:
+    """Fetch prices + 52-week range for multiple tickers. Spec: tiffin-coffee v6 §4.
+
+    Per-ticker failures are captured, not raised — the caller uses
+    BatchPriceResult.failures to report drops with DropReason.PRICE_FETCH_FAILED.
+    """
+    prices: dict[str, PriceSnapshot] = {}
+    failures: dict[str, str] = {}
+
+    for yf_ticker in yf_tickers:
+        symbol = yf_ticker.removesuffix(".NS")
+        try:
+            snap = fetch_price(yf_ticker)
+            prices[snap.symbol] = snap
+        except (ValueError, Exception) as exc:  # noqa: BLE001
+            reason = str(exc)
+            failures[symbol] = reason
+            log.warning("price fetch failed for %s: %s", yf_ticker, reason)
+
+    log.info(
+        "batch fetch: %d OK, %d failed out of %d tickers",
+        len(prices),
+        len(failures),
+        len(yf_tickers),
+    )
+    return BatchPriceResult(prices=prices, failures=failures)

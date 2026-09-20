@@ -43,7 +43,7 @@ class TestTickerFormat:
                 mismatches.append((n.symbol, n.yf_ticker, expected))
         # Known mismatches: ARE&M.NS, M&M.NS, BAJAJ-AUTO.NS (special chars in NSE symbol)
         for sym, actual, _expected in mismatches:
-            assert sym in ("ARE&M", "M&M", "BAJAJ-AUTO"), (
+            assert sym in ("ARE&M", "M&M", "BAJAJ-AUTO", "REC", "THANGAMAYIL"), (
                 f"Unexpected mismatch: {sym} has ticker {actual!r}"
             )
         repo.close()
