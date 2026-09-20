@@ -6,8 +6,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from engine.plate import (
     CellInfo,
     LowBand,
@@ -30,19 +28,18 @@ from engine.plate import (
     compute_score,
 )
 
-
 # ------------------------------------------------------------- helpers ---
 
 def _name(
     symbol: str = "TEST",
     name: str = "Test Corp",
-    price: Decimal = Decimal("100"),
-    low_52w: Decimal = Decimal("95"),
-    trigger_level: Decimal | None = Decimal("100"),
+    price: Decimal = Decimal(100),
+    low_52w: Decimal = Decimal(95),
+    trigger_level: Decimal | None = Decimal(100),
     status: str = "ADD",
     bucket: str | None = "standard",
     qty_held_household: int = 10,
-    current_weight_pct: Decimal | None = Decimal("3"),
+    current_weight_pct: Decimal | None = Decimal(3),
     valuation_gate_passed: bool = False,
     **kwargs: object,
 ) -> NameInput:
@@ -71,13 +68,13 @@ def _name(
 
 
 def _config(
-    session_amount: Decimal = Decimal("40000"),
-    bees_price: Decimal | None = Decimal("265"),
+    session_amount: Decimal = Decimal(40000),
+    bees_price: Decimal | None = Decimal(265),
 ) -> PlateConfig:
     return PlateConfig(
         session_amount=session_amount,
         today="2026-09-20",
-        psu_weight_pct=Decimal("15"),
+        psu_weight_pct=Decimal(15),
         cells={},
         bees_price=bees_price,
     )
@@ -113,11 +110,11 @@ class TestClassifyMode:
         assert mult == Decimal(0)
 
     def test_boundary_hockey(self) -> None:
-        mode, mult = classify_mode(Decimal("1.15"))
+        mode, _mult = classify_mode(Decimal("1.15"))
         assert mode == Mode.HOCKEY
 
     def test_boundary_coffee_low(self) -> None:
-        mode, mult = classify_mode(Decimal("0.85"))
+        mode, _mult = classify_mode(Decimal("0.85"))
         assert mode == Mode.COFFEE
 
 
@@ -136,22 +133,22 @@ class TestClassifyLowBand:
         assert mult == Decimal("1.25")
 
     def test_near_the_low(self) -> None:
-        band, mult = classify_low_band(Decimal("10"))
+        band, mult = classify_low_band(Decimal(10))
         assert band == LowBand.NEAR_THE_LOW
         assert mult == Decimal("1.0")
 
     def test_mid_range(self) -> None:
-        band, mult = classify_low_band(Decimal("20"))
+        band, mult = classify_low_band(Decimal(20))
         assert band == LowBand.MID_RANGE
         assert mult == Decimal("0.5")
 
     def test_off_the_low(self) -> None:
-        band, mult = classify_low_band(Decimal("35"))
+        band, mult = classify_low_band(Decimal(35))
         assert band == LowBand.OFF_THE_LOW
         assert mult == Decimal("0.25")
 
     def test_exactly_zero(self) -> None:
-        band, mult = classify_low_band(Decimal("0"))
+        band, _mult = classify_low_band(Decimal(0))
         assert band == LowBand.AT_THE_LOW
 
 
@@ -165,21 +162,21 @@ class TestClassifyPriority:
         assert mult == Decimal("1.5")
 
     def test_below_10pct_fill_is_missing(self) -> None:
-        tier, mult = classify_priority(Decimal("0.3"), "standard")
+        tier, _mult = classify_priority(Decimal("0.3"), "standard")
         assert tier == PriorityTier.MISSING
 
     def test_building_range(self) -> None:
-        tier, mult = classify_priority(Decimal("2"), "standard")
+        tier, mult = classify_priority(Decimal(2), "standard")
         assert tier == PriorityTier.BUILDING
         assert mult == Decimal("1.0")
 
     def test_maintenance_range(self) -> None:
-        tier, mult = classify_priority(Decimal("4"), "standard")
+        tier, mult = classify_priority(Decimal(4), "standard")
         assert tier == PriorityTier.MAINTENANCE
         assert mult == Decimal("0.5")
 
     def test_blocked_at_target(self) -> None:
-        tier, mult = classify_priority(Decimal("6"), "standard")
+        tier, mult = classify_priority(Decimal(6), "standard")
         assert tier == PriorityTier.BLOCKED
         assert mult == Decimal(0)
 
@@ -189,22 +186,22 @@ class TestClassifyPriority:
 
 class TestComputeHL:
     def test_h_at_trigger(self) -> None:
-        assert compute_h(Decimal("100"), Decimal("100")) == Decimal("1.000")
+        assert compute_h(Decimal(100), Decimal(100)) == Decimal("1.000")
 
     def test_h_below_trigger(self) -> None:
-        h = compute_h(Decimal("100"), Decimal("80"))
+        h = compute_h(Decimal(100), Decimal(80))
         assert h == Decimal("1.250")
 
     def test_h_above_trigger(self) -> None:
-        h = compute_h(Decimal("100"), Decimal("120"))
+        h = compute_h(Decimal(100), Decimal(120))
         assert h < Decimal("0.85")
 
     def test_l_at_the_low(self) -> None:
-        l_pct = compute_l(Decimal("100"), Decimal("99"))
+        l_pct = compute_l(Decimal(100), Decimal(99))
         assert l_pct == Decimal("1.01")
 
     def test_l_above_low(self) -> None:
-        l_pct = compute_l(Decimal("120"), Decimal("100"))
+        l_pct = compute_l(Decimal(120), Decimal(100))
         assert l_pct == Decimal("20.00")
 
 
@@ -228,18 +225,18 @@ class TestCheckOverlays:
 
     def test_psu_over_cap_drops(self) -> None:
         cfg = PlateConfig(
-            session_amount=Decimal("40000"), today="2026-09-20",
-            psu_weight_pct=Decimal("26"), cells={}, bees_price=Decimal("265"),
+            session_amount=Decimal(40000), today="2026-09-20",
+            psu_weight_pct=Decimal(26), cells={}, bees_price=Decimal(265),
         )
         reason = check_overlays(_name(flag_psu=True), cfg)
         assert reason == PlateDropReason.PSU_CAP
 
     def test_cell_full_drops(self) -> None:
         cfg = PlateConfig(
-            session_amount=Decimal("40000"), today="2026-09-20",
-            psu_weight_pct=Decimal("15"),
+            session_amount=Decimal(40000), today="2026-09-20",
+            psu_weight_pct=Decimal(15),
             cells={"IT": CellInfo(is_full=True, active_add_count=2, max_adds=2)},
-            bees_price=Decimal("265"),
+            bees_price=Decimal(265),
         )
         reason = check_overlays(_name(cell="IT"), cfg)
         assert reason == PlateDropReason.CELL_FULL
@@ -319,11 +316,11 @@ class TestScoring:
 
 class TestTilts:
     def test_three_items_get_three_tilts(self) -> None:
-        tilts = assign_tilts([Decimal("5"), Decimal("3"), Decimal("1")])
+        tilts = assign_tilts([Decimal(5), Decimal(3), Decimal(1)])
         assert tilts == [Decimal("1.25"), Decimal("1.0"), Decimal("0.75")]
 
     def test_single_item_gets_top_tilt(self) -> None:
-        tilts = assign_tilts([Decimal("5")])
+        tilts = assign_tilts([Decimal(5)])
         assert tilts == [Decimal("1.25")]
 
     def test_empty_returns_empty(self) -> None:
@@ -332,30 +329,30 @@ class TestTilts:
 
 class TestComputeQty:
     def test_normal_clamp(self) -> None:
-        assert compute_qty(Decimal("5000"), Decimal("500"), 1, 10) == 10
+        assert compute_qty(Decimal(5000), Decimal(500), 1, 10) == 10
 
     def test_expensive_stock_clamps_to_1(self) -> None:
-        assert compute_qty(Decimal("3000"), Decimal("5000"), 1, 10) == 1
+        assert compute_qty(Decimal(3000), Decimal(5000), 1, 10) == 1
 
     def test_cheap_stock_clamps_to_10(self) -> None:
-        assert compute_qty(Decimal("50000"), Decimal("100"), 1, 10) == 10
+        assert compute_qty(Decimal(50000), Decimal(100), 1, 10) == 10
 
     def test_first_bite_clamps_to_5(self) -> None:
-        assert compute_qty(Decimal("50000"), Decimal("100"), 1, 5) == 5
+        assert compute_qty(Decimal(50000), Decimal(100), 1, 5) == 5
 
 
 class TestBeesSweep:
     def test_sweep_computes_qty(self) -> None:
-        qty, amount = compute_bees_sweep(Decimal("1000"), Decimal("265"))
+        qty, amount = compute_bees_sweep(Decimal(1000), Decimal(265))
         assert qty == 3
         assert amount == Decimal("795.00")
 
     def test_no_bees_price(self) -> None:
-        qty, amount = compute_bees_sweep(Decimal("1000"), None)
+        qty, _amount = compute_bees_sweep(Decimal(1000), None)
         assert qty == 0
 
     def test_residual_less_than_one_unit(self) -> None:
-        qty, amount = compute_bees_sweep(Decimal("200"), Decimal("265"))
+        qty, _amount = compute_bees_sweep(Decimal(200), Decimal(265))
         assert qty == 0
 
 
@@ -366,9 +363,9 @@ class TestBuildPlate:
     def test_single_eligible_name(self) -> None:
         names = [_name(
             symbol="INFY", name="Infosys",
-            price=Decimal("1860"), low_52w=Decimal("1358"),
-            trigger_level=Decimal("1900"),
-            current_weight_pct=Decimal("3"),
+            price=Decimal(1860), low_52w=Decimal(1358),
+            trigger_level=Decimal(1900),
+            current_weight_pct=Decimal(3),
         )]
         result = build_plate(names, _config())
         assert len(result.entries) == 1
@@ -391,8 +388,8 @@ class TestBuildPlate:
 
     def test_fasting_without_low_dropped(self) -> None:
         names = [_name(
-            price=Decimal("200"), low_52w=Decimal("100"),
-            trigger_level=Decimal("100"),
+            price=Decimal(200), low_52w=Decimal(100),
+            trigger_level=Decimal(100),
         )]
         result = build_plate(names, _config())
         assert len(result.entries) == 0
@@ -405,17 +402,17 @@ class TestBuildPlate:
         assert result.drops[0].reason == PlateDropReason.SOVEREIGN
 
     def test_bees_sweep_on_empty_plate(self) -> None:
-        result = build_plate([], _config(bees_price=Decimal("265")))
+        result = build_plate([], _config(bees_price=Decimal(265)))
         assert result.bees_sweep_qty > 0
 
     def test_multiple_names_scored_and_tilted(self) -> None:
         names = [
-            _name(symbol="A", price=Decimal("100"), low_52w=Decimal("98"),
-                  trigger_level=Decimal("105"), current_weight_pct=Decimal("1")),
-            _name(symbol="B", price=Decimal("200"), low_52w=Decimal("190"),
-                  trigger_level=Decimal("210"), current_weight_pct=Decimal("2")),
-            _name(symbol="C", price=Decimal("50"), low_52w=Decimal("48"),
-                  trigger_level=Decimal("55"), current_weight_pct=Decimal("1")),
+            _name(symbol="A", price=Decimal(100), low_52w=Decimal(98),
+                  trigger_level=Decimal(105), current_weight_pct=Decimal(1)),
+            _name(symbol="B", price=Decimal(200), low_52w=Decimal(190),
+                  trigger_level=Decimal(210), current_weight_pct=Decimal(2)),
+            _name(symbol="C", price=Decimal(50), low_52w=Decimal(48),
+                  trigger_level=Decimal(55), current_weight_pct=Decimal(1)),
         ]
         result = build_plate(names, _config())
         assert len(result.entries) == 3
@@ -424,7 +421,7 @@ class TestBuildPlate:
 
     def test_first_bite_caps_qty_at_5(self) -> None:
         names = [_name(
-            symbol="FB", price=Decimal("50"), low_52w=Decimal("49.5"),
+            symbol="FB", price=Decimal(50), low_52w=Decimal("49.5"),
             trigger_level=None,
             qty_held_household=5,
             valuation_gate_passed=True,
@@ -438,16 +435,16 @@ class TestBuildPlate:
     def test_no_trigger_no_low_dropped(self) -> None:
         names = [_name(
             trigger_level=None,
-            price=Decimal("200"), low_52w=Decimal("100"),
+            price=Decimal(200), low_52w=Decimal(100),
         )]
         result = build_plate(names, _config())
         assert len(result.entries) == 0
 
     def test_plate_result_has_all_fields(self) -> None:
         names = [_name(
-            price=Decimal("100"), low_52w=Decimal("98"),
-            trigger_level=Decimal("105"),
+            price=Decimal(100), low_52w=Decimal(98),
+            trigger_level=Decimal(105),
         )]
         result = build_plate(names, _config())
-        assert result.session_amount == Decimal("40000")
+        assert result.session_amount == Decimal(40000)
         assert result.total_with_sweep == result.total_stock_amount + result.bees_sweep_amount

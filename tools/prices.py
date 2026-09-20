@@ -6,10 +6,10 @@ Returns Stamped values only. Network failures raise; the caller decides whether 
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Sequence
 
 import yfinance as yf
 
