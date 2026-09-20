@@ -33,7 +33,7 @@ def n(symbol, name, cell, cls, status, bucket=None, verdict=None, decay=None, p5
 GBN, GBL = exp(BOARD, 30), exp(BOARD, 90)
 # --- live board (D54, 12-Sep) ---
 n("PETRONET","Petronet LNG","ENERGY_GAS","REGULATED","ADD","GBN",BOARD,GBN,psu=1,notes="Tranches gated on Dahej funding disclosure; re-underwrite if D/E>0.5")
-n("NTPC","NTPC","POWER","REGULATED","ADD","GBN",BOARD,GBN,psu=1,notes="Conditional on the Coal India exit (same cell)")
+n("NTPC","NTPC","POWER","REGULATED","ADD","GBN",BOARD,GBN,psu=1,notes="CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen")
 n("INFY","Infosys","IT","IT_SERVICES","ADD","GBN",BOARD,GBN,notes="Gate on USD/CC revenue, never INR PAT")
 n("TCS","Tata Consultancy Services","IT","IT_SERVICES","ADD","GBN",BOARD,GBN,notes="Re-verify at Oct Q2")
 n("ITC","ITC","FMCG","FMCG","HOLD","OWNED",BOARD,None,"BUY",notes="Hold, no add; crash-shelf 228; income-floor claim withdrawn until dividend prints")
@@ -79,8 +79,9 @@ for s,nm in [("IOC","Indian Oil"),("BPCL","BPCL"),("HINDPETRO","HPCL")]:
     n(s,nm,"ENERGY_GAS","CYCLICAL","NEVER_ADD","HARD_PASS",None,None,sov=1,psu=1,cyc=1,notes="OMC — P1 directed pricing")
 n("BANKBARODA","Bank of Baroda","LENDING_BANKS","LENDER","WATCH","WITHDRAWN",None,None,psu=1,fraud=1,notes="0.7x book passes P/B; legacy-fraud tail (overlay 10) + cell block")
 n("CANBK","Canara Bank","LENDING_BANKS","LENDER","WATCH","WITHDRAWN",None,None,psu=1,notes="Watch Q2 provisions; PSU cap")
-for s,nm in [("PNB","Punjab National Bank"),("PFC","Power Finance Corp"),("REC","REC")]:
+for s,nm in [("PNB","Punjab National Bank"),("PFC","Power Finance Corp")]:
     n(s,nm,"LENDING_BANKS","LENDER","NEVER_ADD","HARD_PASS",None,None,sov=1,psu=1,notes="P1 / PSU cap")
+n("REC","REC","LENDING_BANKS","LENDER","NEVER_ADD","HARD_PASS",None,None,sov=1,psu=1,notes="P1 / PSU cap",yf="RECLTD.NS")
 n("TATASTEEL","Tata Steel","METALS_CYCLICAL","CYCLICAL","HOLD","OWNED",None,None,"HOLD",cyc=1,exit_=1,notes="NEVER ADD; on-strength harvest list; Tata Sons stake story = a tip (no-tip rule)")
 n("HINDZINC","Hindustan Zinc","METALS_CYCLICAL","CYCLICAL","SELL","OWNED",None,None,cyc=1,exit_=1,notes="On-strength sell (green days)")
 n("JSWSTEEL","JSW Steel","METALS_CYCLICAL","CYCLICAL","SELL","OWNED",None,None,cyc=1,exit_=1,notes="On-strength sell")
@@ -125,10 +126,10 @@ n("ATHERENERG","Ather Energy","NEW_ECONOMY","NEW_ECONOMY","NEVER_ADD","HARD_PASS
 n("HINDOILEXP","Hindustan Oil Exploration","HARVEST","CYCLICAL","SELL","OWNED",None,None,cyc=1,exit_=1,notes="Promoter 0% — harvest loss THIS FY (open action 0b)")
 for s,nm in [("DABUR","Dabur"),("GODREJCP","Godrej Consumer"),("BATAINDIA","Bata India")]:
     n(s,nm,"FMCG","FMCG","NEVER_ADD","HARD_PASS")
-n("JYOTHYLAB","Jyothy Labs","FMCG","FMCG","NEVER_ADD","HARD_PASS",None,None,notes="⚠️ E6 CONFLICT: ledger v4.9 §8 = never-add; 19-Sep chat proposed GBL pending underwrite. Register wins until overturned in writing (D56)")
+n("JYOTHYLAB","Jyothy Labs","FMCG","FMCG","WATCH","HARD_PASS",None,None,notes="⚠️ E6 CONFLICT: ledger v4.9 §8 = never-add; 19-Sep chat proposed GBL pending underwrite. Register wins until overturned in writing (D56); Re-evaluation flagged 2026-09-20; was NEVER_ADD")
 n("MHRIL","Mahindra Holidays","HOTELS","DEFAULT","WATCH","GBL","2026-09-19",exp("2026-09-19",90),notes="19-Sep chat: GBL pending underwrite — NOT in ledger v4.9; verify before any action")
 n("IIFL","IIFL Finance","FIN_OTHER","LENDER","NEVER_ADD","HARD_PASS",None,None,notes="Promoter <26%; governance")
-n("THANGAMAYIL","Thangamayil Jewellery","RETAIL","RETAIL","NEVER_ADD","HARD_PASS",None,None,"AVOID",notes="55x, 6x book")
+n("THANGAMAYIL","Thangamayil Jewellery","RETAIL","RETAIL","NEVER_ADD","HARD_PASS",None,None,"AVOID",notes="55x, 6x book",yf="THANGAMAYL.NS")
 n("SULA","Sula Vineyards","FMCG","FMCG","NEVER_ADD","HARD_PASS",None,None,notes="Promoter below 26% kill-switch")
 n("DIVISLAB","Divi's Laboratories","PHARMA_US","PHARMA","NEVER_ADD","HARD_PASS",None,None,notes="Valuation")
 n("RTNINDIA","RattanIndia Enterprises","HARVEST","DEFAULT","SELL","OWNED",None,None,exit_=1,notes="Harvest loss THIS FY (open action 0b)",yf=None)
@@ -156,12 +157,17 @@ n("JUNIORBEES","Nippon Nifty Next 50 BeES","BALLAST","INDEX_ETF","ADD","BALLAST"
 n("GOLDBEES","Nippon Gold BeES","BALLAST","NON_EARNING","ADD","BALLAST",None,None,notes="No valuation gate; thermostat governs (>40% NW gates fresh metal buying)")
 n("SILVERBEES","Nippon Silver ETF","SILVER",None,"HOLD","OWNED",None,None,notes="Unclassified → Layer-4; 60u in Praveen's Integrated",classified=False)
 n("TATAPOWER","Tata Power","POWER","REGULATED","HOLD","OWNED",None,None,psu=0,notes="Hold; '30 P/E very expensive'")
+# --- missing pattaz names added 2026-09-20 (awaiting OSEP underwrite) ---
+n("HINDUNILVR","Hindustan Unilever","FMCG","FMCG","WATCH",None,None,None)
+n("ASIANPAINT","Asian Paints","FMCG","DEFAULT","WATCH",None,None,None)
+n("MARUTI","Maruti Suzuki","AUTO_PV_FARM","AUTO_OEM","WATCH",None,None,None)
+n("ICICIPRULI","ICICI Prudential Life","INSURANCE","INSURER","WATCH",None,None,None)
 
 # ------------------------------------------------------------- triggers ---
 # (symbol, kind, level, basis, derivation, set_on, valid_until, gtt, active, notes)
 T = [
  ("PETRONET","BUY",383,EPS_BASIS,"14.2x fair on TTM EPS (D54 anchor 7.04%)",BOARD,VALID,None,1,None),
- ("NTPC","BUY",407,EPS_BASIS,"14.2x fair; regulated≠directed",BOARD,VALID,None,1,"Conditional on Coal India exit"),
+ ("NTPC","BUY",407,EPS_BASIS,"14.2x fair; regulated≠directed",BOARD,VALID,None,1,"CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen"),
  ("INFY","BUY",1099,EPS_BASIS,"~15x band; USD/CC guard",BOARD,VALID,None,1,None),
  ("TCS","BUY",1939,EPS_BASIS,"~fair on TTM EPS",BOARD,VALID,None,1,"Re-verify at Oct Q2"),
  ("ITC","CRASH_SHELF",228,EPS_BASIS,"fwd EPS ~12-13 post tax shock",BOARD,VALID,None,1,"Hold-only name: shelf, not an add"),
