@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from tools.prices import PriceSnapshot, fetch_price
+from tools.prices import BatchPriceResult, PriceSnapshot, fetch_price, fetch_prices_batch
 from tools.stamped import Stamped
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -93,3 +93,62 @@ class TestStampedEnforcement:
         assert isinstance(snap.price.value, Decimal)
         assert isinstance(snap.low_52w.value, Decimal)
         assert isinstance(snap.high_52w.value, Decimal)
+
+
+class TestFetchPricesBatch:
+    """Tests for batch price fetching — spec: tiffin-coffee v6 §4 full sweep."""
+
+    @patch("tools.prices.yf.Ticker")
+    def test_batch_returns_all_successes(self, mock_ticker_cls: MagicMock) -> None:
+        fixtures = {"INFY.NS": "yf_infy.json", "HDFCBANK.NS": "yf_hdfcbank.json"}
+        mock_ticker_cls.side_effect = lambda t: _make_mock_ticker(fixtures[t])
+
+        result = fetch_prices_batch(["INFY.NS", "HDFCBANK.NS"])
+
+        assert isinstance(result, BatchPriceResult)
+        assert len(result.prices) == 2
+        assert "INFY" in result.prices
+        assert "HDFCBANK" in result.prices
+        assert len(result.failures) == 0
+
+    @patch("tools.prices.yf.Ticker")
+    def test_batch_captures_failures_without_raising(self, mock_ticker_cls: MagicMock) -> None:
+        def _side_effect(ticker: str) -> MagicMock:
+            if ticker == "INFY.NS":
+                return _make_mock_ticker("yf_infy.json")
+            return _make_mock_ticker("yf_missing.json")
+
+        mock_ticker_cls.side_effect = _side_effect
+
+        result = fetch_prices_batch(["INFY.NS", "DOESNOTEXIST.NS"])
+
+        assert len(result.prices) == 1
+        assert "INFY" in result.prices
+        assert len(result.failures) == 1
+        assert "DOESNOTEXIST" in result.failures
+
+    @patch("tools.prices.yf.Ticker")
+    def test_batch_empty_input(self, mock_ticker_cls: MagicMock) -> None:
+        result = fetch_prices_batch([])
+        assert len(result.prices) == 0
+        assert len(result.failures) == 0
+
+    @patch("tools.prices.yf.Ticker")
+    def test_batch_all_failures(self, mock_ticker_cls: MagicMock) -> None:
+        mock_ticker_cls.return_value = _make_mock_ticker("yf_missing.json")
+
+        result = fetch_prices_batch(["BAD1.NS", "BAD2.NS"])
+
+        assert len(result.prices) == 0
+        assert len(result.failures) == 2
+
+    @patch("tools.prices.yf.Ticker")
+    def test_batch_preserves_stamped_values(self, mock_ticker_cls: MagicMock) -> None:
+        mock_ticker_cls.return_value = _make_mock_ticker("yf_infy.json")
+
+        result = fetch_prices_batch(["INFY.NS"])
+
+        snap = result.prices["INFY"]
+        assert isinstance(snap.price, Stamped)
+        assert isinstance(snap.price.value, Decimal)
+        assert snap.price.source.startswith("yfinance:")
