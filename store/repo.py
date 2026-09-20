@@ -86,6 +86,19 @@ class CellRow:
 
 
 @dataclass(frozen=True)
+class FundamentalsRow:
+    symbol: str
+    as_of: str
+    eps_ttm: Decimal | None
+    book_value_ps: Decimal | None
+    roe: Decimal | None
+    promoter_pct: Decimal | None
+    pledge_pct: Decimal | None
+    auditor_flag: str | None
+    source: str | None
+
+
+@dataclass(frozen=True)
 class DecisionRow:
     d_no: int
     decided_on: str | None
@@ -320,3 +333,61 @@ class PattazRepo:
             "SELECT * FROM names WHERE yf_ticker IS NULL"
         ).fetchall()
         return [self._to_name_row(r) for r in rows]
+
+    # --- fundamentals ---
+
+    def save_fundamentals(
+        self,
+        symbol: str,
+        as_of: str,
+        eps_ttm: Decimal | None = None,
+        book_value_ps: Decimal | None = None,
+        roe: Decimal | None = None,
+        promoter_pct: Decimal | None = None,
+        pledge_pct: Decimal | None = None,
+        auditor_flag: str | None = None,
+        source: str | None = None,
+    ) -> None:
+        """INSERT OR REPLACE a fundamentals row for audit trail (E8)."""
+        self._con.execute(
+            "INSERT OR REPLACE INTO fundamentals"
+            " (symbol, as_of, eps_ttm, book_value_ps, roe,"
+            "  promoter_pct, pledge_pct, auditor_flag, source)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                symbol,
+                as_of,
+                float(eps_ttm) if eps_ttm is not None else None,
+                float(book_value_ps) if book_value_ps is not None else None,
+                float(roe) if roe is not None else None,
+                float(promoter_pct) if promoter_pct is not None else None,
+                float(pledge_pct) if pledge_pct is not None else None,
+                auditor_flag,
+                source,
+            ),
+        )
+        self._con.commit()
+
+    def load_latest_fundamentals(self, symbol: str) -> FundamentalsRow | None:
+        """Return the newest fundamentals row for a symbol, or None."""
+        row = self._con.execute(
+            "SELECT * FROM fundamentals WHERE symbol = ? ORDER BY as_of DESC LIMIT 1",
+            (symbol,),
+        ).fetchone()
+        if row is None:
+            return None
+        def _dec(col: str) -> Decimal | None:
+            v = row[col]
+            return Decimal(str(v)) if v is not None else None
+
+        return FundamentalsRow(
+            symbol=row["symbol"],
+            as_of=row["as_of"],
+            eps_ttm=_dec("eps_ttm"),
+            book_value_ps=_dec("book_value_ps"),
+            roe=_dec("roe"),
+            promoter_pct=_dec("promoter_pct"),
+            pledge_pct=_dec("pledge_pct"),
+            auditor_flag=row["auditor_flag"],
+            source=row["source"],
+        )

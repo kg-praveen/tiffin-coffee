@@ -23,7 +23,18 @@ from engine.plate import (
     PlateResult,
     build_plate,
 )
+from engine.valuation_gate import (
+    ValuationGateInput,
+    ValuationGateResult,
+    compute_valuation_gate,
+)
 from store.repo import HoldingRow, NameRow, PattazRepo, TriggerRow
+from tools.fundamentals import (
+    BatchFundamentalsResult,
+    FundamentalsSnapshot,
+    fetch_fundamentals_batch,
+)
+from tools.gsec import fetch_gsec_yield
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 
 log = logging.getLogger(__name__)
@@ -52,6 +63,9 @@ class PlateRunResult:
     names_scanned: int
     prices_fetched: int
     prices_failed: int
+    gsec_yield_pct: Decimal
+    gsec_source: str
+    gate_results: dict[str, ValuationGateResult]
 
 
 def _aggregate_holdings(
@@ -99,8 +113,16 @@ def _build_name_input(
     trigger: TriggerRow | None,
     holdings_qty: dict[str, int],
     household_equity: Decimal,
-) -> NameInput:
-    """Convert store types + price snapshot into a pure engine NameInput."""
+    fund: FundamentalsSnapshot | None,
+    gsec_yield_pct: Decimal,
+    coe_spread: Decimal,
+    growth_g: Decimal,
+) -> tuple[NameInput, ValuationGateResult]:
+    """Convert store types + price snapshot into a pure engine NameInput.
+
+    Returns (NameInput, ValuationGateResult) — the gate result is needed
+    for session output enrichment (E8).
+    """
     qty_held = holdings_qty.get(name.symbol, 0)
 
     current_weight_pct: Decimal | None = None
@@ -110,7 +132,19 @@ def _build_name_input(
             Decimal("0.01")
         )
 
-    return NameInput(
+    gate_inp = ValuationGateInput(
+        symbol=name.symbol,
+        sector_class=name.sector_class,
+        pe_trailing=fund.pe_trailing.value if fund and fund.pe_trailing else None,
+        pb_ratio=fund.pb_ratio.value if fund and fund.pb_ratio else None,
+        roe_pct=fund.roe_pct.value if fund and fund.roe_pct else None,
+        gsec_yield_pct=gsec_yield_pct,
+        cost_of_equity_spread=coe_spread,
+        growth_g_pct=growth_g,
+    )
+    gate_result = compute_valuation_gate(gate_inp)
+
+    ni = NameInput(
         symbol=name.symbol,
         name=name.name,
         price=snap.price.value,
@@ -131,20 +165,50 @@ def _build_name_input(
         decay_expiry=name.decay_expiry,
         qty_held_household=qty_held,
         current_weight_pct=current_weight_pct,
-        valuation_gate_passed=False,
+        valuation_gate_passed=gate_result.passed,
     )
+    return ni, gate_result
+
+
+def _resolve_gsec_yield(
+    policy: dict,
+    gsec_yield_override: Decimal | None,
+) -> tuple[Decimal, str]:
+    """Resolve GoI yield: override → live fetch → policy fallback (F2).
+
+    Returns (yield_pct, source_description).
+    """
+    if gsec_yield_override is not None:
+        return gsec_yield_override, f"override:{gsec_yield_override}"
+
+    try:
+        stamped = fetch_gsec_yield()
+        return stamped.value, stamped.source
+    except ValueError:
+        pass
+
+    fallback_row = policy.get("gsec_yield_last_known")
+    if fallback_row:
+        src = f"policy_fallback:{fallback_row.value} (as_of {fallback_row.adopted_on})"
+        return Decimal(fallback_row.value), src
+
+    return Decimal("7.04"), "hardcoded_emergency:7.04"
 
 
 def run_plate(
     db_path: str | Path,
     session_amount: Decimal,
     fetch_prices: bool = True,
+    gsec_yield_override: Decimal | None = None,
 ) -> PlateRunResult:
     """Execute UC2: build a tiffin-coffee buy plate.
 
-    CRITICAL FIX #6: scans ALL names with yf_tickers, not just those
-    with active triggers. A name at its 52-week low without a trigger
-    can still qualify via the first-bite exception.
+    CRITICAL FIX #6: scans ALL names with tickers, not just those
+    with active triggers. Names at 52-week lows without triggers
+    can qualify via the first-bite exception.
+
+    UC4: computes valuation gate per name using live fundamentals
+    and GoI yield. gsec_yield_override lets Praveen pass the rate manually.
     """
     now = datetime.now(UTC).isoformat(timespec="seconds")
     run_id = f"UC2_{uuid.uuid4().hex[:12]}"
@@ -156,6 +220,7 @@ def run_plate(
         all_triggers = repo.load_triggers(active_only=True)
         all_holdings = repo.load_holdings()
         all_cells = repo.load_cells()
+        policy = repo.load_policy()
 
         names_map: dict[str, NameRow] = {n.symbol: n for n in all_names}
         triggers_map: dict[str, TriggerRow] = {}
@@ -173,6 +238,12 @@ def run_plate(
             )
             for c in all_cells
         }
+
+        # --- resolve GoI yield (F2: override → live → policy fallback) ---
+        gsec_yield_pct, gsec_source = _resolve_gsec_yield(policy, gsec_yield_override)
+        coe_spread = Decimal(policy["cost_of_equity_spread_over_gsec"].value)
+        growth_g = Decimal(policy["growth_g"].value)
+        log.info("GoI yield: %s%% (source: %s)", gsec_yield_pct, gsec_source)
 
         # --- CRITICAL FIX #6: collect ALL tickers, not just triggered ones ---
         tickers_to_fetch: list[str] = []
@@ -196,6 +267,26 @@ def run_plate(
 
         prices = batch_result.prices
 
+        # --- fetch fundamentals for ALL tickered names (UC4) ---
+        fund_result: BatchFundamentalsResult
+        if fetch_prices:
+            fund_result = fetch_fundamentals_batch(tickers_to_fetch)
+        else:
+            fund_result = BatchFundamentalsResult()
+
+        fund_map = fund_result.fundamentals
+
+        # --- save fundamentals to DB for audit trail (E8) ---
+        for sym, fsnap in fund_map.items():
+            repo.save_fundamentals(
+                symbol=sym,
+                as_of=now,
+                eps_ttm=fsnap.eps_ttm.value if fsnap.eps_ttm else None,
+                book_value_ps=fsnap.book_value_ps.value if fsnap.book_value_ps else None,
+                roe=fsnap.roe_pct.value if fsnap.roe_pct else None,
+                source=f"yfinance:{symbol_to_ticker.get(sym, sym + '.NS')}",
+            )
+
         # --- compute portfolio-level metrics ---
         household_equity = _compute_household_equity(holdings_qty, prices)
         psu_weight = _compute_psu_weight(
@@ -209,14 +300,19 @@ def run_plate(
 
         # --- build NameInputs for ALL names with fetched prices ---
         name_inputs: list[NameInput] = []
+        gate_results: dict[str, ValuationGateResult] = {}
         for n in all_names:
             if n.symbol not in prices:
                 continue
             snap = prices[n.symbol]
             trigger = triggers_map.get(n.symbol)
-            name_inputs.append(
-                _build_name_input(n, snap, trigger, holdings_qty, household_equity)
+            fund = fund_map.get(n.symbol)
+            ni, gate_result = _build_name_input(
+                n, snap, trigger, holdings_qty, household_equity,
+                fund, gsec_yield_pct, coe_spread, growth_g,
             )
+            name_inputs.append(ni)
+            gate_results[n.symbol] = gate_result
 
         log.info(
             "plate inputs: %d names with prices, household_equity=%.0f, psu_weight=%.1f%%",
@@ -249,8 +345,12 @@ def run_plate(
             "names_scanned": len(name_inputs),
             "prices_fetched": len(prices),
             "prices_failed": len(batch_result.failures),
+            "fundamentals_fetched": len(fund_map),
+            "fundamentals_failed": len(fund_result.failures),
             "household_equity": str(household_equity),
             "psu_weight_pct": str(psu_weight),
+            "gsec_yield_pct": str(gsec_yield_pct),
+            "gsec_source": gsec_source,
         }
         drops_json = [
             {"symbol": d.symbol, "reason": d.reason.name, "detail": d.detail}
@@ -274,6 +374,9 @@ def run_plate(
             names_scanned=len(name_inputs),
             prices_fetched=len(prices),
             prices_failed=len(batch_result.failures),
+            gsec_yield_pct=gsec_yield_pct,
+            gsec_source=gsec_source,
+            gate_results=gate_results,
         )
     finally:
         repo.close()
@@ -292,6 +395,7 @@ def format_plate(result: PlateRunResult) -> str:
         f"Prices OK: {result.prices_fetched} | "
         f"Failed: {result.prices_failed}"
     )
+    lines.append(f"GoI yield: {result.gsec_yield_pct}% (source: {result.gsec_source})")
     lines.append("")
 
     if plate.entries:

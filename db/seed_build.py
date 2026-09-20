@@ -255,6 +255,7 @@ P = [
  ("fair_pe_method","1/gsec_yield","formula","osep v7 §ladder (OSEP formalisation of Anand's earnings-yield rule)",BOARD),
  ("cost_of_equity_spread_over_gsec","6.09","pct","ledger §3 (r=13.13% at G-sec 7.04%, D54)",BOARD),
  ("growth_g","5","pct","osep v7 §BANK justified P/B",BOARD),
+ ("gsec_yield_last_known","7.04","pct","RBI 10Y benchmark 2026-09-20; fallback if live fetch fails (F2)","2026-09-20"),
  ("lender_first_bite_gate","JUSTIFIED_PB_ONLY","rule","tiffin v6 §(c) — defect-2 fix","2026-09-17"),
  ("cap_name_pct","20","pct of household equity","pattaz-book §4","2026-07-13"),
  ("cap_sector_pct","40","pct of household equity","pattaz-book §4","2026-07-13"),

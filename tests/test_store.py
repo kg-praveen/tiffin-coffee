@@ -25,7 +25,7 @@ class TestPolicy:
     def test_load_policy_returns_dict(self, repo: PattazRepo) -> None:
         policy = repo.load_policy()
         assert isinstance(policy, dict)
-        assert len(policy) == 43
+        assert len(policy) == 44
 
     def test_fair_pe_method(self, repo: PattazRepo) -> None:
         policy = repo.load_policy()
