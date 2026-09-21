@@ -13,19 +13,22 @@ import logging
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 from engine.plate import (
     CellInfo,
     NameInput,
     PlateConfig,
+    PlateDrop,
+    PlateDropReason,
     PlateResult,
     build_plate,
 )
 from engine.valuation_gate import (
     ValuationGateInput,
     ValuationGateResult,
+    compute_fair_pe,
     compute_valuation_gate,
 )
 from store.repo import HoldingRow, NameRow, PattazRepo, TriggerRow
@@ -66,6 +69,13 @@ class PlateRunResult:
     gsec_yield_pct: Decimal
     gsec_source: str
     gate_results: dict[str, ValuationGateResult]
+    fair_pe: Decimal
+    household_equity: Decimal
+    fundamentals_fetched: int
+    fundamentals_failed: int
+    advisory_flags: list[str]
+    breadth_min: int
+    breadth_max: int
 
 
 def _aggregate_holdings(
@@ -166,8 +176,17 @@ def _build_name_input(
         qty_held_household=qty_held,
         current_weight_pct=current_weight_pct,
         valuation_gate_passed=gate_result.passed,
+        valuation_gate_detail=gate_result.detail,
+        p_mult_book=name.p_mult_book,
+        flag_no_add=name.flag_no_add,
+        owned_per_book=(name.bucket == "OWNED" or name.status == "HOLD"),
     )
     return ni, gate_result
+
+
+def _policy_decimal(policy: dict, key: str) -> Decimal:
+    """E2: policy constants come from the policy table — a missing key is a failure."""
+    return Decimal(policy[key].value)
 
 
 def _resolve_gsec_yield(
@@ -192,7 +211,8 @@ def _resolve_gsec_yield(
         src = f"policy_fallback:{fallback_row.value} (as_of {fallback_row.adopted_on})"
         return Decimal(fallback_row.value), src
 
-    return Decimal("7.04"), "hardcoded_emergency:7.04"
+    # E9: no yield → every valuation gate fails closed; the H path is unaffected.
+    return Decimal(0), "unavailable"
 
 
 def run_plate(
@@ -223,21 +243,28 @@ def run_plate(
         policy = repo.load_policy()
 
         names_map: dict[str, NameRow] = {n.symbol: n for n in all_names}
+        # E3: a trigger is armable only on a dated fresh-EPS basis
         triggers_map: dict[str, TriggerRow] = {}
+        unarmable: list[str] = []
         for t in all_triggers:
+            if t.basis_eps_date is None:
+                unarmable.append(t.symbol)
+                continue
             if t.symbol not in triggers_map:
                 triggers_map[t.symbol] = t
 
         holdings_qty = _aggregate_holdings(all_holdings)
 
-        cells_map: dict[str, CellInfo] = {
-            c.cell: CellInfo(
+        cells_map: dict[str, CellInfo] = {}
+        for c in all_cells:
+            seats = frozenset(s.strip() for s in c.active_adds.split(",") if s.strip()) \
+                if c.active_adds else frozenset()
+            cells_map[c.cell] = CellInfo(
                 is_full=c.is_full,
-                active_add_count=len(c.active_adds.split(",")) if c.active_adds else 0,
+                active_add_count=len(seats),
                 max_adds=c.max_adds,
+                active_adds=seats,
             )
-            for c in all_cells
-        }
 
         # --- resolve GoI yield (F2: override → live → policy fallback) ---
         gsec_yield_pct, gsec_source = _resolve_gsec_yield(policy, gsec_yield_override)
@@ -326,11 +353,52 @@ def run_plate(
             psu_weight_pct=psu_weight,
             cells=cells_map,
             bees_price=bees_price,
+            eligible_h_min=_policy_decimal(policy, "eligible_h_min"),
+            eligible_l_max=_policy_decimal(policy, "eligible_l_max"),
+            qty_clamp_min=int(_policy_decimal(policy, "qty_clamp_min")),
+            qty_clamp_max=int(_policy_decimal(policy, "qty_clamp_max")),
+            first_bite_qty_max=int(_policy_decimal(policy, "first_bite_qty_max")),
+            first_bite_h_mult_floor=_policy_decimal(policy, "first_bite_h_mult_floor"),
+            first_bite_l_max=_policy_decimal(policy, "first_bite_l_max"),
+            cap_psu_regulated_pct=_policy_decimal(policy, "cap_psu_regulated_pct"),
         )
 
         plate_result = build_plate(name_inputs, config)
 
+        # --- advisory flags (E9: a plate on flagged inputs is NO ACTION) ---
+        stale = [d.symbol for d in plate_result.drops
+                 if d.reason == PlateDropReason.HOLDINGS_STALE]
+        e6 = [d.symbol for d in plate_result.drops
+              if d.reason == PlateDropReason.E6_CAPS_OFF_CONFLICT]
+        unclassified = [n.symbol for n in all_names
+                        if n.symbol in prices and n.classified_on is None]
+        advisory: list[str] = []
+        if stale:
+            advisory.append(
+                f"BLOCK: {len(stale)} owned names have no holdings row — household equity, "
+                f"P-tiers and caps are unreliable (sync UC2.1): {', '.join(sorted(stale))}"
+            )
+        if unarmable:
+            advisory.append(
+                f"WARN: triggers without a basis date, not armed: {', '.join(unarmable)}"
+            )
+        if not gsec_source.startswith("yfinance"):
+            advisory.append(f"WARN: GoI yield not live — {gsec_source}")
+        if unclassified:
+            advisory.append(
+                f"WARN: E4 unclassified (default ladder used): {', '.join(unclassified)}"
+            )
+        if fund_result.failures:
+            advisory.append(f"WARN: fundamentals missing for {len(fund_result.failures)} names")
+        if e6:
+            advisory.append(f"WARN: E6 caps-off conflict — needs your ruling: {', '.join(e6)}")
+
         # --- write session ---
+        gate_details = {
+            sym: {"passed": gr.passed, "gate": gr.gate_name, "detail": gr.detail,
+                  "fair_pe": gr.fair_pe, "justified_pb": gr.justified_pb}
+            for sym, gr in gate_results.items()
+        }
         outputs: dict = _json_safe({
             "entries": [asdict(e) for e in plate_result.entries],
             "bees_sweep_qty": plate_result.bees_sweep_qty,
@@ -338,6 +406,8 @@ def run_plate(
             "total_stock_amount": str(plate_result.total_stock_amount),
             "total_with_sweep": str(plate_result.total_with_sweep),
             "residual": str(plate_result.residual),
+            "advisory_flags": advisory,
+            "gate_details": gate_details,
         })
         inputs: dict = {
             "today": today,
@@ -351,9 +421,13 @@ def run_plate(
             "psu_weight_pct": str(psu_weight),
             "gsec_yield_pct": str(gsec_yield_pct),
             "gsec_source": gsec_source,
+            "triggers_unarmable": unarmable,
         }
         drops_json = [
-            {"symbol": d.symbol, "reason": d.reason.name, "detail": d.detail}
+            {"symbol": d.symbol, "reason": d.reason.name, "detail": d.detail,
+             "what_would_change": d.what_would_change,
+             "h": str(d.h) if d.h is not None else None,
+             "l_pct": str(d.l_pct) if d.l_pct is not None else None}
             for d in plate_result.drops
         ]
 
@@ -377,68 +451,177 @@ def run_plate(
             gsec_yield_pct=gsec_yield_pct,
             gsec_source=gsec_source,
             gate_results=gate_results,
+            fair_pe=compute_fair_pe(gsec_yield_pct),
+            household_equity=household_equity,
+            fundamentals_fetched=len(fund_map),
+            fundamentals_failed=len(fund_result.failures),
+            advisory_flags=advisory,
+            breadth_min=int(_policy_decimal(policy, "breadth_min")),
+            breadth_max=int(_policy_decimal(policy, "breadth_max")),
         )
     finally:
         repo.close()
 
 
+# ------------------------------------------------------------- output ---
+
+
+def _inr(v: Decimal) -> str:
+    """Indian grouping: 3,47,775."""
+    q = int(v.quantize(Decimal(1), rounding=ROUND_HALF_UP))
+    s = str(abs(q))
+    if len(s) > 3:
+        head, tail = s[:-3], s[-3:]
+        parts: list[str] = []
+        while len(head) > 2:
+            parts.insert(0, head[-2:])
+            head = head[:-2]
+        if head:
+            parts.insert(0, head)
+        s = ",".join(parts) + "," + tail
+    return ("-" if q < 0 else "") + "Rs " + s
+
+
+_NEAR_MISS_ALWAYS = frozenset({
+    PlateDropReason.HOLDINGS_STALE,
+    PlateDropReason.FIRST_BITE_FAILED,
+    PlateDropReason.E6_CAPS_OFF_CONFLICT,
+    PlateDropReason.DECAY_EXPIRED,
+    PlateDropReason.P_BLOCKED,
+    PlateDropReason.NO_ADD_HOLD_ONLY,
+    PlateDropReason.SCORE_ZERO,
+})
+_NEAR_MISS_IF_H_ELIGIBLE = frozenset({
+    PlateDropReason.CELL_FULL,
+    PlateDropReason.PEAK_CYCLE,
+    PlateDropReason.PSU_CAP,
+    PlateDropReason.P5_VETO,
+})
+_BULK_ORDER = [
+    PlateDropReason.NO_TRIGGER, PlateDropReason.NOT_ELIGIBLE,
+    PlateDropReason.CELL_FULL, PlateDropReason.STATUS_BLOCKED,
+    PlateDropReason.EXIT_DECIDED, PlateDropReason.NEVER_ADD,
+]
+
+
+def _is_near_miss(d: PlateDrop, h_min: Decimal, l_max: Decimal) -> bool:
+    """Display cut-off only (not a rule): a drop worth reading, not just counting."""
+    if d.reason in _NEAR_MISS_ALWAYS:
+        return True
+    if d.reason == PlateDropReason.NOT_ELIGIBLE:
+        return (d.h is not None and d.h >= h_min - Decimal("0.10")) or (
+            d.l_pct is not None and d.l_pct <= l_max * 2
+        )
+    if d.reason == PlateDropReason.NO_TRIGGER:
+        return d.l_pct is not None and d.l_pct <= l_max
+    if d.reason in _NEAR_MISS_IF_H_ELIGIBLE:
+        return d.h is not None and d.h >= h_min
+    return False
+
+
 def format_plate(result: PlateRunResult) -> str:
-    """Format the plate result as plain-language output for Praveen."""
-    lines: list[str] = []
-    plate = result.plate
+    """Report for Praveen. Spec E8: inputs with stamps · rules fired · the plate ·
+    every drop with its reason · what would change the verdict."""
+    p = result.plate
+    L: list[str] = []
+    blocked = any(f.startswith("BLOCK") for f in result.advisory_flags)
+    h_min = Decimal("0.85")
+    l_max = Decimal(5)
 
-    lines.append(f"Buy Plate -- {result.ran_at}")
-    lines.append(f"Run: {result.run_id}")
-    lines.append(
-        f"Session: {plate.session_amount} | "
-        f"Scanned: {result.names_scanned} names | "
-        f"Prices OK: {result.prices_fetched} | "
-        f"Failed: {result.prices_failed}"
+    L.append(f"TIFFIN COFFEE PLATE — {result.ran_at[:10]}  |  run {result.run_id}")
+    L.append(
+        f"Ticket {_inr(p.session_amount)}  |  GoI {result.gsec_yield_pct}% "
+        f"({result.gsec_source}) → fair P/E {result.fair_pe}x  |  "
+        f"Household equity {_inr(result.household_equity)}"
+        + ("  [PHANTOM — holdings partial]" if blocked else "")
     )
-    lines.append(f"GoI yield: {result.gsec_yield_pct}% (source: {result.gsec_source})")
-    lines.append("")
-
-    if plate.entries:
-        lines.append(
-            f"PLATE -- {len(plate.entries)} name(s), "
-            f"total {plate.total_stock_amount}:"
-        )
-        lines.append(
-            f"  {'Name':15s} {'Qty':>4s} {'Amount':>10s} "
-            f"{'Mode':12s} {'H':>6s} {'L%':>6s} {'Score':>7s} {'Tag'}"
-        )
-        for e in plate.entries:
-            h_str = f"{e.h:.3f}" if e.h is not None else "  -   "
-            tag = "PRICE-BITE" if e.is_first_bite else ""
-            lines.append(
-                f"  {e.symbol:15s} {e.qty:>4d} {e.amount:>10.2f} "
-                f"{e.mode.value:12s} {h_str:>6s} {e.l_pct:>5.1f}% "
-                f"{e.score:>7.3f} {tag}"
-            )
-        lines.append("")
-
-    if plate.bees_sweep_qty > 0:
-        lines.append(
-            f"BeES SWEEP: {plate.bees_sweep_qty} NIFTYBEES "
-            f"= {plate.bees_sweep_amount}"
-        )
-
-    lines.append(
-        f"TOTAL: {plate.total_with_sweep} "
-        f"(stocks {plate.total_stock_amount} + "
-        f"BeES {plate.bees_sweep_amount}) | "
-        f"Residual: {plate.residual}"
+    L.append(
+        f"Scanned {result.names_scanned}  |  prices {result.prices_fetched} ok / "
+        f"{result.prices_failed} failed  |  fundamentals {result.fundamentals_fetched} ok / "
+        f"{result.fundamentals_failed} failed"
     )
-    lines.append("")
+    L.append("")
 
-    if plate.drops:
-        lines.append(f"DROPS -- {len(plate.drops)} name(s) excluded:")
-        for d in plate.drops:
-            h_str = f"H={d.h:.3f}" if d.h is not None else "H=-"
-            l_str = f"L={d.l_pct:.1f}%" if d.l_pct is not None else "L=-"
-            lines.append(
-                f"  {d.symbol:15s} {d.reason.name:30s} {h_str} {l_str}"
+    if result.advisory_flags:
+        L.append("!! ADVISORY — DO NOT EXECUTE !!" if blocked else "ADVISORY")
+        for f in result.advisory_flags:
+            L.append(f"  - {f}")
+        L.append("")
+
+    # --- the plate ---
+    if p.entries:
+        L.append(f"PLATE — {len(p.entries)} name(s) · {_inr(p.total_stock_amount)}")
+        L.append(
+            f"  {'#':>2} {'Name':12s} {'Qty':>3} {'LTP':>9} {'Amount':>10} "
+            f"{'Mode':10s} {'H':>6} {'L%':>6} {'Band':12s} {'P-tier':11s} "
+            f"{'Score':>6} {'Order'}"
+        )
+        for i, e in enumerate(p.entries, 1):
+            h_str = f"{e.h:.3f}" if e.h is not None else "-"
+            order = "TIGHT LIMIT (first bite, max 5)" if e.is_first_bite else "TIGHT LIMIT"
+            L.append(
+                f"  {i:>2} {e.symbol:12s} {e.qty:>3} {e.price:>9.2f} {e.amount:>10.2f} "
+                f"{e.mode.value:10s} {h_str:>6} {e.l_pct:>5.1f}% {e.low_band.value:12s} "
+                f"{e.p_tier.value:11s} {e.score:>6.3f} {order}"
             )
-        lines.append("")
+    else:
+        L.append("PLATE — no stock qualifies today; BeES floor applies")
+    if p.bees_sweep_qty > 0:
+        L.append(f"   ↳ NIFTYBEES sweep {p.bees_sweep_qty} = {_inr(p.bees_sweep_amount)}")
+    L.append(
+        f"  TOTAL {_inr(p.total_with_sweep)} = stocks {_inr(p.total_stock_amount)} "
+        f"+ BeES {_inr(p.bees_sweep_amount)}  |  residual {_inr(p.residual)}"
+    )
+    L.append("")
 
-    return "\n".join(lines)
+    # --- what would change the verdict ---
+    near = [d for d in p.drops if _is_near_miss(d, h_min, l_max)]
+    if near:
+        L.append("WHAT WOULD CHANGE THE VERDICT — near misses")
+        L.append(f"  {'Name':12s} {'Reason':22s} {'H':>6} {'L%':>6}  Why → what would change it")
+        for d in sorted(near, key=lambda x: (x.reason.name, x.symbol)):
+            h_str = f"{d.h:.3f}" if d.h is not None else "-"
+            l_str = f"{d.l_pct:.1f}%" if d.l_pct is not None else "-"
+            L.append(
+                f"  {d.symbol:12s} {d.reason.name:22s} {h_str:>6} {l_str:>6}  "
+                f"{d.detail} → {d.what_would_change}"
+            )
+        L.append("")
+
+    # --- the rest, by rule ---
+    near_syms = {d.symbol for d in near}
+    bulk: dict[PlateDropReason, list[str]] = {}
+    for d in p.drops:
+        if d.symbol not in near_syms:
+            bulk.setdefault(d.reason, []).append(d.symbol)
+    if bulk:
+        L.append("EXCLUDED BY RULE")
+        ordered = _BULK_ORDER + [r for r in bulk if r not in _BULK_ORDER]
+        for r in ordered:
+            if r in bulk:
+                L.append(f"  {r.name} ({len(bulk[r])}): {', '.join(sorted(bulk[r]))}")
+        L.append("")
+
+    # --- guardrails ---
+    n = len(p.entries)
+    breadth_ok = result.breadth_min <= n <= result.breadth_max
+    L.append("GUARDRAILS")
+    L.append("  [x] READ-ONLY — code proposes, Praveen executes in Kite")
+    L.append("  [x] qty clamp 1-10 on every name (first bite ≤ 5)")
+    if breadth_ok:
+        breadth_note = ""
+    elif n < result.breadth_min:
+        breadth_note = " — BELOW floor; spec says loosen L ≤ 10% — NOT auto-applied (ask)"
+    else:
+        breadth_note = " — ABOVE ceiling; raise the ticket or drop bottom scores"
+    L.append(
+        f"  [{'x' if breadth_ok else ' '}] breadth "
+        f"{result.breadth_min}-{result.breadth_max}: {n}{breadth_note}"
+    )
+    L.append("  [x] BeES floor NEVER_SKIP — residual swept")
+    L.append("  [x] no buy+sell in one session (EXIT_DECIDED enforced)")
+    L.append("  [ ] single-deployment cap 15% of surplus — surplus not in the register yet")
+    L.append("  [ ] event hold (earnings ≤ 5 days) — not implemented; check before executing")
+    if blocked:
+        L.append("  [ ] holdings synced — NO (this plate is advisory only)")
+    return "\n".join(L)

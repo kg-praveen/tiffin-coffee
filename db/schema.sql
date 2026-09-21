@@ -27,7 +27,9 @@ CREATE TABLE names (
   flag_fraud_tail   INTEGER NOT NULL DEFAULT 0,-- overlay 10
   flag_exit_decided INTEGER NOT NULL DEFAULT 0,-- overlay 7: on the sell list
   notes             TEXT,
-  as_of             TEXT NOT NULL              -- date this row's state was last confirmed
+  as_of             TEXT NOT NULL,             -- date this row's state was last confirmed
+  p_mult_book       REAL,                      -- pattaz-book §4 roster P-mult (interim until holdings sync)
+  flag_no_add       INTEGER NOT NULL DEFAULT 0 -- hold-only / museum: builds blocked, first-bite allowed
 );
 
 -- Trigger board. A trigger is ARMABLE only if active=1 AND basis_eps_date is fresh (E3).

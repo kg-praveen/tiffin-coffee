@@ -73,7 +73,16 @@ def fetch_fundamentals(yf_ticker: str) -> FundamentalsSnapshot:
     bv_raw = _decimal_or_none(info.get("bookValue"))
 
     roe_ratio = info.get("returnOnEquity")
-    roe_pct = Decimal(str(roe_ratio)) * 100 if roe_ratio is not None else None
+    roe_stamped: Stamped[Decimal] | None
+    if roe_ratio is not None:
+        roe_stamped = _stamp(Decimal(str(roe_ratio)) * 100)
+    elif eps_raw is not None and bv_raw is not None and bv_raw > 0:
+        # yfinance omits ROE for most NSE names; EPS/BV on ending equity is the
+        # conservative (understated) derivation — stamped so the audit shows it.
+        derived = (eps_raw / bv_raw * 100).quantize(Decimal("0.01"))
+        roe_stamped = Stamped(value=derived, source=f"{source} (roe derived eps/bv)", as_of=now)
+    else:
+        roe_stamped = None
 
     return FundamentalsSnapshot(
         symbol=symbol,
@@ -81,7 +90,7 @@ def fetch_fundamentals(yf_ticker: str) -> FundamentalsSnapshot:
         pb_ratio=_stamp(pb_raw),
         eps_ttm=_stamp(eps_raw),
         book_value_ps=_stamp(bv_raw),
-        roe_pct=_stamp(roe_pct),
+        roe_pct=roe_stamped,
     )
 
 

@@ -92,6 +92,10 @@ def gate_default_pe_ladder(
         and justified_pb > 0
         and pb_ratio <= justified_pb
     )
+    if pe_trailing is not None:
+        pe_trailing = pe_trailing.quantize(_Q2, rounding=ROUND_HALF_UP)
+    if pb_ratio is not None:
+        pb_ratio = pb_ratio.quantize(_Q2, rounding=ROUND_HALF_UP)
 
     if pe_pass and pb_pass:
         detail = (
@@ -154,10 +158,11 @@ def gate_lender_justified_pb(
             justified_pb=justified_pb,
         )
     passed = pb_ratio <= justified_pb
+    pb_shown = pb_ratio.quantize(_Q2, rounding=ROUND_HALF_UP)
     if passed:
-        detail = f"PASS: P/B {pb_ratio} <= justified {justified_pb}"
+        detail = f"PASS: P/B {pb_shown} <= justified {justified_pb}"
     else:
-        detail = f"FAIL: P/B {pb_ratio} > justified {justified_pb}"
+        detail = f"FAIL: P/B {pb_shown} > justified {justified_pb}"
     return ValuationGateResult(
         passed=passed,
         gate_name="gate_lender_justified_pb",

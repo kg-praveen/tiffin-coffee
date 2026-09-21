@@ -84,6 +84,28 @@ class TestFetchFundamentals:
             fetch_fundamentals("DOESNOTEXIST.NS")
 
     @patch("tools.fundamentals.yf.Ticker")
+    def test_roe_derived_from_eps_over_bv_when_missing(self, mock_cls: MagicMock) -> None:
+        """yfinance omits ROE for most NSE names; EPS/BV is the stamped fallback."""
+        mock = MagicMock()
+        mock.info = {"regularMarketPrice": 988.5, "trailingEps": 87.7, "bookValue": 503.55}
+        mock_cls.return_value = mock
+        snap = fetch_fundamentals("SBIN.NS")
+        assert snap.roe_pct is not None
+        assert snap.roe_pct.value == Decimal("17.42")
+        assert "derived eps/bv" in snap.roe_pct.source
+
+    @patch("tools.fundamentals.yf.Ticker")
+    def test_reported_roe_wins_over_derivation(self, mock_cls: MagicMock) -> None:
+        mock = MagicMock()
+        mock.info = {"regularMarketPrice": 100.0, "trailingEps": 10.0, "bookValue": 50.0,
+                     "returnOnEquity": 0.25}
+        mock_cls.return_value = mock
+        snap = fetch_fundamentals("X.NS")
+        assert snap.roe_pct is not None
+        assert snap.roe_pct.value == Decimal("25.0")
+        assert "derived" not in snap.roe_pct.source
+
+    @patch("tools.fundamentals.yf.Ticker")
     def test_partial_data_returns_none_fields(self, mock_cls: MagicMock) -> None:
         mock = MagicMock()
         mock.info = {"regularMarketPrice": 100.0}

@@ -25,7 +25,7 @@ class TestPolicy:
     def test_load_policy_returns_dict(self, repo: PattazRepo) -> None:
         policy = repo.load_policy()
         assert isinstance(policy, dict)
-        assert len(policy) == 44
+        assert len(policy) == 47
 
     def test_fair_pe_method(self, repo: PattazRepo) -> None:
         policy = repo.load_policy()
@@ -69,6 +69,23 @@ class TestNames:
     def test_names_have_as_of(self, repo: PattazRepo) -> None:
         for n in repo.load_names():
             assert n.as_of, f"name {n.symbol} missing as_of"
+
+    def test_p_mult_book_roster(self, repo: PattazRepo) -> None:
+        """pattaz-book §4 roster (migration 004)."""
+        infy = repo.get_name("INFY")
+        hdfc = repo.get_name("HDFCBANK")
+        itc = repo.get_name("ITC")
+        assert infy is not None and infy.p_mult_book == Decimal("1.0")
+        assert hdfc is not None and hdfc.p_mult_book == Decimal(0)
+        assert itc is not None and itc.p_mult_book == Decimal("0.5")
+
+    def test_flag_no_add_museum_names(self, repo: PattazRepo) -> None:
+        """pattaz-book §5/§6 museum / hold-only (migration 004)."""
+        for sym in ("ITC", "WIPRO", "HCLTECH", "HAL", "BEL"):
+            n = repo.get_name(sym)
+            assert n is not None and n.flag_no_add, f"{sym} should be flag_no_add"
+        infy = repo.get_name("INFY")
+        assert infy is not None and not infy.flag_no_add
 
 
 class TestTriggers:

@@ -393,7 +393,8 @@ class TestBuildPlate:
         )]
         result = build_plate(names, _config())
         assert len(result.entries) == 0
-        assert result.drops[0].reason == PlateDropReason.FASTING_NO_FIRST_BITE
+        assert result.drops[0].reason == PlateDropReason.NOT_ELIGIBLE
+        assert "price ≤ 117.65" in result.drops[0].what_would_change
 
     def test_sovereign_overlay_drops(self) -> None:
         names = [_name(flag_sovereign=True)]
@@ -448,3 +449,182 @@ class TestBuildPlate:
         result = build_plate(names, _config())
         assert result.session_amount == Decimal(40000)
         assert result.total_with_sweep == result.total_stock_amount + result.bees_sweep_amount
+
+
+# ------------------------------------------------ audit fixes (21-Sep) ---
+
+
+from typing import ClassVar  # noqa: E402
+
+from engine.plate import priority_from_book  # noqa: E402
+
+
+def _cfg_cells(cells: dict[str, CellInfo], psu: Decimal = Decimal(15)) -> PlateConfig:
+    return PlateConfig(
+        session_amount=Decimal(40000), today="2026-09-21",
+        psu_weight_pct=psu, cells=cells, bees_price=Decimal(265),
+    )
+
+
+class TestCellSeatHolders:
+    """Overlay #5: the cap limits ADD seats; a seat-holder is never self-blocked."""
+
+    IT: ClassVar[dict[str, CellInfo]] = {
+        "IT": CellInfo(is_full=False, active_add_count=2, max_adds=2,
+                       active_adds=frozenset({"INFY", "TCS"})),
+    }
+
+    def test_seat_holder_plates(self) -> None:
+        res = build_plate([_name(symbol="INFY", cell="IT", price=Decimal(1000),
+                                 low_52w=Decimal(950), trigger_level=Decimal(1040))],
+                          _cfg_cells(self.IT))
+        assert [e.symbol for e in res.entries] == ["INFY"]
+
+    def test_non_seat_holder_blocked(self) -> None:
+        res = build_plate([_name(symbol="WIPRO", cell="IT", price=Decimal(166),
+                                 low_52w=Decimal(163), trigger_level=Decimal(190))],
+                          _cfg_cells(self.IT))
+        assert res.drops[0].reason == PlateDropReason.CELL_FULL
+        assert "seat" in res.drops[0].what_would_change
+
+    def test_full_cell_still_lets_seat_holder_through(self) -> None:
+        gold = {"GOLD_NBFC": CellInfo(is_full=True, active_add_count=1, max_adds=2,
+                                      active_adds=frozenset({"MUTHOOTFIN"}))}
+        res = build_plate([_name(symbol="MUTHOOTFIN", cell="GOLD_NBFC",
+                                 price=Decimal(2770), low_52w=Decimal(2671),
+                                 trigger_level=Decimal(3221))], _cfg_cells(gold))
+        assert [e.symbol for e in res.entries] == ["MUTHOOTFIN"]
+        assert res.entries[0].mode == Mode.HOCKEY
+
+
+class TestDropReasonSplit:
+    def test_no_trigger_off_the_low(self) -> None:
+        res = build_plate([_name(trigger_level=None, price=Decimal(200), low_52w=Decimal(100))],
+                          _config())
+        d = res.drops[0]
+        assert d.reason == PlateDropReason.NO_TRIGGER
+        assert "underwrite" in d.what_would_change
+
+    def test_not_eligible_names_the_price_needed(self) -> None:
+        res = build_plate([_name(trigger_level=Decimal(85), price=Decimal(120),
+                                 low_52w=Decimal(100))], _config())
+        d = res.drops[0]
+        assert d.reason == PlateDropReason.NOT_ELIGIBLE
+        assert "price ≤ 100.00" in d.what_would_change
+
+    def test_first_bite_failed_lists_each_condition(self) -> None:
+        res = build_plate([_name(
+            trigger_level=Decimal(50), price=Decimal(100), low_52w=Decimal(99),
+            qty_held_household=0, valuation_gate_passed=False,
+            valuation_gate_detail="FAIL: P/E 40 > fair 14.20; P/B 9 > justified 1.5",
+        )], _config())
+        d = res.drops[0]
+        assert d.reason == PlateDropReason.FIRST_BITE_FAILED
+        assert "(c) gate: FAIL: P/E 40" in d.detail
+        assert "(d) not owned" in d.detail
+        assert "(a)" not in d.detail  # L=1.01% passes
+
+    def test_every_drop_says_what_would_change(self) -> None:
+        names = [
+            _name(symbol="A", status="SOLD"),
+            _name(symbol="B", flag_exit_decided=True),
+            _name(symbol="C", trigger_level=None, price=Decimal(200), low_52w=Decimal(100)),
+            _name(symbol="D", flag_sovereign=True),
+            _name(symbol="E", flag_cyclical=True),
+        ]
+        res = build_plate(names, _config())
+        assert len(res.drops) == 5
+        assert all(d.what_would_change for d in res.drops)
+
+
+class TestHoldingsIntegrity:
+    """CLAUDE.md §3: missing holdings for a book-owned name → fail closed."""
+
+    def test_owned_per_book_without_row_is_stale(self) -> None:
+        res = build_plate([_name(symbol="RELIANCE", status="HOLD", bucket="OWNED",
+                                 owned_per_book=True, qty_held_household=0,
+                                 current_weight_pct=None)], _config())
+        assert res.drops[0].reason == PlateDropReason.HOLDINGS_STALE
+        assert "HOLDINGS_STALE:RELIANCE" in res.rules_fired
+
+    def test_book_p_mult_substitutes_for_missing_row(self) -> None:
+        res = build_plate([_name(symbol="TCS", status="ADD", bucket="GBN",
+                                 owned_per_book=True, qty_held_household=0,
+                                 current_weight_pct=None,
+                                 p_mult_book=Decimal("1.0"))], _config())
+        assert [e.symbol for e in res.entries] == ["TCS"]
+        assert res.entries[0].p_tier == PriorityTier.BUILDING
+
+    def test_new_name_without_row_is_missing_tier(self) -> None:
+        res = build_plate([_name(symbol="NEW", status="ADD", bucket="GBL",
+                                 owned_per_book=False, qty_held_household=0,
+                                 current_weight_pct=None)], _config())
+        assert res.entries[0].p_tier == PriorityTier.MISSING
+
+
+class TestNoAddAndBookPriority:
+    def test_hold_only_blocked_on_build_path(self) -> None:
+        res = build_plate([_name(symbol="ITC", flag_no_add=True, p_mult_book=Decimal("0.5"),
+                                 price=Decimal(266), low_52w=Decimal(255),
+                                 trigger_level=Decimal(228))], _config())
+        assert res.drops[0].reason == PlateDropReason.NO_ADD_HOLD_ONLY
+        assert "first bite" in res.drops[0].what_would_change
+
+    def test_hold_only_still_allows_first_bite(self) -> None:
+        res = build_plate([_name(symbol="WIPRO", flag_no_add=True, qty_held_household=146,
+                                 price=Decimal(164), low_52w=Decimal("163.3"),
+                                 trigger_level=Decimal(120), valuation_gate_passed=True)],
+                          _config())
+        assert [e.symbol for e in res.entries] == ["WIPRO"]
+        assert res.entries[0].is_first_bite and res.entries[0].qty <= 5
+
+    def test_priority_from_book_mapping(self) -> None:
+        assert priority_from_book(Decimal(0)) == (PriorityTier.BLOCKED, Decimal(0))
+        assert priority_from_book(Decimal("0.5")) == (PriorityTier.MAINTENANCE, Decimal("0.5"))
+        assert priority_from_book(Decimal("1.0")) == (PriorityTier.BUILDING, Decimal("1.0"))
+        assert priority_from_book(Decimal("1.5")) == (PriorityTier.MISSING, Decimal("1.5"))
+
+    def test_book_blocked_drops_on_build_path(self) -> None:
+        res = build_plate([_name(symbol="HDFCBANK", p_mult_book=Decimal(0),
+                                 price=Decimal(500), low_52w=Decimal(450),
+                                 trigger_level=Decimal(500))], _config())
+        assert res.drops[0].reason == PlateDropReason.P_BLOCKED
+
+
+class TestE6CapsOffConflict:
+    """First bite passes quality but is blocked only by cell/P → surface, never decide."""
+
+    def test_cell_blocked_first_bite_is_e6(self) -> None:
+        it = {"IT": CellInfo(is_full=False, active_add_count=2, max_adds=2,
+                             active_adds=frozenset({"INFY", "TCS"}))}
+        res = build_plate([_name(symbol="WIPRO", cell="IT", qty_held_household=146,
+                                 price=Decimal(164), low_52w=Decimal("163.3"),
+                                 trigger_level=Decimal(120), valuation_gate_passed=True)],
+                          _cfg_cells(it))
+        d = res.drops[0]
+        assert d.reason == PlateDropReason.E6_CAPS_OFF_CONFLICT
+        assert "cell cap" in d.detail and "§12b" in d.detail
+        assert "E6:CAPS_OFF:WIPRO" in res.rules_fired
+
+    def test_p_blocked_first_bite_is_e6(self) -> None:
+        res = build_plate([_name(symbol="HDFCBANK", p_mult_book=Decimal(0), qty_held_household=5,
+                                 price=Decimal(700), low_52w=Decimal(700),
+                                 trigger_level=Decimal(419), valuation_gate_passed=True,
+                                 sector_class="LENDER")], _config())
+        assert res.drops[0].reason == PlateDropReason.E6_CAPS_OFF_CONFLICT
+        assert "P=0" in res.drops[0].detail
+
+    def test_quality_overlay_is_never_waived_for_first_bite(self) -> None:
+        res = build_plate([_name(symbol="BOB", flag_fraud_tail=True, qty_held_household=10,
+                                 price=Decimal(100), low_52w=Decimal(100),
+                                 trigger_level=Decimal(50), valuation_gate_passed=True)],
+                          _config())
+        assert res.drops[0].reason == PlateDropReason.FRAUD_TAIL
+
+
+class TestPlateEntryCarriesOrderData:
+    def test_entry_has_price_and_tier(self) -> None:
+        res = build_plate([_name()], _config())
+        e = res.entries[0]
+        assert e.price == Decimal(100)
+        assert e.p_tier == PriorityTier.BUILDING

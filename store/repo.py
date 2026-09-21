@@ -48,6 +48,8 @@ class NameRow:
     flag_exit_decided: bool
     notes: str | None
     as_of: str
+    p_mult_book: Decimal | None = None
+    flag_no_add: bool = False
 
 
 @dataclass(frozen=True)
@@ -157,7 +159,12 @@ class PattazRepo:
 
     @staticmethod
     def _to_name_row(r: sqlite3.Row) -> NameRow:
+        keys = r.keys()
+        p_mult_raw = r["p_mult_book"] if "p_mult_book" in keys else None
+        no_add_raw = r["flag_no_add"] if "flag_no_add" in keys else 0
         return NameRow(
+            p_mult_book=Decimal(str(p_mult_raw)) if p_mult_raw is not None else None,
+            flag_no_add=bool(no_add_raw),
             symbol=r["symbol"],
             name=r["name"],
             yf_ticker=r["yf_ticker"],
@@ -279,9 +286,9 @@ class PattazRepo:
         run_id: str,
         ran_at: str,
         usecase: str,
-        inputs: dict,
-        outputs: dict,
-        drops: list[dict],
+        inputs: dict[str, object],
+        outputs: dict[str, object],
+        drops: list[dict[str, object]],
         rules_fired: list[str],
     ) -> None:
         """Append a session record. Spec: sessions is append-only; a run that
