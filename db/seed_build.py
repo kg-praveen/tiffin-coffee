@@ -10,8 +10,12 @@ from __future__ import annotations
 import datetime as dt
 import pathlib
 import sqlite3
+import sys
 
 HERE = pathlib.Path(__file__).parent
+sys.path.insert(0, str(HERE.parent))
+from tools.csv_import import parse_household_csv, snapshot_with_zeroing  # noqa: E402
+
 DB, SCHEMA, DUMP = HERE / "pattaz.db", HERE / "schema.sql", HERE / "seed.sql"
 LEDGER = "2026-09-17"      # ledger v4.9 date — default as_of
 BOARD = "2026-09-12"       # D54 re-derived trigger board
@@ -329,6 +333,18 @@ def build() -> None:
     con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", N)
     con.executemany("INSERT INTO triggers VALUES (?,?,?,?,?,?,?,?,?,?)", T)
     con.executemany("INSERT INTO holdings VALUES (?,?,?,?,?,?)", H)
+    # UC2.1 CSV snapshots (db/holdings/*.csv, oldest first). Each is a FULL household
+    # snapshot: pairs held before but absent now get a qty-0 row (recorded exit).
+    held: set[tuple[str, str]] = {(a, s) for a, s, q, *_ in H if q > 0}
+    for csv_path in sorted((HERE / "holdings").glob("*.csv"), key=lambda p: parse_household_csv(p).as_of):
+        snap = parse_household_csv(csv_path)
+        rows = snapshot_with_zeroing(snap, held)
+        con.executemany(
+            "INSERT OR REPLACE INTO holdings VALUES (?,?,?,?,?,?)",
+            [(r.account, r.symbol, r.qty, float(r.avg_cost) if r.avg_cost is not None else None,
+              snap.as_of, snap.source) for r in rows],
+        )
+        held = {(r.account, r.symbol) for r in rows if r.qty > 0}
     con.executemany("INSERT INTO cells VALUES (?,?,?,?,?,?,?)", [(*c, LEDGER) for c in C])
     con.executemany("INSERT INTO policy VALUES (?,?,?,?,?)", P)
     con.executemany("INSERT INTO decisions VALUES (?,?,?,?,?)", sorted(D))

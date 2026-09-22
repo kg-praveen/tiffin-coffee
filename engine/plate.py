@@ -595,6 +595,24 @@ def build_plate(
             rules_fired.append(f"first_bite:{n.symbol}")
         else:
             # --- build path (eligible via H) ---
+            build_blocker = (
+                "cell cap" if cell_drop is not None
+                else "hold-only/museum" if n.flag_no_add
+                else None
+            )
+            if build_blocker is not None and check_first_bite(
+                l_pct, True, n.valuation_gate_passed, is_owned, n.sector_class,
+                l_max=config.first_bite_l_max,
+            ):
+                # Wipro 10-Sep precedent: at the low, owned, gate passes, build blocked
+                # only by portfolio construction → the §12b caps-off question.
+                _drop(n, PlateDropReason.E6_CAPS_OFF_CONFLICT,
+                      f"H={h}, L={l_pct}%, owned, gate PASS — build blocked by {build_blocker}; "
+                      f"a first bite here needs the §12b caps-off waiver (UNRESOLVED)",
+                      "Praveen rules on §12b caps-off for this name — engine takes no action",
+                      h=h, l_pct=l_pct)
+                rules_fired.append(f"E6:CAPS_OFF:{n.symbol}")
+                continue
             if cell_drop is not None:
                 _drop(n, cell_drop, f"H={h}, L={l_pct}% — not a seat-holder in cell {n.cell}",
                       _OVERLAY_WHAT_WOULD_CHANGE[cell_drop], h=h, l_pct=l_pct)

@@ -221,15 +221,53 @@ class PattazRepo:
 
     # --- holdings ---
 
+    _NEWEST_HOLDINGS_SQL = (
+        "SELECT h.* FROM holdings h"
+        " JOIN (SELECT account, symbol, MAX(as_of) AS as_of FROM holdings"
+        "       GROUP BY account, symbol) m"
+        " ON h.account = m.account AND h.symbol = m.symbol AND h.as_of = m.as_of"
+    )
+
     def load_holdings(self) -> list[HoldingRow]:
-        rows = self._con.execute("SELECT * FROM holdings").fetchall()
+        """Newest row per (account, symbol) — sync-holdings skill step 3.
+
+        A qty-0 row is a recorded exit and is returned as such (E3: never assume)."""
+        rows = self._con.execute(self._NEWEST_HOLDINGS_SQL).fetchall()
+        return [self._to_holding_row(r) for r in rows]
+
+    def load_holdings_history(self) -> list[HoldingRow]:
+        rows = self._con.execute(
+            "SELECT * FROM holdings ORDER BY as_of, account, symbol"
+        ).fetchall()
         return [self._to_holding_row(r) for r in rows]
 
     def get_holdings_for(self, symbol: str) -> list[HoldingRow]:
         rows = self._con.execute(
-            "SELECT * FROM holdings WHERE symbol = ?", (symbol,)
+            self._NEWEST_HOLDINGS_SQL + " WHERE h.symbol = ?", (symbol,)
         ).fetchall()
         return [self._to_holding_row(r) for r in rows]
+
+    def held_pairs(self) -> set[tuple[str, str]]:
+        """(account, symbol) pairs whose newest row has qty > 0."""
+        return {(h.account, h.symbol) for h in self.load_holdings() if h.qty > 0}
+
+    def insert_holdings(
+        self,
+        rows: list[tuple[str, str, int, Decimal | None]],
+        as_of: str,
+        source: str,
+    ) -> int:
+        """Append a dated snapshot. Older rows are kept as history (never edited)."""
+        self._con.executemany(
+            "INSERT OR REPLACE INTO holdings (account, symbol, qty, avg_cost, as_of, source)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                (acct, sym, qty, float(cost) if cost is not None else None, as_of, source)
+                for acct, sym, qty, cost in rows
+            ],
+        )
+        self._con.commit()
+        return len(rows)
 
     @staticmethod
     def _to_holding_row(r: sqlite3.Row) -> HoldingRow:

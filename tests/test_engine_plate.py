@@ -628,3 +628,44 @@ class TestPlateEntryCarriesOrderData:
         e = res.entries[0]
         assert e.price == Decimal(100)
         assert e.p_tier == PriorityTier.BUILDING
+
+
+class TestBuildPathFirstBiteIsE6:
+    """Wipro 10-Sep precedent: H would build, cell/no-add blocks it, but the name is
+    at the low, owned and passes the gate → §12b question, not a plain CELL_FULL."""
+
+    IT: ClassVar[dict[str, CellInfo]] = {
+        "IT": CellInfo(is_full=False, active_add_count=2, max_adds=2,
+                       active_adds=frozenset({"INFY", "TCS"})),
+    }
+
+    def test_cell_blocked_at_low_owned_gate_pass_is_e6(self) -> None:
+        res = build_plate([_name(symbol="WIPRO", cell="IT", qty_held_household=170,
+                                 price=Decimal("164.55"), low_52w=Decimal("163.30"),
+                                 trigger_level=Decimal(190), valuation_gate_passed=True)],
+                          _cfg_cells(self.IT))
+        d = res.drops[0]
+        assert d.reason == PlateDropReason.E6_CAPS_OFF_CONFLICT
+        assert "cell cap" in d.detail and "gate PASS" in d.detail
+
+    def test_no_add_at_low_owned_gate_pass_is_e6(self) -> None:
+        res = build_plate([_name(symbol="ITC", flag_no_add=True, qty_held_household=438,
+                                 price=Decimal(256), low_52w=Decimal("255.5"),
+                                 trigger_level=Decimal(228), valuation_gate_passed=True)],
+                          _config())
+        assert res.drops[0].reason == PlateDropReason.E6_CAPS_OFF_CONFLICT
+        assert "hold-only" in res.drops[0].detail
+
+    def test_cell_blocked_but_gate_fails_stays_cell_full(self) -> None:
+        res = build_plate([_name(symbol="WIPRO", cell="IT", qty_held_household=170,
+                                 price=Decimal("164.55"), low_52w=Decimal("163.30"),
+                                 trigger_level=Decimal(190), valuation_gate_passed=False)],
+                          _cfg_cells(self.IT))
+        assert res.drops[0].reason == PlateDropReason.CELL_FULL
+
+    def test_cell_blocked_off_the_low_stays_cell_full(self) -> None:
+        res = build_plate([_name(symbol="WIPRO", cell="IT", qty_held_household=170,
+                                 price=Decimal(180), low_52w=Decimal("163.30"),
+                                 trigger_level=Decimal(190), valuation_gate_passed=True)],
+                          _cfg_cells(self.IT))
+        assert res.drops[0].reason == PlateDropReason.CELL_FULL

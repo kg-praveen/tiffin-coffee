@@ -390,6 +390,12 @@ def run_plate(
             )
         if fund_result.failures:
             advisory.append(f"WARN: fundamentals missing for {len(fund_result.failures)} names")
+        unpriced_held = sorted(s for s, q in holdings_qty.items() if q > 0 and s not in prices)
+        if unpriced_held:
+            advisory.append(
+                f"WARN: {len(unpriced_held)} held names unpriced (not in register / no ticker) — "
+                f"household equity understated, weights conservative: {', '.join(unpriced_held)}"
+            )
         if e6:
             advisory.append(f"WARN: E6 caps-off conflict — needs your ruling: {', '.join(e6)}")
 

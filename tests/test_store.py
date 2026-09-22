@@ -112,14 +112,32 @@ class TestTriggers:
 
 
 class TestHoldings:
-    def test_load_holdings_count(self, repo: PattazRepo) -> None:
+    def test_newest_row_per_account_symbol(self, repo: PattazRepo) -> None:
         holdings = repo.load_holdings()
-        assert len(holdings) == 29
+        pairs = [(h.account, h.symbol) for h in holdings]
+        assert len(pairs) == len(set(pairs))
+        assert len(repo.load_holdings_history()) > len(holdings)
 
-    def test_muthootfin_has_avg_cost(self, repo: PattazRepo) -> None:
+    def test_csv_snapshot_21sep_is_newest(self, repo: PattazRepo) -> None:
+        """db/holdings/household_equity_21sep2026.csv supersedes the ledger rows."""
+        hdfc = {h.account: h for h in repo.get_holdings_for("HDFCBANK")}
+        assert hdfc["ZERODHA_P"].qty == 126
+        assert hdfc["ZERODHA_P"].as_of == "2026-09-21"
+        assert hdfc["ZERODHA_P"].source == "CSV:household_equity_21sep2026.csv"
+        assert hdfc["INTEGRATED_P"].qty == 29 and hdfc["INTEGRATED_V"].qty == 29
+
+    def test_muthootfin_household_total(self, repo: PattazRepo) -> None:
         holdings = repo.get_holdings_for("MUTHOOTFIN")
-        assert len(holdings) == 1
-        assert holdings[0].avg_cost == Decimal("2942.63")
+        assert sum(h.qty for h in holdings) == 16
+        ledger = [h for h in repo.load_holdings_history()
+                  if h.symbol == "MUTHOOTFIN" and h.avg_cost is not None]
+        assert ledger and ledger[0].avg_cost == Decimal("2942.63")
+
+    def test_absent_from_snapshot_is_recorded_exit(self, repo: PattazRepo) -> None:
+        jio = {h.account: h for h in repo.get_holdings_for("JIOFIN")}
+        assert jio["INTEGRATED_V"].qty == 0
+        assert jio["INTEGRATED_V"].as_of == "2026-09-21"
+        assert ("INTEGRATED_V", "JIOFIN") not in repo.held_pairs()
 
     def test_holding_cost_is_decimal_or_none(self, repo: PattazRepo) -> None:
         for h in repo.load_holdings():

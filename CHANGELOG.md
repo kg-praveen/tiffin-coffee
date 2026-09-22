@@ -4,6 +4,28 @@ All notable changes to tiffin-coffee-app. Conventional commits; one concern per 
 
 ## [Unreleased] — branch `feat/uc2-plate-engine`
 
+### 2026-09-22 — UC2.1 holdings sync (CSV path) — the register is real
+
+Spec: sync-holdings skill steps 2–5, CLAUDE.md §3, pattaz-book §4.
+
+**feat (tools/csv_import.py)** — parse the household CSV (Kite-P / Int-P / Int-V in one
+file) into account rows; tolerant of the older export's P&L columns; refuses a row whose
+Total Qty disagrees with the account sum; `as_of` from the filename date.
+**feat (usecases/sync_holdings.py)** — `run_sync_holdings_csv`: imports the snapshot,
+records exits (absent pairs → qty 0), prints the household view on prices fetched this
+run: qty per account, live weight, cap breaches (20%/name, 40%/sector, 25% PSU),
+P-board tier, unpriced names. Writes a `UC2_1_SYNC_HOLDINGS` session.
+**store** — `load_holdings()` now returns the newest row per (account, symbol); history
+via `load_holdings_history()`; `insert_holdings`, `held_pairs`.
+**db** — `db/holdings/*.csv` snapshots are imported by the seed (oldest first), so CI
+rebuilds the same DB. First snapshot: `household_equity_21sep2026.csv` (81 names,
+₹16.38L reported; ₹14.76L priceable — 19 names not in the register / no ticker).
+**fix (engine/plate.py)** — build path: a name at the low, owned, gate-passing but blocked
+only by cell cap or hold-only now surfaces as `E6_CAPS_OFF_CONFLICT` (Wipro 10-Sep
+precedent, pattaz-book §12b) instead of a plain `CELL_FULL`.
+**fix (usecases/plate.py)** — WARN when held names cannot be priced (equity understated,
+weights conservative). With real holdings the 22-Sep plate is no longer BLOCK-flagged.
+
 ### 2026-09-21 — plate audit fixes (fail closed until the register is real)
 
 Spec: tiffin-coffee v5/v6 §first-bite, §overlays, §caps-off · pattaz-book §4, §5, §12b ·
