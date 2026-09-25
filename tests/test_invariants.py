@@ -15,6 +15,7 @@ from engine.invariants import (
     check_plate,
     find_budget_and_breadth,
     inv_accounting,
+    inv_budget,
     inv_drops_explained,
     inv_eligibility,
     inv_fail_closed,
@@ -101,11 +102,21 @@ class TestEachInvariantFires:
     def test_totals_tampered(self, plate: PlateResult) -> None:
         assert inv_totals(replace(plate, total_stock_amount=Decimal(1)))
 
-    def test_over_session_is_finding(self, plate: PlateResult) -> None:
-        small = replace(plate, session_amount=Decimal(1000))
-        f = find_budget_and_breadth(small, 1, 99)
-        assert [c.invariant for c in f] == ["OVER_SESSION"]
+    def test_raised_plan_is_finding(self, plate: PlateResult) -> None:
+        raised = replace(plate, plan_amount=plate.session_amount + 1000)
+        f = find_budget_and_breadth(raised, 1, 99)
+        assert [c.invariant for c in f] == ["BUDGET_RAISED"]
         assert f[0].severity == Severity.FINDING
+
+    def test_spending_past_plan_is_violation(self, plate: PlateResult,
+                                             cfg: PlateConfig) -> None:
+        over = replace(plate, total_with_sweep=plate.plan_amount + 1)
+        assert [c.invariant for c in inv_budget(over, cfg)] == ["BUDGET"]
+
+    def test_plan_raised_more_than_needed_is_violation(self, plate: PlateResult,
+                                                       cfg: PlateConfig) -> None:
+        padded = replace(plate, plan_amount=plate.plan_amount + 500)
+        assert any("should be" in c.detail for c in inv_budget(padded, cfg))
 
     def test_dont_buy_bucket_on_plate_is_violation(self, plate: PlateResult,
                                                    cfg: PlateConfig) -> None:

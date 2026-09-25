@@ -4,6 +4,22 @@ All notable changes to tiffin-coffee-app. Conventional commits; one concern per 
 
 ## [Unreleased] — branch `feat/gsec-and-review-first`
 
+### 2026-09-26 — new sizing: fit the budget, spread by rank
+
+**Rule change approved by Praveen 26-Sep-2026** (replaces tiffin-coffee v5/v6 §formula
+steps 4-5, the thirds tilt; the 1-10 clamp and 5-share first bite stay). The spec file
+is not edited by code — Praveen's tiffin-coffee skill needs the same patch.
+1. Find and rank the names (unchanged).
+2. Give each 1 share. If that costs more than the budget, raise the plan to exactly that
+   cost and say so at the top of the report ("needs Rs X, Rs Y more").
+3. Spread the money left by rank (#1 gets the most), then one top-up pass by rank.
+   Leftover → NIFTYBEES. The plate never spends past the plan.
+**engine** — `size_by_rank`, `PlateResult.plan_amount`; `assign_tilts`/`compute_qty`
+removed. Invariants: BUDGET (never past plan; plan raised only to the 1-share cost) is a
+violation; BUDGET_RAISED is a finding (replaces OVER_SESSION).
+Recording 25-Sep: Rs10k now spends Rs9,921 (was Rs13,622); Rs5k → plan Rs8,580, shown.
+UC5: 90 runs (Rs5k/10k/40k), 0 violations.
+
 ### 2026-09-26 — live bond rate works again; "don't buy" names are raised, not bought
 
 **fix (tools/gsec.py)** — the India 10-year yield now comes from CNBC (`IN10Y-IN`),

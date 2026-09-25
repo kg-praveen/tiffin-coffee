@@ -144,7 +144,7 @@ def inv_eligibility(names: list[NameInput], result: PlateResult,
 
 
 def inv_totals(result: PlateResult) -> list[Check]:
-    """Arithmetic closes: stock + sweep + residual = session; whole shares only."""
+    """Arithmetic closes: stock + sweep + residual = plan amount."""
     out: list[Check] = []
     stock = sum((e.amount for e in result.entries), Decimal(0))
     if stock != result.total_stock_amount:
@@ -152,26 +152,42 @@ def inv_totals(result: PlateResult) -> list[Check]:
                          f"entries sum {stock} != total_stock {result.total_stock_amount}"))
     if result.total_stock_amount + result.bees_sweep_amount != result.total_with_sweep:
         out.append(Check("TOTALS", Severity.VIOLATION, "*", "stock + sweep != total_with_sweep"))
-    if result.session_amount - result.total_with_sweep != result.residual:
-        out.append(Check("TOTALS", Severity.VIOLATION, "*", "session - total != residual"))
+    if result.plan_amount - result.total_with_sweep != result.residual:
+        out.append(Check("TOTALS", Severity.VIOLATION, "*", "plan - total != residual"))
+    return out
+
+
+def inv_budget(result: PlateResult, config: PlateConfig) -> list[Check]:
+    """Praveen 26-Sep-2026: the plate never spends more than its plan amount, and the
+    plan is the session unless 1 share of each ranked name costs more — then exactly
+    that cost, not a rupee more."""
+    out: list[Check] = []
+    if result.total_with_sweep > result.plan_amount:
+        out.append(Check("BUDGET", Severity.VIOLATION, "*",
+                         f"spends {result.total_with_sweep} > plan {result.plan_amount}"))
+    one_each = sum((e.price * config.qty_clamp_min for e in result.entries), Decimal(0))
+    expected = max(result.session_amount, one_each)
+    if result.entries and result.plan_amount != expected:
+        out.append(Check("BUDGET", Severity.VIOLATION, "*",
+                         f"plan {result.plan_amount} but should be {expected} "
+                         f"(session {result.session_amount}, 1 each {one_each})"))
     return out
 
 
 def find_budget_and_breadth(result: PlateResult, breadth_min: int,
                             breadth_max: int) -> list[Check]:
-    """FINDINGS (legal per spec, worth Praveen's eye): tiffin v6 §breadth 8-15 and the
-    1-share floor spending past the session. Never a violation — the spec says "raise
-    the session or drop the bottom-scoring names", a human call."""
+    """FINDINGS (legal, worth Praveen's eye): tiffin v6 §breadth 8-15, and a session
+    too small for 1 share of each ranked name (the plan was raised)."""
     out: list[Check] = []
     n = len(result.entries)
     if n and not breadth_min <= n <= breadth_max:
         out.append(Check("BREADTH", Severity.FINDING, "*",
                          f"{n} names vs target {breadth_min}-{breadth_max}"))
-    if result.total_with_sweep > result.session_amount:
-        over = result.total_with_sweep - result.session_amount
-        out.append(Check("OVER_SESSION", Severity.FINDING, "*",
-                         f"plate {result.total_with_sweep} exceeds session "
-                         f"{result.session_amount} by {over} (1-share floor)"))
+    if result.plan_amount > result.session_amount:
+        more = result.plan_amount - result.session_amount
+        out.append(Check("BUDGET_RAISED", Severity.FINDING, "*",
+                         f"session {result.session_amount} too small for 1 share of each "
+                         f"— plan raised to {result.plan_amount} (+{more})"))
     return out
 
 
@@ -186,6 +202,7 @@ def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult
         *inv_no_banned_entry(names, result, config),
         *inv_eligibility(names, result, config),
         *inv_totals(result),
+        *inv_budget(result, config),
         *find_budget_and_breadth(result, breadth_min, breadth_max),
     ]
 

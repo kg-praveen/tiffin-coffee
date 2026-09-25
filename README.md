@@ -12,7 +12,7 @@ Skills: `run the morning board` (UC1) · `₹10k plate` (UC2) · `sync holdings`
 uv run python -c "from decimal import Decimal; from usecases.plate import run_plate, format_plate; print(format_plate(run_plate('db/pattaz.db', Decimal('40000'))))"
 ```
 
-Pass the GoI 10Y yield yourself when the live source is down (it usually is):
+The GoI 10Y yield is fetched live (CNBC, then yfinance). Pass it yourself only if both are down:
 
 ```bash
 uv run python -c "from decimal import Decimal; from usecases.plate import run_plate, format_plate; print(format_plate(run_plate('db/pattaz.db', Decimal('40000'), gsec_yield_override=Decimal('7.06'))))"

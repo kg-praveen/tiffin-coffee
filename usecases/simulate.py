@@ -57,6 +57,7 @@ class ScenarioOutcome:
     amount: Decimal
     today: str
     entries: tuple[PlateEntry, ...]
+    plan: Decimal
     stock_amount: Decimal
     sweep_qty: int
     sweep_amount: Decimal
@@ -144,7 +145,7 @@ def run_scenario(db: Path, base: MarketSnapshot, sc: Scenario, ctx: SimContext,
     p = run.plate
     return ScenarioOutcome(
         scenario=sc.name, title=sc.title, spec_ref=sc.spec_ref, amount=amount, today=today,
-        entries=tuple(p.entries), stock_amount=p.total_stock_amount,
+        entries=tuple(p.entries), plan=p.plan_amount, stock_amount=p.total_stock_amount,
         sweep_qty=p.bees_sweep_qty, sweep_amount=p.bees_sweep_amount,
         total=p.total_with_sweep,
         fired=tuple(e.symbol for e in board.fired), near=tuple(e.symbol for e in board.near),
@@ -225,13 +226,14 @@ def format_simulation(r: SimulationResult) -> str:
                      "Do not trust the engine until fixed (E9: NO ACTION).")
     else:
         lines.append(f"VERDICT: PASS — every plate obeyed every law in {n} runs.")
-    lines += ["", f"  {'scenario':26s} {'amount':>9s} {'names':>5s} {'1st':>3s} "
+    lines += ["", f"  {'scenario':26s} {'asked':>9s} {'plan':>9s} {'names':>5s} {'1st':>3s} "
                   f"{'stock':>9s} {'sweep':>8s} {'total':>9s} {'fired':>5s}  flags"]
     for o in r.outcomes:
         fb = sum(1 for e in o.entries if e.is_first_bite)
         flags = ",".join(sorted({c.invariant for c in o.checks})) or "-"
         lines.append(
-            f"  {o.scenario:26s} {_inr(o.amount):>9s} {len(o.entries):>5d} {fb:>3d} "
+            f"  {o.scenario:26s} {_inr(o.amount):>9s} {_inr(o.plan):>9s} "
+            f"{len(o.entries):>5d} {fb:>3d} "
             f"{_inr(o.stock_amount):>9s} {_inr(o.sweep_amount):>8s} {_inr(o.total):>9s} "
             f"{len(o.fired):>5d}  {flags}")
     if viol:

@@ -156,8 +156,8 @@ class PlateEntry:
     p_mult: Decimal
     p_tier: PriorityTier
     score: Decimal
-    tilt: Decimal
-    budget: Decimal
+    tilt: Decimal        # rank weight relative to the average (1.00 = average)
+    budget: Decimal      # this name's share of the plan amount
     is_first_bite: bool
 
 
@@ -187,6 +187,9 @@ class PlateResult:
     session_amount: Decimal
     residual: Decimal
     rules_fired: list[str] = field(default_factory=list)
+    # what the plate actually needs: the session, or more if 1 share of each ranked
+    # name costs more (Praveen 26-Sep-2026). Residual is measured against this.
+    plan_amount: Decimal = Decimal(0)
 
 
 # ----------------------------------------- classification functions ---
@@ -446,38 +449,53 @@ def compute_score(h_mult: Decimal, l_mult: Decimal, p_mult: Decimal) -> Decimal:
     )
 
 
-def assign_tilts(scores: list[Decimal]) -> list[Decimal]:
-    """Spec: tiffin-coffee v5 §formula step 4.
+@dataclass(frozen=True)
+class RankSizing:
+    """Output of size_by_rank, all lists in rank order (best first)."""
 
-    TILT = 1.25 top-third by SCORE, 1.0 middle-third, 0.75 bottom-third.
+    qtys: list[int]
+    budgets: list[Decimal]
+    weights: list[Decimal]
+    plan_amount: Decimal
+
+
+def size_by_rank(
+    prices: list[Decimal],
+    qty_max: list[int],
+    session_amount: Decimal,
+    qty_min: int,
+) -> RankSizing:
+    """Size a ranked plate to the budget. Praveen 26-Sep-2026 (replaces tiffin v5
+    §formula steps 4-5, the thirds tilt; the 1-10 clamp stays):
+
+    1. Every ranked name gets qty_min share(s) first. If that alone costs more than
+       the session, the plan amount is RAISED to exactly that cost — shown, never hidden.
+    2. The money left is split by rank: weight N for #1 down to 1 for the last; each
+       name buys floor(its share / price) extra shares, up to qty_max in total.
+    3. One top-up pass in rank order spends what is left, a share at a time.
+    Whatever still remains goes to the BeES floor (caller). Never spends past the plan.
     """
-    n = len(scores)
+    n = len(prices)
     if n == 0:
-        return []
-
-    indexed = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)
-    third = max(n // 3, 1)
-
-    tilts = [Decimal("1.0")] * n
-    for rank, (orig_idx, _score) in enumerate(indexed):
-        if rank < third:
-            tilts[orig_idx] = Decimal("1.25")
-        elif rank >= n - third:
-            tilts[orig_idx] = Decimal("0.75")
-    return tilts
-
-
-def compute_qty(
-    budget: Decimal,
-    price: Decimal,
-    clamp_min: int,
-    clamp_max: int,
-) -> int:
-    """QTY = clamp(round(budget/price), min, max). Spec: v5 §formula step 5."""
-    if price <= 0:
-        return 0
-    raw = (budget / price).quantize(Decimal(1), rounding=ROUND_HALF_UP)
-    return max(clamp_min, min(clamp_max, int(raw)))
+        return RankSizing([], [], [], session_amount)
+    base = sum((p * qty_min for p in prices), Decimal(0))
+    plan = max(session_amount, base)
+    weights = [Decimal(n - r) for r in range(n)]
+    wsum = sum(weights, Decimal(0))
+    spare = plan - base
+    extras = [(spare * w / wsum).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+              for w in weights]
+    qtys = [qty_min + (min(mx - qty_min, int(x // p)) if p > 0 else 0)
+            for x, p, mx in zip(extras, prices, qty_max, strict=True)]
+    budgets = [p * qty_min + x for p, x in zip(prices, extras, strict=True)]
+    left = plan - sum((p * q for p, q in zip(prices, qtys, strict=True)), Decimal(0))
+    for i in range(n):                      # top-up: highest rank first, one pass
+        if qtys[i] < qty_max[i] and prices[i] <= left:
+            qtys[i] += 1
+            left -= prices[i]
+    mean_w = wsum / n
+    return RankSizing(qtys, budgets,
+                      [(w / mean_w).quantize(Decimal("0.01")) for w in weights], plan)
 
 
 def compute_bees_sweep(
@@ -671,9 +689,8 @@ def build_plate(
         scored.append((n, h, mode, low_band, l_pct, h_mult, l_mult, p_mult, p_tier,
                        score, is_first_bite))
 
-    # --- tilt assignment (step 4) ---
-    scores_only = [s[9] for s in scored]
-    tilts = assign_tilts(scores_only)
+    # --- rank (best first; ties broken by symbol so the plate is deterministic) ---
+    scored.sort(key=lambda s: (-s[9], s[0].symbol))
 
     n_eligible = len(scored)
     if n_eligible == 0:
@@ -688,24 +705,26 @@ def build_plate(
             session_amount=config.session_amount,
             residual=config.session_amount - bees_amount,
             rules_fired=rules_fired,
+            plan_amount=config.session_amount,
         )
 
-    # --- budget & qty (steps 4-5) ---
+    # --- size to the budget by rank (Praveen 26-Sep-2026) ---
+    sizing = size_by_rank(
+        [row[0].price for row in scored],
+        [config.first_bite_qty_max if row[10] else config.qty_clamp_max for row in scored],
+        config.session_amount,
+        config.qty_clamp_min,
+    )
+    if sizing.plan_amount > config.session_amount:
+        rules_fired.append(f"BUDGET_RAISED:{config.session_amount}->{sizing.plan_amount}")
+
     entries: list[PlateEntry] = []
     total_stock = Decimal(0)
-
     for i, row in enumerate(scored):
         n, h, mode, low_band, l_pct, h_mult, l_mult, p_mult, p_tier, score, is_fb = row
-        tilt = tilts[i]
-        budget = ((config.session_amount / n_eligible) * tilt).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-
-        qty_max = config.first_bite_qty_max if is_fb else config.qty_clamp_max
-        qty = compute_qty(budget, n.price, config.qty_clamp_min, qty_max)
+        qty = sizing.qtys[i]
         amount = (n.price * qty).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         total_stock += amount
-
         entries.append(PlateEntry(
             symbol=n.symbol,
             name=n.name,
@@ -721,16 +740,15 @@ def build_plate(
             p_mult=p_mult,
             p_tier=p_tier,
             score=score,
-            tilt=tilt,
-            budget=budget,
+            tilt=sizing.weights[i],
+            budget=sizing.budgets[i],
             is_first_bite=is_fb,
         ))
 
-    entries.sort(key=lambda e: e.score, reverse=True)
-
     # --- BeES sweep (step 6) ---
-    residual = config.session_amount - total_stock
-    bees_qty, bees_amount = compute_bees_sweep(max(residual, Decimal(0)), config.bees_price)
+    plan = sizing.plan_amount
+    bees_qty, bees_amount = compute_bees_sweep(max(plan - total_stock, Decimal(0)),
+                                               config.bees_price)
 
     return PlateResult(
         entries=entries,
@@ -740,6 +758,7 @@ def build_plate(
         total_stock_amount=total_stock,
         total_with_sweep=total_stock + bees_amount,
         session_amount=config.session_amount,
-        residual=config.session_amount - total_stock - bees_amount,
+        residual=plan - total_stock - bees_amount,
         rules_fired=rules_fired,
+        plan_amount=plan,
     )
