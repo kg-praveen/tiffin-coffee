@@ -124,3 +124,14 @@ def test_cli_what_if(scratch_db: Path, capsys: pytest.CaptureFixture[str]) -> No
 def test_cli_run_single_scenario(scratch_db: Path, capsys: pytest.CaptureFixture[str]) -> None:
     code = main(["--db", str(scratch_db), "run", "--scenario", "baseline", "--no-session"])
     assert code == 0 and "VERDICT: PASS" in capsys.readouterr().out
+
+
+def test_ticker_differs_from_symbol_is_still_considered(market: MarketSnapshot,
+                                                         scratch_db: Path) -> None:
+    """REC trades as RECLTD.NS: the plate must key prices by register symbol, so REC is
+    judged (NEVER_ADD → STATUS_BLOCKED), not silently unpriced."""
+    from usecases.plate import run_plate
+    r = run_plate(scratch_db, Decimal(10000), market=market, today=market.recorded_at,
+                  record_session=False)
+    assert {d.symbol: d.reason.name for d in r.plate.drops}.get("REC") == "STATUS_BLOCKED"
+    assert "REC" not in {d.symbol for d in r.unpriced}

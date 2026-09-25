@@ -2,7 +2,27 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/uc5-simulation`
+## [Unreleased] — branch `test/acceptance-22`
+
+### 2026-09-26 — the 22-case acceptance suite (spec/MIGRATION-AND-VALIDATION.md)
+
+Spec: MIGRATION-AND-VALIDATION §"Behavioral regression" · CLAUDE.md §5 · E3/E8/E9.
+
+**test (tests/acceptance/)** — one parametrized test per row; every row replays the
+approved decision through the real engine. **17/22 pass.** 5 are `xfail(strict=True)`
+naming what is missing — they flip to XPASS (and fail the build) when it lands:
+- 04 stale basis — armability has no last-quarterly-result date (E3)
+- 05 corporate action — no trailing-12m corporate-action input
+- 07 conglomerate — no osep §SC classifier (strictest applicable gate)
+- 16 VBL — no FMCG brand-ownership gate: an owned VBL at its low would first-bite 5
+- 21 Wipro — OPEN E6: table expects first-bite ≤5; engine surfaces §12b caps-off
+  (pattaz-book §12b vs ledger v4.9 D44) — Praveen to rule
+**fix (usecases/plate.py)** — case 19 / E8: a name with no price this run is now a
+named drop (`NO_TICKER` / `PRICE_FETCH_FAILED`, `PlateRunResult.unpriced`, session and
+report) instead of silence. Prices and fundamentals are keyed by register symbol —
+REC (RECLTD.NS) and THANGAMAYIL (THANGAMAYL.NS) were never considered before.
+
+## UC5 — branch `feat/uc5-simulation` (PR #5)
 
 ### 2026-09-26 — UC5 market simulation suite (CI + on demand)
 
