@@ -81,13 +81,12 @@ def test_crash_fires_more_triggers_than_baseline(suite: SimulationResult) -> Non
     assert set(base.fired) <= set(crash.fired)
 
 
-def test_canara_withdrawn_surfaces_in_rung1(suite: SimulationResult) -> None:
-    """26-Sep: at -15% Canara (WITHDRAWN, PSU, owned) first-bites while PSU < 25% —
-    surfaced for Praveen, never silently allowed or silently blocked."""
-    o = _outcomes(suite, "hockey_rung1")[-1]
-    if any(e.symbol == "CANBK" for e in o.entries):
-        assert any(c.invariant == "REGISTER_ZERO_BUCKET" and c.symbol == "CANBK"
-                   for c in o.findings)
+def test_canara_is_raised_for_review_not_bought(suite: SimulationResult) -> None:
+    """Praveen 26-Sep: Canara (WITHDRAWN) passing every gate at -15% is raised for
+    analysis with its register reason — never bought silently."""
+    for o in _outcomes(suite, "hockey_rung1"):
+        assert "CANBK" not in {e.symbol for e in o.entries}
+        assert o.drops_by_reason.get("REVIEW_FIRST", 0) >= 1
 
 
 def test_bees_missing_means_no_sweep(suite: SimulationResult) -> None:

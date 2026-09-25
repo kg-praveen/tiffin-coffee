@@ -2,7 +2,36 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `test/acceptance-22`
+## [Unreleased] — branch `feat/gsec-and-review-first`
+
+### 2026-09-26 — new sizing: fit the budget, spread by rank
+
+**Rule change approved by Praveen 26-Sep-2026** (replaces tiffin-coffee v5/v6 §formula
+steps 4-5, the thirds tilt; the 1-10 clamp and 5-share first bite stay). The spec file
+is not edited by code — Praveen's tiffin-coffee skill needs the same patch.
+1. Find and rank the names (unchanged).
+2. Give each 1 share. If that costs more than the budget, raise the plan to exactly that
+   cost and say so at the top of the report ("needs Rs X, Rs Y more").
+3. Spread the money left by rank (#1 gets the most), then one top-up pass by rank.
+   Leftover → NIFTYBEES. The plate never spends past the plan.
+**engine** — `size_by_rank`, `PlateResult.plan_amount`; `assign_tilts`/`compute_qty`
+removed. Invariants: BUDGET (never past plan; plan raised only to the 1-share cost) is a
+violation; BUDGET_RAISED is a finding (replaces OVER_SESSION).
+Recording 25-Sep: Rs10k now spends Rs9,921 (was Rs13,622); Rs5k → plan Rs8,580, shown.
+UC5: 90 runs (Rs5k/10k/40k), 0 violations.
+
+### 2026-09-26 — live bond rate works again; "don't buy" names are raised, not bought
+
+**fix (tools/gsec.py)** — the India 10-year yield now comes from CNBC (`IN10Y-IN`),
+with yfinance as backup. yfinance `IN10Y.SI` had been returning 404, so every live
+plate was using the 12-Sep stored rate (7.04%). Live on 25-Sep: 7.119%.
+**feat (engine/plate.py)** — Praveen 26-Sep: a name the register marks don't-buy
+(bucket WITHDRAWN or HARD_PASS) that passes every other gate is dropped as
+`REVIEW_FIRST` with the register's reason, and listed at the top of the report.
+It is bought only after analysis and Praveen's approval (a register change).
+Found by UC5: Canara would have been bought in every falling-market scenario.
+
+## 2026-09-26 — acceptance suite (PR #6)
 
 ### 2026-09-26 — the 22-case acceptance suite (spec/MIGRATION-AND-VALIDATION.md)
 

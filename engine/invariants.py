@@ -7,8 +7,7 @@ gate is defined once; this module only asserts its consequences).
 Two severities:
   VIOLATION — a law is broken; the plate must not be trusted (E9 → NO ACTION).
   FINDING   — legal per spec but Praveen should see it (e.g. breadth outside 8-15,
-              the plate spending more than the session because of the 1-share floor,
-              a WITHDRAWN/HARD_PASS name that no engine rule blocks).
+              the plate spending more than the session because of the 1-share floor).
 
 Pure: no I/O, no clock. Inputs are the NameInputs, config and result of one build.
 """
@@ -19,6 +18,7 @@ from decimal import Decimal
 from enum import Enum
 
 from engine.plate import (
+    REVIEW_FIRST_BUCKETS,
     NameInput,
     PlateConfig,
     PlateResult,
@@ -109,6 +109,7 @@ def inv_no_banned_entry(names: list[NameInput], result: PlateResult,
             ("fraud tail", n.flag_fraud_tail),
             ("PSU cap breached", n.flag_psu
              and config.psu_weight_pct >= config.cap_psu_regulated_pct),
+            (f"register bucket {n.bucket} (review first)", n.bucket in REVIEW_FIRST_BUCKETS),
         ) if bad]
         if why:
             out.append(Check("NO_BANNED_ENTRY", Severity.VIOLATION, e.symbol, ", ".join(why)))
@@ -143,7 +144,7 @@ def inv_eligibility(names: list[NameInput], result: PlateResult,
 
 
 def inv_totals(result: PlateResult) -> list[Check]:
-    """Arithmetic closes: stock + sweep + residual = session; whole shares only."""
+    """Arithmetic closes: stock + sweep + residual = plan amount."""
     out: list[Check] = []
     stock = sum((e.amount for e in result.entries), Decimal(0))
     if stock != result.total_stock_amount:
@@ -151,43 +152,43 @@ def inv_totals(result: PlateResult) -> list[Check]:
                          f"entries sum {stock} != total_stock {result.total_stock_amount}"))
     if result.total_stock_amount + result.bees_sweep_amount != result.total_with_sweep:
         out.append(Check("TOTALS", Severity.VIOLATION, "*", "stock + sweep != total_with_sweep"))
-    if result.session_amount - result.total_with_sweep != result.residual:
-        out.append(Check("TOTALS", Severity.VIOLATION, "*", "session - total != residual"))
+    if result.plan_amount - result.total_with_sweep != result.residual:
+        out.append(Check("TOTALS", Severity.VIOLATION, "*", "plan - total != residual"))
+    return out
+
+
+def inv_budget(result: PlateResult, config: PlateConfig) -> list[Check]:
+    """Praveen 26-Sep-2026: the plate never spends more than its plan amount, and the
+    plan is the session unless 1 share of each ranked name costs more — then exactly
+    that cost, not a rupee more."""
+    out: list[Check] = []
+    if result.total_with_sweep > result.plan_amount:
+        out.append(Check("BUDGET", Severity.VIOLATION, "*",
+                         f"spends {result.total_with_sweep} > plan {result.plan_amount}"))
+    one_each = sum((e.price * config.qty_clamp_min for e in result.entries), Decimal(0))
+    expected = max(result.session_amount, one_each)
+    if result.entries and result.plan_amount != expected:
+        out.append(Check("BUDGET", Severity.VIOLATION, "*",
+                         f"plan {result.plan_amount} but should be {expected} "
+                         f"(session {result.session_amount}, 1 each {one_each})"))
     return out
 
 
 def find_budget_and_breadth(result: PlateResult, breadth_min: int,
                             breadth_max: int) -> list[Check]:
-    """FINDINGS (legal per spec, worth Praveen's eye): tiffin v6 §breadth 8-15 and the
-    1-share floor spending past the session. Never a violation — the spec says "raise
-    the session or drop the bottom-scoring names", a human call."""
+    """FINDINGS (legal, worth Praveen's eye): tiffin v6 §breadth 8-15, and a session
+    too small for 1 share of each ranked name (the plan was raised)."""
     out: list[Check] = []
     n = len(result.entries)
     if n and not breadth_min <= n <= breadth_max:
         out.append(Check("BREADTH", Severity.FINDING, "*",
                          f"{n} names vs target {breadth_min}-{breadth_max}"))
-    if result.total_with_sweep > result.session_amount:
-        over = result.total_with_sweep - result.session_amount
-        out.append(Check("OVER_SESSION", Severity.FINDING, "*",
-                         f"plate {result.total_with_sweep} exceeds session "
-                         f"{result.session_amount} by {over} (1-share floor)"))
+    if result.plan_amount > result.session_amount:
+        more = result.plan_amount - result.session_amount
+        out.append(Check("BUDGET_RAISED", Severity.FINDING, "*",
+                         f"session {result.session_amount} too small for 1 share of each "
+                         f"— plan raised to {result.plan_amount} (+{more})"))
     return out
-
-
-_REGISTER_ZERO_BUCKETS = frozenset({"WITHDRAWN", "HARD_PASS"})
-
-
-def find_register_zero_bucket(names: list[NameInput], result: PlateResult) -> list[Check]:
-    """FINDING: the register's bucket says zero (ledger §7 WITHDRAWN/ZERO, HARD PASS) but
-    no engine rule blocks the name — e.g. Canara 26-Sep what-if (-15%): WITHDRAWN + PSU,
-    plated as a first bite while PSU weight < 25%. Register vs engine → Praveen rules
-    (E6); the engine is not changed by a simulation."""
-    by_sym = {n.symbol: n for n in names}
-    return [Check("REGISTER_ZERO_BUCKET", Severity.FINDING, e.symbol,
-                  f"bucket {by_sym[e.symbol].bucket} but plated qty {e.qty} "
-                  f"({'first bite' if e.is_first_bite else e.mode.value})")
-            for e in result.entries
-            if e.symbol in by_sym and by_sym[e.symbol].bucket in _REGISTER_ZERO_BUCKETS]
 
 
 def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult,
@@ -201,8 +202,8 @@ def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult
         *inv_no_banned_entry(names, result, config),
         *inv_eligibility(names, result, config),
         *inv_totals(result),
+        *inv_budget(result, config),
         *find_budget_and_breadth(result, breadth_min, breadth_max),
-        *find_register_zero_bucket(names, result),
     ]
 
 

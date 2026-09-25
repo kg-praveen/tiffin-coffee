@@ -14,7 +14,6 @@ from engine.plate import (
     PlateConfig,
     PlateDropReason,
     PriorityTier,
-    assign_tilts,
     build_plate,
     check_first_bite,
     check_overlays,
@@ -24,8 +23,8 @@ from engine.plate import (
     compute_bees_sweep,
     compute_h,
     compute_l,
-    compute_qty,
     compute_score,
+    size_by_rank,
 )
 
 # ------------------------------------------------------------- helpers ---
@@ -319,31 +318,45 @@ class TestScoring:
         assert compute_score(Decimal(0), Decimal("1.25"), Decimal("1.5")) == Decimal(0)
 
 
-class TestTilts:
-    def test_three_items_get_three_tilts(self) -> None:
-        tilts = assign_tilts([Decimal(5), Decimal(3), Decimal(1)])
-        assert tilts == [Decimal("1.25"), Decimal("1.0"), Decimal("0.75")]
+class TestSizeByRank:
+    """Praveen 26-Sep-2026: find the names, fit the budget, raise it only if 1 share of
+    each doesn't fit, spread the rest by rank (1-10 clamp kept)."""
 
-    def test_single_item_gets_top_tilt(self) -> None:
-        tilts = assign_tilts([Decimal(5)])
-        assert tilts == [Decimal("1.25")]
+    D = Decimal
 
-    def test_empty_returns_empty(self) -> None:
-        assert assign_tilts([]) == []
+    def test_fits_budget_and_spreads_by_rank(self) -> None:
+        r = size_by_rank([self.D(100)] * 4, [10] * 4, self.D(2000), 1)
+        assert r.plan_amount == self.D(2000)
+        assert r.qtys == sorted(r.qtys, reverse=True)       # higher rank, more shares
+        assert r.qtys[0] > r.qtys[-1]
+        assert sum(q * 100 for q in r.qtys) <= 2000
 
+    def test_one_share_each_too_dear_raises_plan_exactly(self) -> None:
+        prices = [self.D(2800), self.D(2100), self.D(1000), self.D(980), self.D(800),
+                  self.D(330), self.D(290), self.D(270)]
+        r = size_by_rank(prices, [10] * 8, self.D(5000), 1)
+        assert r.plan_amount == sum(prices)                  # raised to the 1-share cost
+        assert r.qtys == [1] * 8                             # nothing left to spread
 
-class TestComputeQty:
-    def test_normal_clamp(self) -> None:
-        assert compute_qty(Decimal(5000), Decimal(500), 1, 10) == 10
+    def test_never_over_plan(self) -> None:
+        prices = [self.D(2900), self.D(170), self.D(1250), self.D(415), self.D(88)]
+        for amount in (1000, 5000, 10000, 25000, 40000):
+            r = size_by_rank(prices, [10, 10, 10, 5, 10], self.D(amount), 1)
+            spent = sum(p * q for p, q in zip(prices, r.qtys, strict=True))
+            assert spent <= r.plan_amount
+            assert all(1 <= q <= mx for q, mx in zip(r.qtys, [10, 10, 10, 5, 10],
+                                                        strict=True))
 
-    def test_expensive_stock_clamps_to_1(self) -> None:
-        assert compute_qty(Decimal(3000), Decimal(5000), 1, 10) == 1
+    def test_clamp_holds_with_a_huge_budget(self) -> None:
+        r = size_by_rank([self.D(100), self.D(100)], [10, 5], self.D(1_000_000), 1)
+        assert r.qtys == [10, 5]
 
-    def test_cheap_stock_clamps_to_10(self) -> None:
-        assert compute_qty(Decimal(50000), Decimal(100), 1, 10) == 10
+    def test_empty(self) -> None:
+        assert size_by_rank([], [], self.D(10000), 1).qtys == []
 
-    def test_first_bite_clamps_to_5(self) -> None:
-        assert compute_qty(Decimal(50000), Decimal(100), 1, 5) == 5
+    def test_deterministic(self) -> None:
+        args = ([self.D(300), self.D(250), self.D(90)], [10, 10, 10], self.D(10000), 1)
+        assert size_by_rank(*args) == size_by_rank(*args)
 
 
 class TestBeesSweep:
@@ -674,3 +687,25 @@ class TestBuildPathFirstBiteIsE6:
                                  trigger_level=Decimal(190), valuation_gate_passed=True)],
                           _cfg_cells(self.IT))
         assert res.drops[0].reason == PlateDropReason.CELL_FULL
+
+
+class TestReviewFirst:
+    """Praveen 26-Sep-2026: a don't-buy name that passes every gate is raised with its
+    register reason for analysis — never bought silently, never dropped silently."""
+
+    def test_withdrawn_first_bite_is_raised_with_reason(self) -> None:
+        from tests.acceptance.test_behavioral_regression import _n, _plate
+        c = _n("CANBK", "107", "107", sector="LENDER", status="WATCH", bucket="WITHDRAWN",
+               cell="LENDING_BANKS", held=17, gate=True,
+               register_note="Watch Q2 provisions; PSU cap")
+        r = _plate(c)
+        assert r.entries == []
+        d = next(d for d in r.drops if d.symbol == "CANBK")
+        assert d.reason == PlateDropReason.REVIEW_FIRST
+        assert "Watch Q2 provisions" in d.detail and "Praveen approves" in d.what_would_change
+
+    def test_same_name_as_owned_bucket_plates(self) -> None:
+        from tests.acceptance.test_behavioral_regression import _n, _plate
+        c = _n("CANBK", "107", "107", sector="LENDER", status="WATCH", bucket="OWNED",
+               cell="LENDING_BANKS", held=17, gate=True)
+        assert [e.symbol for e in _plate(c).entries] == ["CANBK"]

@@ -184,6 +184,7 @@ def _build_name_input(
         p_mult_book=name.p_mult_book,
         flag_no_add=name.flag_no_add,
         owned_per_book=(name.bucket == "OWNED" or name.status == "HOLD"),
+        register_note=name.notes or "",
     )
     return ni, gate_result
 
@@ -446,7 +447,7 @@ def run_plate(
             advisory.append(
                 f"WARN: triggers without a basis date, not armed: {', '.join(unarmable)}"
             )
-        if not gsec_source.startswith("yfinance"):
+        if not gsec_source.startswith(("cnbc", "yfinance")):
             advisory.append(f"WARN: GoI yield not live — {gsec_source}")
         if unclassified:
             advisory.append(
@@ -462,6 +463,18 @@ def run_plate(
             )
         if e6:
             advisory.append(f"WARN: E6 caps-off conflict — needs your ruling: {', '.join(e6)}")
+        if plate_result.plan_amount > session_amount:
+            more = plate_result.plan_amount - session_amount
+            advisory.insert(0,
+                f"BUDGET: {_inr(session_amount)} is not enough for 1 share of each of the "
+                f"{len(plate_result.entries)} ranked stocks — this plate needs "
+                f"{_inr(plate_result.plan_amount)} ({_inr(more)} more)")
+        review = sorted(d.symbol for d in plate_result.drops
+                        if d.reason == PlateDropReason.REVIEW_FIRST)
+        if review:
+            advisory.append(
+                f"REVIEW FIRST: marked don't-buy but passing every gate — analyse before "
+                f"buying: {', '.join(review)}")
 
         # --- write session ---
         gate_details = {
@@ -475,6 +488,7 @@ def run_plate(
             "bees_sweep_amount": str(plate_result.bees_sweep_amount),
             "total_stock_amount": str(plate_result.total_stock_amount),
             "total_with_sweep": str(plate_result.total_with_sweep),
+            "plan_amount": str(plate_result.plan_amount),
             "residual": str(plate_result.residual),
             "advisory_flags": advisory,
             "gate_details": gate_details,
@@ -561,6 +575,7 @@ _NEAR_MISS_ALWAYS = frozenset({
     PlateDropReason.FIRST_BITE_FAILED,
     PlateDropReason.E6_CAPS_OFF_CONFLICT,
     PlateDropReason.E6_PEAK_CYCLE_CONFLICT,
+    PlateDropReason.REVIEW_FIRST,
     PlateDropReason.DECAY_EXPIRED,
     PlateDropReason.P_BLOCKED,
     PlateDropReason.NO_ADD_HOLD_ONLY,
@@ -605,7 +620,9 @@ def format_plate(result: PlateRunResult) -> str:
 
     L.append(f"TIFFIN COFFEE PLATE — {result.ran_at[:10]}  |  run {result.run_id}")
     L.append(
-        f"Ticket {_inr(p.session_amount)}  |  GoI {result.gsec_yield_pct}% "
+        f"Ticket {_inr(p.session_amount)}"
+        + (f" → plan {_inr(p.plan_amount)}" if p.plan_amount > p.session_amount else "")
+        + f"  |  GoI {result.gsec_yield_pct}% "
         f"({result.gsec_source}) → fair P/E {result.fair_pe}x  |  "
         f"Household equity {_inr(result.household_equity)}"
         + ("  [PHANTOM — holdings partial]" if blocked else "")
