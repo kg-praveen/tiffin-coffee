@@ -1,0 +1,4994 @@
+{
+ "recorded_at": "2026-09-25",
+ "gsec": null,
+ "prices": {
+  "ADANIPORTS": {
+   "price": {
+    "value": "1785.3",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   },
+   "low_52w": {
+    "value": "1292.0",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   },
+   "high_52w": {
+    "value": "1891.1",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   }
+  },
+  "ARE&M": {
+   "price": {
+    "value": "795.4",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   },
+   "low_52w": {
+    "value": "670.0",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   },
+   "high_52w": {
+    "value": "1023.0",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   }
+  },
+  "ASHOKLEY": {
+   "price": {
+    "value": "157.3",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   },
+   "low_52w": {
+    "value": "134.21",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   },
+   "high_52w": {
+    "value": "215.42",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   }
+  },
+  "ASIANPAINT": {
+   "price": {
+    "value": "2392.7",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:04+00:00"
+   },
+   "low_52w": {
+    "value": "2115.0",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:04+00:00"
+   },
+   "high_52w": {
+    "value": "2985.7",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:04+00:00"
+   }
+  },
+  "ATHERENERG": {
+   "price": {
+    "value": "1499.0",
+    "source": "yfinance:ATHERENERG.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   },
+   "low_52w": {
+    "value": "537.45",
+    "source": "yfinance:ATHERENERG.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   },
+   "high_52w": {
+    "value": "1744.0",
+    "source": "yfinance:ATHERENERG.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   }
+  },
+  "AVALON": {
+   "price": {
+    "value": "2316.1",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   },
+   "low_52w": {
+    "value": "777.3",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   },
+   "high_52w": {
+    "value": "2618.0",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   }
+  },
+  "AXISBANK": {
+   "price": {
+    "value": "1186.5",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   },
+   "low_52w": {
+    "value": "1125.4",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   },
+   "high_52w": {
+    "value": "1418.3",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   }
+  },
+  "BAJAJ-AUTO": {
+   "price": {
+    "value": "11208.0",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   },
+   "low_52w": {
+    "value": "8491.5",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   },
+   "high_52w": {
+    "value": "12470.0",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   }
+  },
+  "BAJAJFINSV": {
+   "price": {
+    "value": "1762.3",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:40:50+00:00"
+   },
+   "low_52w": {
+    "value": "1597.0",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:40:50+00:00"
+   },
+   "high_52w": {
+    "value": "2195.0",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:40:50+00:00"
+   }
+  },
+  "BAJFINANCE": {
+   "price": {
+    "value": "982.0",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   },
+   "low_52w": {
+    "value": "787.9",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   },
+   "high_52w": {
+    "value": "1176.4",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   }
+  },
+  "BALKRISIND": {
+   "price": {
+    "value": "2167.8",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   },
+   "low_52w": {
+    "value": "1970.0",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   },
+   "high_52w": {
+    "value": "2775.0",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   }
+  },
+  "BANKBARODA": {
+   "price": {
+    "value": "234.3",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   },
+   "low_52w": {
+    "value": "231.92",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   },
+   "high_52w": {
+    "value": "325.5",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   }
+  },
+  "BATAINDIA": {
+   "price": {
+    "value": "627.0",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   },
+   "low_52w": {
+    "value": "605.0",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   },
+   "high_52w": {
+    "value": "1238.0",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   }
+  },
+  "BEL": {
+   "price": {
+    "value": "392.0",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   },
+   "low_52w": {
+    "value": "380.45",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   },
+   "high_52w": {
+    "value": "473.45",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   }
+  },
+  "BHARTIARTL": {
+   "price": {
+    "value": "1795.8",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   },
+   "low_52w": {
+    "value": "1740.5",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   },
+   "high_52w": {
+    "value": "2174.5",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   }
+  },
+  "BPCL": {
+   "price": {
+    "value": "307.1",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   },
+   "low_52w": {
+    "value": "266.6",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   },
+   "high_52w": {
+    "value": "391.65",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   }
+  },
+  "BSE": {
+   "price": {
+    "value": "3183.8",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   },
+   "low_52w": {
+    "value": "2021.5",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   },
+   "high_52w": {
+    "value": "4446.8",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   }
+  },
+  "CANBK": {
+   "price": {
+    "value": "125.9",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   },
+   "low_52w": {
+    "value": "117.5",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   },
+   "high_52w": {
+    "value": "162.89",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   }
+  },
+  "CDSL": {
+   "price": {
+    "value": "1320.0",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   },
+   "low_52w": {
+    "value": "1116.3",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   },
+   "high_52w": {
+    "value": "1673.7",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:00+00:00"
+   }
+  },
+  "CHAMBLFERT": {
+   "price": {
+    "value": "418.2",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "low_52w": {
+    "value": "399.75",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "high_52w": {
+    "value": "528.4",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   }
+  },
+  "CHENNPETRO": {
+   "price": {
+    "value": "1372.7",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   },
+   "low_52w": {
+    "value": "716.8",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   },
+   "high_52w": {
+    "value": "1677.5",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   }
+  },
+  "CIPLA": {
+   "price": {
+    "value": "1399.0",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   },
+   "low_52w": {
+    "value": "1165.7",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   },
+   "high_52w": {
+    "value": "1673.0",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   }
+  },
+  "COALINDIA": {
+   "price": {
+    "value": "422.0",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   },
+   "low_52w": {
+    "value": "369.6",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   },
+   "high_52w": {
+    "value": "491.25",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   }
+  },
+  "COROMANDEL": {
+   "price": {
+    "value": "1942.5",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:40:32+00:00"
+   },
+   "low_52w": {
+    "value": "1706.5",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:40:32+00:00"
+   },
+   "high_52w": {
+    "value": "2499.0",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:40:32+00:00"
+   }
+  },
+  "CUB": {
+   "price": {
+    "value": "220.52",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:40:50+00:00"
+   },
+   "low_52w": {
+    "value": "154.0575",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:40:50+00:00"
+   },
+   "high_52w": {
+    "value": "248.85",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:40:50+00:00"
+   }
+  },
+  "DABUR": {
+   "price": {
+    "value": "385.7",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   },
+   "low_52w": {
+    "value": "368.05",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   },
+   "high_52w": {
+    "value": "534.0",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   }
+  },
+  "DIVISLAB": {
+   "price": {
+    "value": "9602.0",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   },
+   "low_52w": {
+    "value": "5636.5",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   },
+   "high_52w": {
+    "value": "9740.0",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   }
+  },
+  "DRREDDY": {
+   "price": {
+    "value": "1200.4",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   },
+   "low_52w": {
+    "value": "1101.0",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   },
+   "high_52w": {
+    "value": "1414.9",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   }
+  },
+  "ENGINERSIN": {
+   "price": {
+    "value": "296.65",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   },
+   "low_52w": {
+    "value": "163.55",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   },
+   "high_52w": {
+    "value": "318.9",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   }
+  },
+  "EXIDEIND": {
+   "price": {
+    "value": "426.55",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   },
+   "low_52w": {
+    "value": "287.0",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   },
+   "high_52w": {
+    "value": "496.4",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   }
+  },
+  "FEDERALBNK": {
+   "price": {
+    "value": "329.5",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "low_52w": {
+    "value": "189.05",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "high_52w": {
+    "value": "371.7",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   }
+  },
+  "FINCABLES": {
+   "price": {
+    "value": "1480.0",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:40:32+00:00"
+   },
+   "low_52w": {
+    "value": "700.8",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:40:32+00:00"
+   },
+   "high_52w": {
+    "value": "1498.0",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:40:32+00:00"
+   }
+  },
+  "FIVESTAR": {
+   "price": {
+    "value": "524.85",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "low_52w": {
+    "value": "338.15",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "high_52w": {
+    "value": "666.0",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   }
+  },
+  "GAIL": {
+   "price": {
+    "value": "173.85",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   },
+   "low_52w": {
+    "value": "134.36",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   },
+   "high_52w": {
+    "value": "186.87",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   }
+  },
+  "GESHIP": {
+   "price": {
+    "value": "1482.6",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   },
+   "low_52w": {
+    "value": "971.1",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   },
+   "high_52w": {
+    "value": "1798.0",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   }
+  },
+  "GODREJCP": {
+   "price": {
+    "value": "875.0",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   },
+   "low_52w": {
+    "value": "855.15",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   },
+   "high_52w": {
+    "value": "1273.9",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   }
+  },
+  "GOLDBEES": {
+   "price": {
+    "value": "123.43",
+    "source": "yfinance:GOLDBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   },
+   "low_52w": {
+    "value": "93.39",
+    "source": "yfinance:GOLDBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   },
+   "high_52w": {
+    "value": "148.14",
+    "source": "yfinance:GOLDBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   }
+  },
+  "HAL": {
+   "price": {
+    "value": "4774.2",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   },
+   "low_52w": {
+    "value": "3479.1",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   },
+   "high_52w": {
+    "value": "5149.9",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   }
+  },
+  "HAVELLS": {
+   "price": {
+    "value": "1090.0",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   },
+   "low_52w": {
+    "value": "1081.1",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   },
+   "high_52w": {
+    "value": "1538.7",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   }
+  },
+  "HCLTECH": {
+   "price": {
+    "value": "1243.6",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   },
+   "low_52w": {
+    "value": "1030.0",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   },
+   "high_52w": {
+    "value": "1780.1",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   }
+  },
+  "HDFCBANK": {
+   "price": {
+    "value": "728.9",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "low_52w": {
+    "value": "681.9",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "high_52w": {
+    "value": "1020.5",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   }
+  },
+  "HEROMOTOCO": {
+   "price": {
+    "value": "5296.0",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   },
+   "low_52w": {
+    "value": "4671.5",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   },
+   "high_52w": {
+    "value": "6388.5",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   }
+  },
+  "HFCL": {
+   "price": {
+    "value": "210.69",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   },
+   "low_52w": {
+    "value": "59.82",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   },
+   "high_52w": {
+    "value": "256.7",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   }
+  },
+  "HINDALCO": {
+   "price": {
+    "value": "982.0",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:40:45+00:00"
+   },
+   "low_52w": {
+    "value": "731.95",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:40:45+00:00"
+   },
+   "high_52w": {
+    "value": "1176.0",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:40:45+00:00"
+   }
+  },
+  "HINDCOPPER": {
+   "price": {
+    "value": "495.7",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:40:45+00:00"
+   },
+   "low_52w": {
+    "value": "308.5",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:40:45+00:00"
+   },
+   "high_52w": {
+    "value": "760.05",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:40:45+00:00"
+   }
+  },
+  "HINDOILEXP": {
+   "price": {
+    "value": "172.81",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   },
+   "low_52w": {
+    "value": "117.5",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   },
+   "high_52w": {
+    "value": "201.44",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:40:53+00:00"
+   }
+  },
+  "HINDPETRO": {
+   "price": {
+    "value": "350.4",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   },
+   "low_52w": {
+    "value": "316.2",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   },
+   "high_52w": {
+    "value": "508.45",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:40:41+00:00"
+   }
+  },
+  "HINDUNILVR": {
+   "price": {
+    "value": "1933.5",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   },
+   "low_52w": {
+    "value": "1915.0",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   },
+   "high_52w": {
+    "value": "2667.2",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   }
+  },
+  "HINDZINC": {
+   "price": {
+    "value": "587.15",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   },
+   "low_52w": {
+    "value": "445.6",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   },
+   "high_52w": {
+    "value": "733.0",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   }
+  },
+  "HYUNDAI": {
+   "price": {
+    "value": "2060.6",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   },
+   "low_52w": {
+    "value": "1658.0",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   },
+   "high_52w": {
+    "value": "2725.4",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:40:59+00:00"
+   }
+  },
+  "ICICIBANK": {
+   "price": {
+    "value": "1334.5",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   },
+   "low_52w": {
+    "value": "1187.6",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   },
+   "high_52w": {
+    "value": "1480.0",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   }
+  },
+  "ICICIPRULI": {
+   "price": {
+    "value": "464.5",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "low_52w": {
+    "value": "445.35",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "high_52w": {
+    "value": "706.8",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   }
+  },
+  "IDEAFORGE": {
+   "price": {
+    "value": "726.35",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   },
+   "low_52w": {
+    "value": "366.0",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   },
+   "high_52w": {
+    "value": "992.25",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   }
+  },
+  "IDFCFIRSTB": {
+   "price": {
+    "value": "83.76",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   },
+   "low_52w": {
+    "value": "58.08",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   },
+   "high_52w": {
+    "value": "89.61",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:40:49+00:00"
+   }
+  },
+  "IIFL": {
+   "price": {
+    "value": "617.55",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   },
+   "low_52w": {
+    "value": "409.1",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   },
+   "high_52w": {
+    "value": "705.0",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   }
+  },
+  "INDUSINDBK": {
+   "price": {
+    "value": "919.5",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   },
+   "low_52w": {
+    "value": "710.6",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   },
+   "high_52w": {
+    "value": "1077.85",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   }
+  },
+  "INFY": {
+   "price": {
+    "value": "1014.5",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   },
+   "low_52w": {
+    "value": "982.4",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   },
+   "high_52w": {
+    "value": "1728.0",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   }
+  },
+  "IOC": {
+   "price": {
+    "value": "136.27",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   },
+   "low_52w": {
+    "value": "130.22",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   },
+   "high_52w": {
+    "value": "188.96",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   }
+  },
+  "IRFC": {
+   "price": {
+    "value": "79.86",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   },
+   "low_52w": {
+    "value": "78.16",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   },
+   "high_52w": {
+    "value": "137.17",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:40:57+00:00"
+   }
+  },
+  "ITC": {
+   "price": {
+    "value": "268.0",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   },
+   "low_52w": {
+    "value": "255.5",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   },
+   "high_52w": {
+    "value": "426.4",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   }
+  },
+  "ITCHOTELS": {
+   "price": {
+    "value": "164.01",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   },
+   "low_52w": {
+    "value": "137.3",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   },
+   "high_52w": {
+    "value": "237.63",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   }
+  },
+  "JIOFIN": {
+   "price": {
+    "value": "227.2",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   },
+   "low_52w": {
+    "value": "223.3",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   },
+   "high_52w": {
+    "value": "316.85",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   }
+  },
+  "JKPAPER": {
+   "price": {
+    "value": "411.15",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   },
+   "low_52w": {
+    "value": "304.85",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   },
+   "high_52w": {
+    "value": "444.8",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   }
+  },
+  "JSWSTEEL": {
+   "price": {
+    "value": "1273.2",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   },
+   "low_52w": {
+    "value": "1073.2",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   },
+   "high_52w": {
+    "value": "1351.0",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   }
+  },
+  "JUNIORBEES": {
+   "price": {
+    "value": "773.76",
+    "source": "yfinance:JUNIORBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   },
+   "low_52w": {
+    "value": "632.34",
+    "source": "yfinance:JUNIORBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   },
+   "high_52w": {
+    "value": "823.97",
+    "source": "yfinance:JUNIORBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   }
+  },
+  "JYOTHYLAB": {
+   "price": {
+    "value": "192.86",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   },
+   "low_52w": {
+    "value": "188.1",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   },
+   "high_52w": {
+    "value": "325.0",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:40:54+00:00"
+   }
+  },
+  "KALYANKJIL": {
+   "price": {
+    "value": "573.6",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   },
+   "low_52w": {
+    "value": "327.05",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   },
+   "high_52w": {
+    "value": "648.95",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:40:37+00:00"
+   }
+  },
+  "KARURVYSYA": {
+   "price": {
+    "value": "325.0",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "low_52w": {
+    "value": "204.8",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "high_52w": {
+    "value": "358.65",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   }
+  },
+  "KEI": {
+   "price": {
+    "value": "4636.5",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   },
+   "low_52w": {
+    "value": "3728.7",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   },
+   "high_52w": {
+    "value": "5899.0",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   }
+  },
+  "LICI": {
+   "price": {
+    "value": "406.0",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   },
+   "low_52w": {
+    "value": "360.75",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   },
+   "high_52w": {
+    "value": "468.475",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:40:51+00:00"
+   }
+  },
+  "LT": {
+   "price": {
+    "value": "3858.4",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   },
+   "low_52w": {
+    "value": "3288.1",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   },
+   "high_52w": {
+    "value": "4440.0",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   }
+  },
+  "M&M": {
+   "price": {
+    "value": "2982.7",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   },
+   "low_52w": {
+    "value": "2896.0",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   },
+   "high_52w": {
+    "value": "3839.9",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:40:29+00:00"
+   }
+  },
+  "MANAPPURAM": {
+   "price": {
+    "value": "324.95",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   },
+   "low_52w": {
+    "value": "245.15",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   },
+   "high_52w": {
+    "value": "381.55",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   }
+  },
+  "MANKIND": {
+   "price": {
+    "value": "2500.0",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   },
+   "low_52w": {
+    "value": "1909.7",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   },
+   "high_52w": {
+    "value": "2642.0",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:40:39+00:00"
+   }
+  },
+  "MARUTI": {
+   "price": {
+    "value": "11990.0",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:04+00:00"
+   },
+   "low_52w": {
+    "value": "11975.0",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:04+00:00"
+   },
+   "high_52w": {
+    "value": "17370.0",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:04+00:00"
+   }
+  },
+  "MASTEK": {
+   "price": {
+    "value": "1543.6",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   },
+   "low_52w": {
+    "value": "1334.2",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   },
+   "high_52w": {
+    "value": "2369.0",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   }
+  },
+  "MHRIL": {
+   "price": {
+    "value": "199.71",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   },
+   "low_52w": {
+    "value": "188.21",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   },
+   "high_52w": {
+    "value": "363.95",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   }
+  },
+  "MUTHOOTFIN": {
+   "price": {
+    "value": "2825.3",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "low_52w": {
+    "value": "2671.0",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   },
+   "high_52w": {
+    "value": "4149.5",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:40:31+00:00"
+   }
+  },
+  "NATCOPHARM": {
+   "price": {
+    "value": "842.0",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   },
+   "low_52w": {
+    "value": "789.0",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   },
+   "high_52w": {
+    "value": "1226.8",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:40:58+00:00"
+   }
+  },
+  "NESTLEIND": {
+   "price": {
+    "value": "1351.0",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   },
+   "low_52w": {
+    "value": "1145.0",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   },
+   "high_52w": {
+    "value": "1553.0",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:40:36+00:00"
+   }
+  },
+  "NIFTYBEES": {
+   "price": {
+    "value": "263.99",
+    "source": "yfinance:NIFTYBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   },
+   "low_52w": {
+    "value": "251.7",
+    "source": "yfinance:NIFTYBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   },
+   "high_52w": {
+    "value": "302.25",
+    "source": "yfinance:NIFTYBEES.NS",
+    "as_of": "2026-09-25T18:41:02+00:00"
+   }
+  },
+  "NTPC": {
+   "price": {
+    "value": "326.6",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   },
+   "low_52w": {
+    "value": "315.55",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   },
+   "high_52w": {
+    "value": "414.4",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   }
+  },
+  "ONGC": {
+   "price": {
+    "value": "239.0",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   },
+   "low_52w": {
+    "value": "227.65",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   },
+   "high_52w": {
+    "value": "307.5",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:40:40+00:00"
+   }
+  },
+  "PARADEEP": {
+   "price": {
+    "value": "154.5",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   },
+   "low_52w": {
+    "value": "99.7",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   },
+   "high_52w": {
+    "value": "201.99",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   }
+  },
+  "PETRONET": {
+   "price": {
+    "value": "286.6",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   },
+   "low_52w": {
+    "value": "235.35",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   },
+   "high_52w": {
+    "value": "326.4",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:40:26+00:00"
+   }
+  },
+  "PFC": {
+   "price": {
+    "value": "339.35",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   },
+   "low_52w": {
+    "value": "329.9",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   },
+   "high_52w": {
+    "value": "486.5",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   }
+  },
+  "PNB": {
+   "price": {
+    "value": "117.12",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   },
+   "low_52w": {
+    "value": "98.5",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   },
+   "high_52w": {
+    "value": "135.15",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   }
+  },
+  "POLYCAB": {
+   "price": {
+    "value": "8366.5",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   },
+   "low_52w": {
+    "value": "6663.0",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   },
+   "high_52w": {
+    "value": "10126.0",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:40:33+00:00"
+   }
+  },
+  "POWERGRID": {
+   "price": {
+    "value": "266.4",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   },
+   "low_52w": {
+    "value": "250.0",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   },
+   "high_52w": {
+    "value": "324.95",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   }
+  },
+  "RECLTD": {
+   "price": {
+    "value": "308.25",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   },
+   "low_52w": {
+    "value": "304.05",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   },
+   "high_52w": {
+    "value": "390.3",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:40:42+00:00"
+   }
+  },
+  "RELIANCE": {
+   "price": {
+    "value": "1219.2",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:40:28+00:00"
+   },
+   "low_52w": {
+    "value": "1210.5",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:40:28+00:00"
+   },
+   "high_52w": {
+    "value": "1611.8",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:40:28+00:00"
+   }
+  },
+  "RITES": {
+   "price": {
+    "value": "201.74",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   },
+   "low_52w": {
+    "value": "175.0",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   },
+   "high_52w": {
+    "value": "270.0",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   }
+  },
+  "RRKABEL": {
+   "price": {
+    "value": "2529.8",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   },
+   "low_52w": {
+    "value": "1181.6",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   },
+   "high_52w": {
+    "value": "2983.8",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   }
+  },
+  "SAIL": {
+   "price": {
+    "value": "184.0",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   },
+   "low_52w": {
+    "value": "124.0",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   },
+   "high_52w": {
+    "value": "209.7",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:40:44+00:00"
+   }
+  },
+  "SBIN": {
+   "price": {
+    "value": "978.5",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   },
+   "low_52w": {
+    "value": "853.0",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   },
+   "high_52w": {
+    "value": "1234.7",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:40:30+00:00"
+   }
+  },
+  "SILVERBEES": {
+   "price": {
+    "value": "215.95",
+    "source": "yfinance:SILVERBEES.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   },
+   "low_52w": {
+    "value": "131.7",
+    "source": "yfinance:SILVERBEES.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   },
+   "high_52w": {
+    "value": "360.0",
+    "source": "yfinance:SILVERBEES.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   }
+  },
+  "SOUTHBANK": {
+   "price": {
+    "value": "49.9",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "low_52w": {
+    "value": "28.5",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "high_52w": {
+    "value": "50.68",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   }
+  },
+  "SULA": {
+   "price": {
+    "value": "135.78",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   },
+   "low_52w": {
+    "value": "132.0",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   },
+   "high_52w": {
+    "value": "271.89",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:40:56+00:00"
+   }
+  },
+  "SUNPHARMA": {
+   "price": {
+    "value": "1849.9",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   },
+   "low_52w": {
+    "value": "1548.0",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   },
+   "high_52w": {
+    "value": "2046.9",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:40:38+00:00"
+   }
+  },
+  "TATAPOWER": {
+   "price": {
+    "value": "363.45",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   },
+   "low_52w": {
+    "value": "342.5",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   },
+   "high_52w": {
+    "value": "464.9",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:03+00:00"
+   }
+  },
+  "TATASTEEL": {
+   "price": {
+    "value": "188.02",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   },
+   "low_52w": {
+    "value": "160.06",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   },
+   "high_52w": {
+    "value": "224.4",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:40:43+00:00"
+   }
+  },
+  "TCS": {
+   "price": {
+    "value": "2087.0",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   },
+   "low_52w": {
+    "value": "1976.8",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   },
+   "high_52w": {
+    "value": "3350.0",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:40:27+00:00"
+   }
+  },
+  "TEXINFRA": {
+   "price": {
+    "value": "118.9",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   },
+   "low_52w": {
+    "value": "82.5",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   },
+   "high_52w": {
+    "value": "126.59",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   }
+  },
+  "TEXRAIL": {
+   "price": {
+    "value": "126.77",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   },
+   "low_52w": {
+    "value": "78.05",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   },
+   "high_52w": {
+    "value": "143.1",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:40:46+00:00"
+   }
+  },
+  "THANGAMAYL": {
+   "price": {
+    "value": "5097.0",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   },
+   "low_52w": {
+    "value": "1939.5",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   },
+   "high_52w": {
+    "value": "7430.0",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:40:55+00:00"
+   }
+  },
+  "TITAN": {
+   "price": {
+    "value": "4832.5",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   },
+   "low_52w": {
+    "value": "3303.1",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   },
+   "high_52w": {
+    "value": "5186.7",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:40:35+00:00"
+   }
+  },
+  "TMB": {
+   "price": {
+    "value": "893.55",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "low_52w": {
+    "value": "420.0",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   },
+   "high_52w": {
+    "value": "954.2",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:40:48+00:00"
+   }
+  },
+  "TRENT": {
+   "price": {
+    "value": "2700.0",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   },
+   "low_52w": {
+    "value": "2183.6667",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   },
+   "high_52w": {
+    "value": "4908.0",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   }
+  },
+  "ULTRACEMCO": {
+   "price": {
+    "value": "11056.0",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   },
+   "low_52w": {
+    "value": "10325.0",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   },
+   "high_52w": {
+    "value": "13110.0",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:40:34+00:00"
+   }
+  },
+  "VBL": {
+   "price": {
+    "value": "431.25",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   },
+   "low_52w": {
+    "value": "381.0",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   },
+   "high_52w": {
+    "value": "555.8",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   }
+  },
+  "WIPRO": {
+   "price": {
+    "value": "163.64",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:40:28+00:00"
+   },
+   "low_52w": {
+    "value": "161.66",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:40:28+00:00"
+   },
+   "high_52w": {
+    "value": "273.1",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:40:28+00:00"
+   }
+  },
+  "YESBANK": {
+   "price": {
+    "value": "22.44",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   },
+   "low_52w": {
+    "value": "17.2",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   },
+   "high_52w": {
+    "value": "25.78",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:40:52+00:00"
+   }
+  },
+  "ZUARI": {
+   "price": {
+    "value": "218.41",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   },
+   "low_52w": {
+    "value": "175.1",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   },
+   "high_52w": {
+    "value": "345.6",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   }
+  },
+  "ZUARIIND": {
+   "price": {
+    "value": "282.85",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   },
+   "low_52w": {
+    "value": "210.0",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   },
+   "high_52w": {
+    "value": "395.95",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:40:47+00:00"
+   }
+  },
+  "ZYDUSLIFE": {
+   "price": {
+    "value": "1180.3",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   },
+   "low_52w": {
+    "value": "835.5",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   },
+   "high_52w": {
+    "value": "1208.6",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:01+00:00"
+   }
+  }
+ },
+ "price_failures": {},
+ "fundamentals": {
+  "ADANIPORTS": {
+   "pe_trailing": {
+    "value": "30.532785",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.2929688",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "eps_ttm": {
+    "value": "58.56",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "book_value_ps": {
+    "value": "416.495",
+    "source": "yfinance:ADANIPORTS.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "roe_pct": {
+    "value": "14.06",
+    "source": "yfinance:ADANIPORTS.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   }
+  },
+  "ARE&M": {
+   "pe_trailing": {
+    "value": "15.728898",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.7896973",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "eps_ttm": {
+    "value": "50.35",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "book_value_ps": {
+    "value": "442.505",
+    "source": "yfinance:ARE&M.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "roe_pct": {
+    "value": "11.38",
+    "source": "yfinance:ARE&M.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   }
+  },
+  "ASHOKLEY": {
+   "pe_trailing": {
+    "value": "26.917091",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.5610824",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "eps_ttm": {
+    "value": "5.91",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "book_value_ps": {
+    "value": "24.246",
+    "source": "yfinance:ASHOKLEY.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "roe_pct": {
+    "value": "24.38",
+    "source": "yfinance:ASHOKLEY.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   }
+  },
+  "ASIANPAINT": {
+   "pe_trailing": {
+    "value": "49.10589",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "pb_ratio": {
+    "value": "10.969134",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "eps_ttm": {
+    "value": "49.77",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "book_value_ps": {
+    "value": "222.807",
+    "source": "yfinance:ASIANPAINT.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "roe_pct": {
+    "value": "22.34",
+    "source": "yfinance:ASIANPAINT.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   }
+  },
+  "ATHERENERG": {
+   "pe_trailing": null,
+   "pb_ratio": {
+    "value": "22.26751",
+    "source": "yfinance:ATHERENERG.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "eps_ttm": {
+    "value": "-10.04",
+    "source": "yfinance:ATHERENERG.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "book_value_ps": {
+    "value": "67.228",
+    "source": "yfinance:ATHERENERG.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "roe_pct": {
+    "value": "-14.93",
+    "source": "yfinance:ATHERENERG.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   }
+  },
+  "AVALON": {
+   "pe_trailing": {
+    "value": "116.89257",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "pb_ratio": {
+    "value": "21.5534",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "eps_ttm": {
+    "value": "19.92",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "book_value_ps": {
+    "value": "108.034",
+    "source": "yfinance:AVALON.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "roe_pct": {
+    "value": "18.44",
+    "source": "yfinance:AVALON.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   }
+  },
+  "AXISBANK": {
+   "pe_trailing": {
+    "value": "14.409996",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.7035818",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "eps_ttm": {
+    "value": "84.83",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "book_value_ps": {
+    "value": "717.547",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "roe_pct": {
+    "value": "13.35299900",
+    "source": "yfinance:AXISBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   }
+  },
+  "BAJAJ-AUTO": {
+   "pe_trailing": {
+    "value": "26.840353",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "pb_ratio": {
+    "value": "8.119636",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "eps_ttm": {
+    "value": "420.3",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "book_value_ps": {
+    "value": "1389.348",
+    "source": "yfinance:BAJAJ-AUTO.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "roe_pct": {
+    "value": "30.25",
+    "source": "yfinance:BAJAJ-AUTO.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   }
+  },
+  "BAJAJFINSV": {
+   "pe_trailing": {
+    "value": "27.991148",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.6339238",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "eps_ttm": {
+    "value": "63.27",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "book_value_ps": {
+    "value": "487.352",
+    "source": "yfinance:BAJAJFINSV.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "roe_pct": {
+    "value": "12.98",
+    "source": "yfinance:BAJAJFINSV.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   }
+  },
+  "BAJFINANCE": {
+   "pe_trailing": {
+    "value": "32.535904",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.437409",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "eps_ttm": {
+    "value": "30.64",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "book_value_ps": {
+    "value": "183.341",
+    "source": "yfinance:BAJFINANCE.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "roe_pct": {
+    "value": "16.71",
+    "source": "yfinance:BAJFINANCE.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   }
+  },
+  "BALKRISIND": {
+   "pe_trailing": {
+    "value": "30.09226",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.856185",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "eps_ttm": {
+    "value": "72.62",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "book_value_ps": {
+    "value": "566.7",
+    "source": "yfinance:BALKRISIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "roe_pct": {
+    "value": "12.81",
+    "source": "yfinance:BALKRISIND.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   }
+  },
+  "BANKBARODA": {
+   "pe_trailing": {
+    "value": "6.698747",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.72169405",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "eps_ttm": {
+    "value": "35.12",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "book_value_ps": {
+    "value": "325.983",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "roe_pct": {
+    "value": "11.317000500",
+    "source": "yfinance:BANKBARODA.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   }
+  },
+  "BATAINDIA": {
+   "pe_trailing": {
+    "value": "55.488983",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.0731",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "eps_ttm": {
+    "value": "11.35",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "book_value_ps": {
+    "value": "124.145",
+    "source": "yfinance:BATAINDIA.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "roe_pct": {
+    "value": "9.14",
+    "source": "yfinance:BATAINDIA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   }
+  },
+  "BEL": {
+   "pe_trailing": {
+    "value": "46.90703",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "pb_ratio": {
+    "value": "11.992259",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "eps_ttm": {
+    "value": "8.39",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "book_value_ps": {
+    "value": "32.817",
+    "source": "yfinance:BEL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "roe_pct": {
+    "value": "25.57",
+    "source": "yfinance:BEL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   }
+  },
+  "BHARTIARTL": {
+   "pe_trailing": {
+    "value": "38.092598",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.880711",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "eps_ttm": {
+    "value": "46.87",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "book_value_ps": {
+    "value": "259.479",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "roe_pct": {
+    "value": "20.15100",
+    "source": "yfinance:BHARTIARTL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   }
+  },
+  "BPCL": {
+   "pe_trailing": {
+    "value": "7.6913486",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.3162779",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "eps_ttm": {
+    "value": "40.11",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "book_value_ps": {
+    "value": "234.373",
+    "source": "yfinance:BPCL.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "roe_pct": {
+    "value": "17.11",
+    "source": "yfinance:BPCL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   }
+  },
+  "BSE": {
+   "pe_trailing": {
+    "value": "47.73407",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "pb_ratio": {
+    "value": "16.436712",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "eps_ttm": {
+    "value": "66.86",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "book_value_ps": {
+    "value": "194.169",
+    "source": "yfinance:BSE.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "roe_pct": {
+    "value": "34.43",
+    "source": "yfinance:BSE.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   }
+  },
+  "CANBK": {
+   "pe_trailing": {
+    "value": "5.704701",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.96321005",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "eps_ttm": {
+    "value": "21.91",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "book_value_ps": {
+    "value": "129.764",
+    "source": "yfinance:CANBK.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "roe_pct": {
+    "value": "16.88",
+    "source": "yfinance:CANBK.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   }
+  },
+  "CDSL": {
+   "pe_trailing": {
+    "value": "58.396103",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "pb_ratio": {
+    "value": "14.055819",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "eps_ttm": {
+    "value": "22.57",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "book_value_ps": {
+    "value": "93.769",
+    "source": "yfinance:CDSL.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "roe_pct": {
+    "value": "24.07",
+    "source": "yfinance:CDSL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   }
+  },
+  "CHAMBLFERT": {
+   "pe_trailing": {
+    "value": "8.683773",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.6068388",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "eps_ttm": {
+    "value": "48.13",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "book_value_ps": {
+    "value": "260.107",
+    "source": "yfinance:CHAMBLFERT.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "roe_pct": {
+    "value": "18.50",
+    "source": "yfinance:CHAMBLFERT.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   }
+  },
+  "CHENNPETRO": {
+   "pe_trailing": {
+    "value": "4.910278",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.8450279",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "eps_ttm": {
+    "value": "280.31",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "book_value_ps": {
+    "value": "746.005",
+    "source": "yfinance:CHENNPETRO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "roe_pct": {
+    "value": "37.57",
+    "source": "yfinance:CHENNPETRO.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   }
+  },
+  "CIPLA": {
+   "pe_trailing": {
+    "value": "33.573997",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.2837305",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "eps_ttm": {
+    "value": "41.69",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "book_value_ps": {
+    "value": "426.253",
+    "source": "yfinance:CIPLA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "roe_pct": {
+    "value": "9.78",
+    "source": "yfinance:CIPLA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   }
+  },
+  "COALINDIA": {
+   "pe_trailing": {
+    "value": "8.477915",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.2045736",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "eps_ttm": {
+    "value": "50.26",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "book_value_ps": {
+    "value": "193.28",
+    "source": "yfinance:COALINDIA.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "roe_pct": {
+    "value": "26.00",
+    "source": "yfinance:COALINDIA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   }
+  },
+  "COROMANDEL": {
+   "pe_trailing": {
+    "value": "31.594273",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.6055427",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "eps_ttm": {
+    "value": "62.16",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "book_value_ps": {
+    "value": "426.421",
+    "source": "yfinance:COROMANDEL.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "roe_pct": {
+    "value": "14.58",
+    "source": "yfinance:COROMANDEL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   }
+  },
+  "CUB": {
+   "pe_trailing": {
+    "value": "15.952617",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.115307",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "eps_ttm": {
+    "value": "14.14",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "book_value_ps": {
+    "value": "106.637",
+    "source": "yfinance:CUB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "roe_pct": {
+    "value": "13.26",
+    "source": "yfinance:CUB.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   }
+  },
+  "DABUR": {
+   "pe_trailing": {
+    "value": "34.707474",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.9891586",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "eps_ttm": {
+    "value": "11.11",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "book_value_ps": {
+    "value": "64.383",
+    "source": "yfinance:DABUR.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "roe_pct": {
+    "value": "17.26",
+    "source": "yfinance:DABUR.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   }
+  },
+  "DIVISLAB": {
+   "pe_trailing": {
+    "value": "87.11737",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "pb_ratio": {
+    "value": "15.235819",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "eps_ttm": {
+    "value": "110.42",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "book_value_ps": {
+    "value": "631.374",
+    "source": "yfinance:DIVISLAB.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "roe_pct": {
+    "value": "17.49",
+    "source": "yfinance:DIVISLAB.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   }
+  },
+  "DRREDDY": {
+   "pe_trailing": {
+    "value": "30.229046",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.609134",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "eps_ttm": {
+    "value": "39.73",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "book_value_ps": {
+    "value": "460.306",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "roe_pct": {
+    "value": "8.836999500",
+    "source": "yfinance:DRREDDY.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   }
+  },
+  "ENGINERSIN": {
+   "pe_trailing": {
+    "value": "22.643473",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.6542764",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "eps_ttm": {
+    "value": "13.94",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "book_value_ps": {
+    "value": "55.825",
+    "source": "yfinance:ENGINERSIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "roe_pct": {
+    "value": "24.97",
+    "source": "yfinance:ENGINERSIN.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   }
+  },
+  "EXIDEIND": {
+   "pe_trailing": {
+    "value": "38.654198",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.5897694",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "eps_ttm": {
+    "value": "10.96",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "book_value_ps": {
+    "value": "163.586",
+    "source": "yfinance:EXIDEIND.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "roe_pct": {
+    "value": "6.70",
+    "source": "yfinance:EXIDEIND.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   }
+  },
+  "FEDERALBNK": {
+   "pe_trailing": {
+    "value": "17.237686",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.9822093",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "eps_ttm": {
+    "value": "18.68",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "book_value_ps": {
+    "value": "162.445",
+    "source": "yfinance:FEDERALBNK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "roe_pct": {
+    "value": "11.50",
+    "source": "yfinance:FEDERALBNK.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   }
+  },
+  "FINCABLES": {
+   "pe_trailing": {
+    "value": "27.885094",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.6723838",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "eps_ttm": {
+    "value": "52.39",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "book_value_ps": {
+    "value": "397.807",
+    "source": "yfinance:FINCABLES.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "roe_pct": {
+    "value": "13.17",
+    "source": "yfinance:FINCABLES.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   }
+  },
+  "FIVESTAR": {
+   "pe_trailing": {
+    "value": "13.9217005",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.0835834",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "eps_ttm": {
+    "value": "37.42",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "book_value_ps": {
+    "value": "250.026",
+    "source": "yfinance:FIVESTAR.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "roe_pct": {
+    "value": "14.97",
+    "source": "yfinance:FIVESTAR.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   }
+  },
+  "GAIL": {
+   "pe_trailing": {
+    "value": "11.482713",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.274078",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "eps_ttm": {
+    "value": "15.04",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "book_value_ps": {
+    "value": "135.549",
+    "source": "yfinance:GAIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "roe_pct": {
+    "value": "11.10",
+    "source": "yfinance:GAIL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   }
+  },
+  "GESHIP": {
+   "pe_trailing": {
+    "value": "5.7149396",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.2601388",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "eps_ttm": {
+    "value": "261.98",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "book_value_ps": {
+    "value": "1188.123",
+    "source": "yfinance:GESHIP.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "roe_pct": {
+    "value": "22.05",
+    "source": "yfinance:GESHIP.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   }
+  },
+  "GODREJCP": {
+   "pe_trailing": {
+    "value": "47.00855",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "pb_ratio": {
+    "value": "7.1192226",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "eps_ttm": {
+    "value": "18.72",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "book_value_ps": {
+    "value": "123.609",
+    "source": "yfinance:GODREJCP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "roe_pct": {
+    "value": "15.14",
+    "source": "yfinance:GODREJCP.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   }
+  },
+  "GOLDBEES": {
+   "pe_trailing": null,
+   "pb_ratio": null,
+   "eps_ttm": null,
+   "book_value_ps": null,
+   "roe_pct": null
+  },
+  "HAL": {
+   "pe_trailing": {
+    "value": "34.430813",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "pb_ratio": {
+    "value": "7.821717",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "eps_ttm": {
+    "value": "139.41",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "book_value_ps": {
+    "value": "613.676",
+    "source": "yfinance:HAL.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "roe_pct": {
+    "value": "22.72",
+    "source": "yfinance:HAL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   }
+  },
+  "HAVELLS": {
+   "pe_trailing": {
+    "value": "42.450638",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "pb_ratio": {
+    "value": "7.2739697",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "eps_ttm": {
+    "value": "25.83",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "book_value_ps": {
+    "value": "150.743",
+    "source": "yfinance:HAVELLS.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "roe_pct": {
+    "value": "17.14",
+    "source": "yfinance:HAVELLS.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   }
+  },
+  "HCLTECH": {
+   "pe_trailing": {
+    "value": "19.567585",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.6117897",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "eps_ttm": {
+    "value": "64.29",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "book_value_ps": {
+    "value": "272.77914",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "roe_pct": {
+    "value": "24.06700",
+    "source": "yfinance:HCLTECH.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   }
+  },
+  "HDFCBANK": {
+   "pe_trailing": {
+    "value": "16.071663",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.8678916",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "eps_ttm": {
+    "value": "45.77",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "book_value_ps": {
+    "value": "393.813",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "roe_pct": {
+    "value": "13.83800",
+    "source": "yfinance:HDFCBANK.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   }
+  },
+  "HEROMOTOCO": {
+   "pe_trailing": {
+    "value": "20.080921",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.9626184",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "eps_ttm": {
+    "value": "266.92",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "book_value_ps": {
+    "value": "1080.075",
+    "source": "yfinance:HEROMOTOCO.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "roe_pct": {
+    "value": "24.71",
+    "source": "yfinance:HEROMOTOCO.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   }
+  },
+  "HFCL": {
+   "pe_trailing": {
+    "value": "55.16188",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.3725758",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "eps_ttm": {
+    "value": "3.83",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "book_value_ps": {
+    "value": "33.153",
+    "source": "yfinance:HFCL.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "roe_pct": {
+    "value": "11.55",
+    "source": "yfinance:HFCL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   }
+  },
+  "HINDALCO": {
+   "pe_trailing": {
+    "value": "13.2474575",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.5878847",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "eps_ttm": {
+    "value": "73.75",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "book_value_ps": {
+    "value": "615.284",
+    "source": "yfinance:HINDALCO.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "roe_pct": {
+    "value": "11.99",
+    "source": "yfinance:HINDALCO.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   }
+  },
+  "HINDCOPPER": {
+   "pe_trailing": {
+    "value": "42.097874",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "pb_ratio": {
+    "value": "14.325225",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "eps_ttm": {
+    "value": "11.75",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "book_value_ps": {
+    "value": "34.53",
+    "source": "yfinance:HINDCOPPER.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "roe_pct": {
+    "value": "34.03",
+    "source": "yfinance:HINDCOPPER.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   }
+  },
+  "HINDOILEXP": {
+   "pe_trailing": {
+    "value": "92.223404",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.6485847",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "eps_ttm": {
+    "value": "1.88",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "book_value_ps": {
+    "value": "105.169",
+    "source": "yfinance:HINDOILEXP.NS",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   },
+   "roe_pct": {
+    "value": "1.79",
+    "source": "yfinance:HINDOILEXP.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:27+00:00"
+   }
+  },
+  "HINDPETRO": {
+   "pe_trailing": {
+    "value": "44.713375",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.1394588",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "eps_ttm": {
+    "value": "7.85",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "book_value_ps": {
+    "value": "308.041",
+    "source": "yfinance:HINDPETRO.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "roe_pct": {
+    "value": "2.55",
+    "source": "yfinance:HINDPETRO.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   }
+  },
+  "HINDUNILVR": {
+   "pe_trailing": {
+    "value": "43.127636",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "pb_ratio": {
+    "value": "9.366262",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "eps_ttm": {
+    "value": "45.05",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "book_value_ps": {
+    "value": "207.436",
+    "source": "yfinance:HINDUNILVR.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "roe_pct": {
+    "value": "21.72",
+    "source": "yfinance:HINDUNILVR.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   }
+  },
+  "HINDZINC": {
+   "pe_trailing": {
+    "value": "14.5779705",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "pb_ratio": {
+    "value": "10.996901",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "eps_ttm": {
+    "value": "40.4",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "book_value_ps": {
+    "value": "53.556",
+    "source": "yfinance:HINDZINC.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "roe_pct": {
+    "value": "75.44",
+    "source": "yfinance:HINDZINC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   }
+  },
+  "HYUNDAI": {
+   "pe_trailing": {
+    "value": "34.677814",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "pb_ratio": {
+    "value": "8.587926",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "eps_ttm": {
+    "value": "60.99",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "book_value_ps": {
+    "value": "246.276",
+    "source": "yfinance:HYUNDAI.NS",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   },
+   "roe_pct": {
+    "value": "24.76",
+    "source": "yfinance:HYUNDAI.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:32+00:00"
+   }
+  },
+  "ICICIBANK": {
+   "pe_trailing": {
+    "value": "17.231169",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.5016167",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "eps_ttm": {
+    "value": "77.0",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "book_value_ps": {
+    "value": "530.377",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "roe_pct": {
+    "value": "16.07399900",
+    "source": "yfinance:ICICIBANK.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   }
+  },
+  "ICICIPRULI": {
+   "pe_trailing": {
+    "value": "39.879414",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.922652",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "eps_ttm": {
+    "value": "11.61",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "book_value_ps": {
+    "value": "94.055",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "roe_pct": {
+    "value": "12.57100",
+    "source": "yfinance:ICICIPRULI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   }
+  },
+  "IDEAFORGE": {
+   "pe_trailing": {
+    "value": "776.43616",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.272568",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "eps_ttm": {
+    "value": "0.94",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "book_value_ps": {
+    "value": "138.424",
+    "source": "yfinance:IDEAFORGE.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "roe_pct": {
+    "value": "0.68",
+    "source": "yfinance:IDEAFORGE.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   }
+  },
+  "IDFCFIRSTB": {
+   "pe_trailing": {
+    "value": "33.927128",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.4827135",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "eps_ttm": {
+    "value": "2.47",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "book_value_ps": {
+    "value": "56.518",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   },
+   "roe_pct": {
+    "value": "5.264999700",
+    "source": "yfinance:IDFCFIRSTB.NS",
+    "as_of": "2026-09-25T18:41:24+00:00"
+   }
+  },
+  "IIFL": {
+   "pe_trailing": {
+    "value": "12.570293",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.8849392",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "eps_ttm": {
+    "value": "49.08",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "book_value_ps": {
+    "value": "327.305",
+    "source": "yfinance:IIFL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "roe_pct": {
+    "value": "15.00",
+    "source": "yfinance:IIFL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   }
+  },
+  "INDUSINDBK": {
+   "pe_trailing": {
+    "value": "56.03194",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.0805598",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "eps_ttm": {
+    "value": "16.28",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "book_value_ps": {
+    "value": "844.192",
+    "source": "yfinance:INDUSINDBK.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "roe_pct": {
+    "value": "1.93",
+    "source": "yfinance:INDUSINDBK.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   }
+  },
+  "INFY": {
+   "pe_trailing": {
+    "value": "12.904141",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.389509",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "eps_ttm": {
+    "value": "77.51",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "book_value_ps": {
+    "value": "227.86147",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "roe_pct": {
+    "value": "32.00",
+    "source": "yfinance:INFY.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   }
+  },
+  "IOC": {
+   "pe_trailing": {
+    "value": "5.62837",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.8512",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "eps_ttm": {
+    "value": "24.11",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "book_value_ps": {
+    "value": "159.422",
+    "source": "yfinance:IOC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "roe_pct": {
+    "value": "15.12",
+    "source": "yfinance:IOC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   }
+  },
+  "IRFC": {
+   "pe_trailing": {
+    "value": "14.562841",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.8394955",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "eps_ttm": {
+    "value": "5.49",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "book_value_ps": {
+    "value": "43.463",
+    "source": "yfinance:IRFC.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "roe_pct": {
+    "value": "12.63",
+    "source": "yfinance:IRFC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   }
+  },
+  "ITC": {
+   "pe_trailing": {
+    "value": "16.982323",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.6484303",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "eps_ttm": {
+    "value": "15.84",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "book_value_ps": {
+    "value": "57.869",
+    "source": "yfinance:ITC.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "roe_pct": {
+    "value": "27.37",
+    "source": "yfinance:ITC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   }
+  },
+  "ITCHOTELS": {
+   "pe_trailing": {
+    "value": "39.012047",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.892776",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "eps_ttm": {
+    "value": "4.15",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "book_value_ps": {
+    "value": "55.967",
+    "source": "yfinance:ITCHOTELS.NS",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   },
+   "roe_pct": {
+    "value": "7.42",
+    "source": "yfinance:ITCHOTELS.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:33+00:00"
+   }
+  },
+  "JIOFIN": {
+   "pe_trailing": {
+    "value": "70.27864",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.0736109",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "eps_ttm": {
+    "value": "3.23",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "book_value_ps": {
+    "value": "211.436",
+    "source": "yfinance:JIOFIN.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "roe_pct": {
+    "value": "1.53",
+    "source": "yfinance:JIOFIN.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   }
+  },
+  "JKPAPER": {
+   "pe_trailing": {
+    "value": "23.380081",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.342283",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "eps_ttm": {
+    "value": "17.47",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "book_value_ps": {
+    "value": "304.295",
+    "source": "yfinance:JKPAPER.NS",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   },
+   "roe_pct": {
+    "value": "5.74",
+    "source": "yfinance:JKPAPER.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:30+00:00"
+   }
+  },
+  "JSWSTEEL": {
+   "pe_trailing": {
+    "value": "12.599901",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.1152875",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "eps_ttm": {
+    "value": "101.35",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "book_value_ps": {
+    "value": "409.914",
+    "source": "yfinance:JSWSTEEL.NS",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   },
+   "roe_pct": {
+    "value": "24.72",
+    "source": "yfinance:JSWSTEEL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:19+00:00"
+   }
+  },
+  "JUNIORBEES": {
+   "pe_trailing": {
+    "value": "19.715319",
+    "source": "yfinance:JUNIORBEES.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "pb_ratio": null,
+   "eps_ttm": null,
+   "book_value_ps": null,
+   "roe_pct": null
+  },
+  "JYOTHYLAB": {
+   "pe_trailing": {
+    "value": "24.717983",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.4166803",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "eps_ttm": {
+    "value": "7.73",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "book_value_ps": {
+    "value": "43.261",
+    "source": "yfinance:JYOTHYLAB.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "roe_pct": {
+    "value": "17.87",
+    "source": "yfinance:JYOTHYLAB.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   }
+  },
+  "KALYANKJIL": {
+   "pe_trailing": {
+    "value": "41.28242",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "pb_ratio": {
+    "value": "9.368715",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "eps_ttm": {
+    "value": "13.88",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "book_value_ps": {
+    "value": "61.161",
+    "source": "yfinance:KALYANKJIL.NS",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   },
+   "roe_pct": {
+    "value": "22.69",
+    "source": "yfinance:KALYANKJIL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:14+00:00"
+   }
+  },
+  "KARURVYSYA": {
+   "pe_trailing": {
+    "value": "11.543471",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.2470486",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "eps_ttm": {
+    "value": "28.41",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "book_value_ps": {
+    "value": "145.947",
+    "source": "yfinance:KARURVYSYA.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "roe_pct": {
+    "value": "19.47",
+    "source": "yfinance:KARURVYSYA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   }
+  },
+  "KEI": {
+   "pe_trailing": {
+    "value": "44.799656",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.703472",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "eps_ttm": {
+    "value": "104.32",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "book_value_ps": {
+    "value": "697.176",
+    "source": "yfinance:KEI.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "roe_pct": {
+    "value": "14.96",
+    "source": "yfinance:KEI.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   }
+  },
+  "LICI": {
+   "pe_trailing": {
+    "value": "8.611579",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.9299688",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "eps_ttm": {
+    "value": "47.5",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "book_value_ps": {
+    "value": "139.609",
+    "source": "yfinance:LICI.NS",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   },
+   "roe_pct": {
+    "value": "34.02",
+    "source": "yfinance:LICI.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:25+00:00"
+   }
+  },
+  "LT": {
+   "pe_trailing": {
+    "value": "32.1997",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.878976",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "eps_ttm": {
+    "value": "120.38",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "book_value_ps": {
+    "value": "794.47",
+    "source": "yfinance:LT.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "roe_pct": {
+    "value": "15.15",
+    "source": "yfinance:LT.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   }
+  },
+  "M&M": {
+   "pe_trailing": {
+    "value": "18.466686",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.643348",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "eps_ttm": {
+    "value": "164.35",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "book_value_ps": {
+    "value": "833.025",
+    "source": "yfinance:M&M.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "roe_pct": {
+    "value": "19.73",
+    "source": "yfinance:M&M.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   }
+  },
+  "MANAPPURAM": {
+   "pe_trailing": {
+    "value": "20.390722",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.954668",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "eps_ttm": {
+    "value": "16.38",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "book_value_ps": {
+    "value": "170.873",
+    "source": "yfinance:MANAPPURAM.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "roe_pct": {
+    "value": "9.59",
+    "source": "yfinance:MANAPPURAM.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   }
+  },
+  "MANKIND": {
+   "pe_trailing": {
+    "value": "49.99798",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.2680287",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "eps_ttm": {
+    "value": "49.5",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "book_value_ps": {
+    "value": "394.845",
+    "source": "yfinance:MANKIND.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "roe_pct": {
+    "value": "12.54",
+    "source": "yfinance:MANKIND.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   }
+  },
+  "MARUTI": {
+   "pe_trailing": {
+    "value": "26.4804",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.539922",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "eps_ttm": {
+    "value": "455.62",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "book_value_ps": {
+    "value": "3408.267",
+    "source": "yfinance:MARUTI.NS",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   },
+   "roe_pct": {
+    "value": "13.37",
+    "source": "yfinance:MARUTI.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:36+00:00"
+   }
+  },
+  "MASTEK": {
+   "pe_trailing": {
+    "value": "12.049331",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.5871122",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "eps_ttm": {
+    "value": "131.36",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "book_value_ps": {
+    "value": "997.283",
+    "source": "yfinance:MASTEK.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "roe_pct": {
+    "value": "13.17",
+    "source": "yfinance:MASTEK.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   }
+  },
+  "MHRIL": {
+   "pe_trailing": {
+    "value": "76.335884",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.185243",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "eps_ttm": {
+    "value": "2.62",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "book_value_ps": {
+    "value": "38.571",
+    "source": "yfinance:MHRIL.NS",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   },
+   "roe_pct": {
+    "value": "6.79",
+    "source": "yfinance:MHRIL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:28+00:00"
+   }
+  },
+  "MUTHOOTFIN": {
+   "pe_trailing": {
+    "value": "10.004941",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.803267",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "eps_ttm": {
+    "value": "283.36",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "book_value_ps": {
+    "value": "1011.32",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   },
+   "roe_pct": {
+    "value": "31.73500",
+    "source": "yfinance:MUTHOOTFIN.NS",
+    "as_of": "2026-09-25T18:41:09+00:00"
+   }
+  },
+  "NATCOPHARM": {
+   "pe_trailing": {
+    "value": "13.13253",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.6299556",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "eps_ttm": {
+    "value": "63.91",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "book_value_ps": {
+    "value": "514.922",
+    "source": "yfinance:NATCOPHARM.NS",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   },
+   "roe_pct": {
+    "value": "12.41",
+    "source": "yfinance:NATCOPHARM.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:31+00:00"
+   }
+  },
+  "NESTLEIND": {
+   "pe_trailing": {
+    "value": "69.09737",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "pb_ratio": {
+    "value": "50.95165",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "eps_ttm": {
+    "value": "19.72",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "book_value_ps": {
+    "value": "26.743",
+    "source": "yfinance:NESTLEIND.NS",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   },
+   "roe_pct": {
+    "value": "73.74",
+    "source": "yfinance:NESTLEIND.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:13+00:00"
+   }
+  },
+  "NIFTYBEES": {
+   "pe_trailing": {
+    "value": "20.1412",
+    "source": "yfinance:NIFTYBEES.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "pb_ratio": null,
+   "eps_ttm": null,
+   "book_value_ps": null,
+   "roe_pct": null
+  },
+  "NTPC": {
+   "pe_trailing": {
+    "value": "9.969476",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.5593667",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "eps_ttm": {
+    "value": "32.76",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "book_value_ps": {
+    "value": "209.444",
+    "source": "yfinance:NTPC.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "roe_pct": {
+    "value": "15.64",
+    "source": "yfinance:NTPC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   }
+  },
+  "ONGC": {
+   "pe_trailing": {
+    "value": "6.814793",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.7981726",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "eps_ttm": {
+    "value": "34.61",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "book_value_ps": {
+    "value": "295.5",
+    "source": "yfinance:ONGC.NS",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   },
+   "roe_pct": {
+    "value": "11.71",
+    "source": "yfinance:ONGC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:16+00:00"
+   }
+  },
+  "PARADEEP": {
+   "pe_trailing": {
+    "value": "15.066861",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.378032",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "eps_ttm": {
+    "value": "10.32",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "book_value_ps": {
+    "value": "65.386",
+    "source": "yfinance:PARADEEP.NS",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   },
+   "roe_pct": {
+    "value": "15.78",
+    "source": "yfinance:PARADEEP.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:21+00:00"
+   }
+  },
+  "PETRONET": {
+   "pe_trailing": {
+    "value": "10.210264",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.9280726",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "eps_ttm": {
+    "value": "28.06",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "book_value_ps": {
+    "value": "148.594",
+    "source": "yfinance:PETRONET.NS",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   },
+   "roe_pct": {
+    "value": "18.88",
+    "source": "yfinance:PETRONET.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:05+00:00"
+   }
+  },
+  "PFC": {
+   "pe_trailing": {
+    "value": "4.282275",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.7803986",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "eps_ttm": {
+    "value": "78.93",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "book_value_ps": {
+    "value": "433.112",
+    "source": "yfinance:PFC.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "roe_pct": {
+    "value": "18.22",
+    "source": "yfinance:PFC.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   }
+  },
+  "PNB": {
+   "pe_trailing": {
+    "value": "6.0665975",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.8570126",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "eps_ttm": {
+    "value": "19.22",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "book_value_ps": {
+    "value": "136.054",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   },
+   "roe_pct": {
+    "value": "14.96599900",
+    "source": "yfinance:PNB.NS",
+    "as_of": "2026-09-25T18:41:17+00:00"
+   }
+  },
+  "POLYCAB": {
+   "pe_trailing": {
+    "value": "44.273907",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "pb_ratio": {
+    "value": "10.467004",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "eps_ttm": {
+    "value": "189.92",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "book_value_ps": {
+    "value": "803.334",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   },
+   "roe_pct": {
+    "value": "25.54900",
+    "source": "yfinance:POLYCAB.NS",
+    "as_of": "2026-09-25T18:41:10+00:00"
+   }
+  },
+  "POWERGRID": {
+   "pe_trailing": {
+    "value": "13.191385",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.4941926",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "eps_ttm": {
+    "value": "20.43",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "book_value_ps": {
+    "value": "108.051",
+    "source": "yfinance:POWERGRID.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "roe_pct": {
+    "value": "18.91",
+    "source": "yfinance:POWERGRID.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   }
+  },
+  "RECLTD": {
+   "pe_trailing": {
+    "value": "5.150593",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.9785896",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "eps_ttm": {
+    "value": "60.76",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "book_value_ps": {
+    "value": "319.797",
+    "source": "yfinance:RECLTD.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "roe_pct": {
+    "value": "19.00",
+    "source": "yfinance:RECLTD.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   }
+  },
+  "RELIANCE": {
+   "pe_trailing": {
+    "value": "22.19808",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.8352058",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "eps_ttm": {
+    "value": "55.23",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "book_value_ps": {
+    "value": "668.045",
+    "source": "yfinance:RELIANCE.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "roe_pct": {
+    "value": "8.27",
+    "source": "yfinance:RELIANCE.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   }
+  },
+  "RITES": {
+   "pe_trailing": {
+    "value": "22.988466",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "pb_ratio": {
+    "value": "3.5782764",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "eps_ttm": {
+    "value": "8.67",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "book_value_ps": {
+    "value": "55.7",
+    "source": "yfinance:RITES.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "roe_pct": {
+    "value": "15.57",
+    "source": "yfinance:RITES.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   }
+  },
+  "RRKABEL": {
+   "pe_trailing": {
+    "value": "47.14339",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "pb_ratio": {
+    "value": "11.108036",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "eps_ttm": {
+    "value": "53.63",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "book_value_ps": {
+    "value": "227.61",
+    "source": "yfinance:RRKABEL.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "roe_pct": {
+    "value": "23.56",
+    "source": "yfinance:RRKABEL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   }
+  },
+  "SAIL": {
+   "pe_trailing": {
+    "value": "17.857143",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.2671145",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "eps_ttm": {
+    "value": "10.36",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "book_value_ps": {
+    "value": "146.001",
+    "source": "yfinance:SAIL.NS",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   },
+   "roe_pct": {
+    "value": "7.10",
+    "source": "yfinance:SAIL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:20+00:00"
+   }
+  },
+  "SBIN": {
+   "pe_trailing": {
+    "value": "10.508873",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.4589354",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "eps_ttm": {
+    "value": "93.54",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "book_value_ps": {
+    "value": "673.779",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   },
+   "roe_pct": {
+    "value": "15.17700",
+    "source": "yfinance:SBIN.NS",
+    "as_of": "2026-09-25T18:41:08+00:00"
+   }
+  },
+  "SILVERBEES": {
+   "pe_trailing": null,
+   "pb_ratio": null,
+   "eps_ttm": null,
+   "book_value_ps": null,
+   "roe_pct": null
+  },
+  "SOUTHBANK": {
+   "pe_trailing": {
+    "value": "8.671875",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.1087927",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "eps_ttm": {
+    "value": "5.76",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "book_value_ps": {
+    "value": "45.049",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "roe_pct": {
+    "value": "13.59600",
+    "source": "yfinance:SOUTHBANK.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   }
+  },
+  "SULA": {
+   "pe_trailing": {
+    "value": "45.80678",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.9426954",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "eps_ttm": {
+    "value": "2.95",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "book_value_ps": {
+    "value": "69.558",
+    "source": "yfinance:SULA.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "roe_pct": {
+    "value": "4.24",
+    "source": "yfinance:SULA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   }
+  },
+  "SUNPHARMA": {
+   "pe_trailing": {
+    "value": "36.808426",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "pb_ratio": {
+    "value": "5.3177533",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "eps_ttm": {
+    "value": "50.32",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "book_value_ps": {
+    "value": "348.305",
+    "source": "yfinance:SUNPHARMA.NS",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   },
+   "roe_pct": {
+    "value": "14.45",
+    "source": "yfinance:SUNPHARMA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:15+00:00"
+   }
+  },
+  "TATAPOWER": {
+   "pe_trailing": {
+    "value": "30.447392",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:35+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.9746728",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:35+00:00"
+   },
+   "eps_ttm": {
+    "value": "12.07",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:35+00:00"
+   },
+   "book_value_ps": {
+    "value": "123.543",
+    "source": "yfinance:TATAPOWER.NS",
+    "as_of": "2026-09-25T18:41:35+00:00"
+   },
+   "roe_pct": {
+    "value": "9.77",
+    "source": "yfinance:TATAPOWER.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:35+00:00"
+   }
+  },
+  "TATASTEEL": {
+   "pe_trailing": {
+    "value": "21.263575",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.2967424",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "eps_ttm": {
+    "value": "8.84",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "book_value_ps": {
+    "value": "81.842",
+    "source": "yfinance:TATASTEEL.NS",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   },
+   "roe_pct": {
+    "value": "10.80",
+    "source": "yfinance:TATASTEEL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:18+00:00"
+   }
+  },
+  "TCS": {
+   "pe_trailing": {
+    "value": "15.115435",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.8709693",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "eps_ttm": {
+    "value": "137.74",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "book_value_ps": {
+    "value": "303.014",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   },
+   "roe_pct": {
+    "value": "47.74300",
+    "source": "yfinance:TCS.NS",
+    "as_of": "2026-09-25T18:41:06+00:00"
+   }
+  },
+  "TEXINFRA": {
+   "pe_trailing": {
+    "value": "166.5493",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.3453093",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "eps_ttm": {
+    "value": "0.71",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "book_value_ps": {
+    "value": "87.898",
+    "source": "yfinance:TEXINFRA.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "roe_pct": {
+    "value": "0.81",
+    "source": "yfinance:TEXINFRA.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   }
+  },
+  "TEXRAIL": {
+   "pe_trailing": {
+    "value": "23.622179",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.1501899",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "eps_ttm": {
+    "value": "5.32",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "book_value_ps": {
+    "value": "58.446",
+    "source": "yfinance:TEXRAIL.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "roe_pct": {
+    "value": "9.10",
+    "source": "yfinance:TEXRAIL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   }
+  },
+  "THANGAMAYL": {
+   "pe_trailing": {
+    "value": "40.782368",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "pb_ratio": {
+    "value": "11.270521",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "eps_ttm": {
+    "value": "125.9",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "book_value_ps": {
+    "value": "455.569",
+    "source": "yfinance:THANGAMAYL.NS",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   },
+   "roe_pct": {
+    "value": "27.64",
+    "source": "yfinance:THANGAMAYL.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:29+00:00"
+   }
+  },
+  "TITAN": {
+   "pe_trailing": {
+    "value": "75.41692",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "pb_ratio": {
+    "value": "27.612251",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "eps_ttm": {
+    "value": "64.76",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "book_value_ps": {
+    "value": "176.878",
+    "source": "yfinance:TITAN.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "roe_pct": {
+    "value": "36.61",
+    "source": "yfinance:TITAN.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   }
+  },
+  "TMB": {
+   "pe_trailing": {
+    "value": "9.666777",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.381286",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "eps_ttm": {
+    "value": "91.23",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "book_value_ps": {
+    "value": "638.463",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   },
+   "roe_pct": {
+    "value": "14.52100",
+    "source": "yfinance:TMB.NS",
+    "as_of": "2026-09-25T18:41:23+00:00"
+   }
+  },
+  "TRENT": {
+   "pe_trailing": {
+    "value": "78.46267",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "pb_ratio": {
+    "value": "20.378202",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "eps_ttm": {
+    "value": "34.02",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "book_value_ps": {
+    "value": "130.988",
+    "source": "yfinance:TRENT.NS",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   },
+   "roe_pct": {
+    "value": "25.97",
+    "source": "yfinance:TRENT.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:12+00:00"
+   }
+  },
+  "ULTRACEMCO": {
+   "pe_trailing": {
+    "value": "38.46154",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.281982",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "eps_ttm": {
+    "value": "290.03",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "book_value_ps": {
+    "value": "2605.102",
+    "source": "yfinance:ULTRACEMCO.NS",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   },
+   "roe_pct": {
+    "value": "11.13",
+    "source": "yfinance:ULTRACEMCO.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:11+00:00"
+   }
+  },
+  "VBL": {
+   "pe_trailing": {
+    "value": "43.48",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "pb_ratio": {
+    "value": "6.7551193",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "eps_ttm": {
+    "value": "10.0",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "book_value_ps": {
+    "value": "64.366",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "roe_pct": {
+    "value": "16.85300",
+    "source": "yfinance:VBL.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   }
+  },
+  "WIPRO": {
+   "pe_trailing": {
+    "value": "13.0381565",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "pb_ratio": {
+    "value": "2.094229",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "eps_ttm": {
+    "value": "12.58",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "book_value_ps": {
+    "value": "78.32",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   },
+   "roe_pct": {
+    "value": "16.12899900",
+    "source": "yfinance:WIPRO.NS",
+    "as_of": "2026-09-25T18:41:07+00:00"
+   }
+  },
+  "YESBANK": {
+   "pe_trailing": {
+    "value": "18.75",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "pb_ratio": {
+    "value": "1.3526511",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "eps_ttm": {
+    "value": "1.2",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "book_value_ps": {
+    "value": "16.634",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   },
+   "roe_pct": {
+    "value": "7.465000500",
+    "source": "yfinance:YESBANK.NS",
+    "as_of": "2026-09-25T18:41:26+00:00"
+   }
+  },
+  "ZUARI": {
+   "pe_trailing": {
+    "value": "0.9900148",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.3676764",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "eps_ttm": {
+    "value": "223.33",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "book_value_ps": {
+    "value": "601.344",
+    "source": "yfinance:ZUARI.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "roe_pct": {
+    "value": "37.14",
+    "source": "yfinance:ZUARI.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   }
+  },
+  "ZUARIIND": {
+   "pe_trailing": {
+    "value": "7.9659624",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "pb_ratio": {
+    "value": "0.23871708",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "eps_ttm": {
+    "value": "36.43",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "book_value_ps": {
+    "value": "1215.665",
+    "source": "yfinance:ZUARIIND.NS",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   },
+   "roe_pct": {
+    "value": "3.00",
+    "source": "yfinance:ZUARIIND.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:22+00:00"
+   }
+  },
+  "ZYDUSLIFE": {
+   "pe_trailing": {
+    "value": "26.842812",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "pb_ratio": {
+    "value": "4.468256",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "eps_ttm": {
+    "value": "44.85",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "book_value_ps": {
+    "value": "269.434",
+    "source": "yfinance:ZYDUSLIFE.NS",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   },
+   "roe_pct": {
+    "value": "16.65",
+    "source": "yfinance:ZYDUSLIFE.NS (roe derived eps/bv)",
+    "as_of": "2026-09-25T18:41:34+00:00"
+   }
+  }
+ },
+ "fundamental_failures": {}
+}

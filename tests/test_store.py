@@ -11,12 +11,10 @@ import pytest
 
 from store.repo import PattazRepo
 
-DB_PATH = Path(__file__).parent.parent / "db" / "pattaz.db"
-
 
 @pytest.fixture
-def repo() -> PattazRepo:
-    r = PattazRepo(DB_PATH)
+def repo(scratch_db: Path) -> PattazRepo:
+    r = PattazRepo(scratch_db)
     yield r  # type: ignore[misc]
     r.close()
 
@@ -184,9 +182,6 @@ class TestSessions:
         ).fetchone()
         assert row is not None
         assert row["usecase"] == "UC1_MORNING_BOARD"
-        # cleanup
-        repo._con.execute("DELETE FROM sessions WHERE run_id = ?", ("test-run-001",))
-        repo._con.commit()
 
 
 class TestSchemaVersion:

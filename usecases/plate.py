@@ -38,6 +38,7 @@ from tools.fundamentals import (
     fetch_fundamentals_batch,
 )
 from tools.gsec import fetch_gsec_yield
+from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 
 log = logging.getLogger(__name__)
@@ -76,6 +77,8 @@ class PlateRunResult:
     advisory_flags: list[str]
     breadth_min: int
     breadth_max: int
+    name_inputs: tuple[NameInput, ...] = ()
+    config: PlateConfig | None = None
 
 
 def _aggregate_holdings(
@@ -192,19 +195,25 @@ def _policy_decimal(policy: dict, key: str) -> Decimal:
 def _resolve_gsec_yield(
     policy: dict,
     gsec_yield_override: Decimal | None,
+    market: MarketSnapshot | None = None,
 ) -> tuple[Decimal, str]:
-    """Resolve GoI yield: override → live fetch → policy fallback (F2).
+    """Resolve GoI yield: override → live fetch (or the replayed snapshot) → policy
+    fallback (F2). A replay never touches the network.
 
     Returns (yield_pct, source_description).
     """
     if gsec_yield_override is not None:
         return gsec_yield_override, f"override:{gsec_yield_override}"
 
-    try:
-        stamped = fetch_gsec_yield()
-        return stamped.value, stamped.source
-    except ValueError:
-        pass
+    if market is not None:
+        if market.gsec is not None:
+            return market.gsec.value, market.gsec.source
+    else:
+        try:
+            stamped = fetch_gsec_yield()
+            return stamped.value, stamped.source
+        except ValueError:
+            pass
 
     fallback_row = policy.get("gsec_yield_last_known")
     if fallback_row:
@@ -220,6 +229,10 @@ def run_plate(
     session_amount: Decimal,
     fetch_prices: bool = True,
     gsec_yield_override: Decimal | None = None,
+    *,
+    market: MarketSnapshot | None = None,
+    today: str | None = None,
+    record_session: bool = True,
 ) -> PlateRunResult:
     """Execute UC2: build a tiffin-coffee buy plate.
 
@@ -229,10 +242,15 @@ def run_plate(
 
     UC4: computes valuation gate per name using live fundamentals
     and GoI yield. gsec_yield_override lets Praveen pass the rate manually.
+
+    UC5 replay: `market` replaces every live fetch, `today` pins the clock, and
+    `record_session=False` keeps a hypothetical plate out of the register (the
+    simulation writes its own UC5 session instead).
     """
     now = datetime.now(UTC).isoformat(timespec="seconds")
     run_id = f"UC2_{uuid.uuid4().hex[:12]}"
-    today = datetime.now(UTC).strftime("%Y-%m-%d")
+    if today is None:
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
 
     repo = PattazRepo(db_path)
     try:
@@ -267,7 +285,8 @@ def run_plate(
             )
 
         # --- resolve GoI yield (F2: override → live → policy fallback) ---
-        gsec_yield_pct, gsec_source = _resolve_gsec_yield(policy, gsec_yield_override)
+        gsec_yield_pct, gsec_source = _resolve_gsec_yield(
+            policy, gsec_yield_override, market)
         coe_spread = Decimal(policy["cost_of_equity_spread_over_gsec"].value)
         growth_g = Decimal(policy["growth_g"].value)
         log.info("GoI yield: %s%% (source: %s)", gsec_yield_pct, gsec_source)
@@ -287,7 +306,9 @@ def run_plate(
 
         # --- fetch prices for ALL tickered names ---
         batch_result: BatchPriceResult
-        if fetch_prices:
+        if market is not None:
+            batch_result = market.prices
+        elif fetch_prices:
             batch_result = fetch_prices_batch(tickers_to_fetch)
         else:
             batch_result = BatchPriceResult()
@@ -296,7 +317,9 @@ def run_plate(
 
         # --- fetch fundamentals for ALL tickered names (UC4) ---
         fund_result: BatchFundamentalsResult
-        if fetch_prices:
+        if market is not None:
+            fund_result = market.fundamentals
+        elif fetch_prices:
             fund_result = fetch_fundamentals_batch(tickers_to_fetch)
         else:
             fund_result = BatchFundamentalsResult()
@@ -304,7 +327,7 @@ def run_plate(
         fund_map = fund_result.fundamentals
 
         # --- save fundamentals to DB for audit trail (E8) ---
-        for sym, fsnap in fund_map.items():
+        for sym, fsnap in (fund_map.items() if record_session else ()):
             repo.save_fundamentals(
                 symbol=sym,
                 as_of=now,
@@ -438,15 +461,16 @@ def run_plate(
             for d in plate_result.drops
         ]
 
-        repo.append_session(
-            run_id=run_id,
-            ran_at=now,
-            usecase="UC2_PLATE",
-            inputs=inputs,
-            outputs=outputs,
-            drops=drops_json,
-            rules_fired=plate_result.rules_fired,
-        )
+        if record_session:
+            repo.append_session(
+                run_id=run_id,
+                ran_at=now,
+                usecase="UC2_PLATE",
+                inputs=inputs,
+                outputs=outputs,
+                drops=drops_json,
+                rules_fired=plate_result.rules_fired,
+            )
 
         return PlateRunResult(
             run_id=run_id,
@@ -465,6 +489,8 @@ def run_plate(
             advisory_flags=advisory,
             breadth_min=int(_policy_decimal(policy, "breadth_min")),
             breadth_max=int(_policy_decimal(policy, "breadth_max")),
+            name_inputs=tuple(name_inputs),
+            config=config,
         )
     finally:
         repo.close()

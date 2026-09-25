@@ -2,7 +2,54 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/uc2-plate-engine`
+## [Unreleased] — branch `feat/uc5-simulation`
+
+### 2026-09-26 — UC5 market simulation suite (CI + on demand)
+
+Spec: UC5 (Praveen, 25-Sep) · E1/E2/E3/E8/E9 · tiffin v6 §formula, §first-bite,
+§overlays, §BeES floor, §H HOCKEY · osep v7 §3 ladder · ledger §4 D37 hockey rungs ·
+CLAUDE.md §4 determinism, §5 no network in CI.
+
+**feat (tools/market_snapshot.py)** — `MarketSnapshot` = prices + fundamentals + GoI yield
+of one day, every value Stamped; lossless JSON save/load; `record_snapshot` is the only
+network call. First recording: `tests/fixtures/market/market_2026-09-25.json`
+(115 prices, 115 fundamentals, G-sec unavailable — see below).
+**feat (engine/invariants.py)** — the laws every plate must obey, re-checked on the
+output: ACCOUNTING (each name plated or dropped exactly once), DROP_EXPLAINED,
+QTY_CLAMP (1-10; first bite ≤5), PRICED_FROM_INPUT, NO_BANNED_ENTRY (exit/sovereign/
+probe/fraud/never-add/PSU cap), ELIGIBILITY (H-eligible or a valid first bite — the HDFC
+law), TOTALS, FAIL_CLOSED, GATE_MONOTONE. FINDINGS (legal, Praveen's call): BREADTH
+outside 8-15, OVER_SESSION (the 1-share floor).
+**feat (usecases/scenarios.py)** — pure shocks over a recording (provenance re-stamped
+`sim:<tag><-source`; P/E and P/B move with price, EPS/BV/ROE don't) and a 16-scenario
+catalog + one flash crash per seat-holder: market −5%/wk, hockey rungs from `policy`,
+melt-up, IT and lender sector falls, fresh lows everywhere, G-sec ±50bp, G-sec/price/
+partial/fundamentals/BeES outages, clock +45d. `custom_scenario` for what-ifs.
+**feat (usecases/simulate.py)** — runs each scenario through the real UC1 + UC2 at each
+session size, checks every law, reruns for determinism, cross-checks gate
+monotonicity; verdict-first report; one `UC5_SIMULATION` session. CLI `run`, `what-if`,
+`record`. Skill `.claude/skills/simulate`.
+**refactor (usecases/plate.py, usecases/morning_board.py)** — keyword-only `market=` /
+`prices=`, `today=`, `record_session=` for replay; defaults unchanged.
+**test** — `tests/sim/` (every scenario × ₹5k/₹10k/₹40k), `tests/test_invariants.py`
+(each law shown firing on a corrupted plate), `tests/test_scenarios.py`. 326 pass.
+
+First run (recording 25-Sep): **PASS — 0 violations in 60 runs.** Findings for Praveen:
+- At ₹10k the plate spends ₹11-14k in 29 of 30 scenarios (8+ names × 1-share floor).
+- Live G-sec fetch is broken (`IN10Y.SI` 404) — every live plate uses the 12-Sep policy
+  fallback 7.04% with a WARN.
+- HOCKEY on "Nifty −5% wk" / "name −10% day" is not modelled (no index/day-move input).
+- **Canara (CANBK)** — ledger §7 "WITHDRAWN/ZERO (P1/PSU cap)", DB bucket WITHDRAWN,
+  flag_psu only, 17sh owned — first-bites (qty 5) in every down scenario while household
+  PSU weight is under 25%. New FINDING `REGISTER_ZERO_BUCKET`; the gate is unchanged
+  pending Praveen's ruling (E6).
+- ₹10k is below the spec's own breadth premise ("8-15 names for a Rs25-50k session").
+
+### 2026-09-26 — tests never write to the real register
+`tests/conftest.py` `scratch_db` fixture + session guard; UC1 integration and store
+session tests moved off `db/pattaz.db` (one appended-then-DELETEd a session row).
+
+## 2026-09-25 — merged to main (#4)
 
 ### 2026-09-25 — Chambal: peak-cycle overlay vs register ADD is an E6
 

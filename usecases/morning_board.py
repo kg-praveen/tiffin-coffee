@@ -58,14 +58,21 @@ class BoardResult:
 def run_morning_board(
     db_path: str | Path,
     fetch_prices: bool = True,
+    *,
+    prices: dict[str, PriceSnapshot] | None = None,
+    today: str | None = None,
+    record_session: bool = True,
 ) -> BoardResult:
     """Execute UC1: the morning trigger board patrol.
 
     Spec: trigger-check v2 workflow steps 1-9.
+    UC5 replay: `prices` (keyed by symbol) replaces the live fetch, `today` pins the
+    clock, `record_session=False` keeps a hypothetical board out of the register.
     """
     now = datetime.now(UTC).isoformat(timespec="seconds")
     run_id = f"UC1_{uuid.uuid4().hex[:12]}"
-    today = datetime.now(UTC).strftime("%Y-%m-%d")
+    if today is None:
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
     rules_fired: list[str] = []
     drops: list[dict[str, str]] = []
 
@@ -128,10 +135,13 @@ def run_morning_board(
                 seen_tickers.add(ticker)
 
                 snap: PriceSnapshot | None = None
-                try:
-                    snap = fetch_price(ticker)
-                except (ValueError, ConnectionError, OSError):
-                    snap = None
+                if prices is not None:
+                    snap = prices.get(ticker.removesuffix(".NS"))
+                else:
+                    try:
+                        snap = fetch_price(ticker)
+                    except (ValueError, ConnectionError, OSError):
+                        snap = None
 
                 if snap is not None and snap.price.value > 0:
                     status, dist = classify_trigger(t.level, snap.price.value)
@@ -187,15 +197,16 @@ def run_morning_board(
             "fetch_prices": fetch_prices,
         }
 
-        repo.append_session(
-            run_id=run_id,
-            ran_at=now,
-            usecase="UC1_MORNING_BOARD",
-            inputs=inputs,
-            outputs=outputs,
-            drops=drops,
-            rules_fired=rules_fired,
-        )
+        if record_session:
+            repo.append_session(
+                run_id=run_id,
+                ran_at=now,
+                usecase="UC1_MORNING_BOARD",
+                inputs=inputs,
+                outputs=outputs,
+                drops=drops,
+                rules_fired=rules_fired,
+            )
 
         return BoardResult(
             run_id=run_id,
