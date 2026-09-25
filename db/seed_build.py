@@ -10,8 +10,12 @@ from __future__ import annotations
 import datetime as dt
 import pathlib
 import sqlite3
+import sys
 
 HERE = pathlib.Path(__file__).parent
+sys.path.insert(0, str(HERE.parent))
+from tools.csv_import import parse_household_csv, snapshot_with_zeroing  # noqa: E402
+
 DB, SCHEMA, DUMP = HERE / "pattaz.db", HERE / "schema.sql", HERE / "seed.sql"
 LEDGER = "2026-09-17"      # ledger v4.9 date — default as_of
 BOARD = "2026-09-12"       # D54 re-derived trigger board
@@ -25,29 +29,32 @@ def exp(verdict: str, days: int) -> str:
 # (symbol, name, yf, cell, cls, status, bucket, verdict, decay, p5, p5ref, sov, psu, cyc, probe, fraud, exit, notes)
 N: list[tuple] = []
 def n(symbol, name, cell, cls, status, bucket=None, verdict=None, decay=None, p5=None, p5ref=None,
-      sov=0, psu=0, cyc=0, probe=0, fraud=0, exit_=0, notes=None, yf="", classified=True):
+      sov=0, psu=0, cyc=0, probe=0, fraud=0, exit_=0, notes=None, yf="", classified=True,
+      p_mult=None, no_add=0):
+    # p_mult: pattaz-book §4 roster (as-of 06-Sep). no_add: §5/§6 museum / hold-only (migration 004).
     N.append((symbol, name, (f"{symbol}.NS" if yf == "" else yf), cell, cls,
               LEDGER if (cls and classified) else None, "ledger v4.9 §5/§7" if cls else None,
-              status, bucket, verdict, decay, p5, p5ref, sov, psu, cyc, probe, fraud, exit_, notes, LEDGER))
+              status, bucket, verdict, decay, p5, p5ref, sov, psu, cyc, probe, fraud, exit_, notes, LEDGER,
+              p_mult, no_add))
 
 GBN, GBL = exp(BOARD, 30), exp(BOARD, 90)
 # --- live board (D54, 12-Sep) ---
-n("PETRONET","Petronet LNG","ENERGY_GAS","REGULATED","ADD","GBN",BOARD,GBN,psu=1,notes="Tranches gated on Dahej funding disclosure; re-underwrite if D/E>0.5")
+n("PETRONET","Petronet LNG","ENERGY_GAS","REGULATED","ADD","GBN",BOARD,GBN,psu=1,notes="Tranches gated on Dahej funding disclosure; re-underwrite if D/E>0.5",p_mult=1.0)
 n("NTPC","NTPC","POWER","REGULATED","ADD","GBN",BOARD,GBN,psu=1,notes="CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen")
-n("INFY","Infosys","IT","IT_SERVICES","ADD","GBN",BOARD,GBN,notes="Gate on USD/CC revenue, never INR PAT")
-n("TCS","Tata Consultancy Services","IT","IT_SERVICES","ADD","GBN",BOARD,GBN,notes="Re-verify at Oct Q2")
-n("ITC","ITC","FMCG","FMCG","HOLD","OWNED",BOARD,None,"BUY",notes="Hold, no add; crash-shelf 228; income-floor claim withdrawn until dividend prints")
+n("INFY","Infosys","IT","IT_SERVICES","ADD","GBN",BOARD,GBN,notes="Gate on USD/CC revenue, never INR PAT",p_mult=1.0)
+n("TCS","Tata Consultancy Services","IT","IT_SERVICES","ADD","GBN",BOARD,GBN,notes="Re-verify at Oct Q2",p_mult=1.0)
+n("ITC","ITC","FMCG","FMCG","HOLD","OWNED",BOARD,None,"BUY",notes="Hold, no add; crash-shelf 228; income-floor claim withdrawn until dividend prints",p_mult=0.5,no_add=1)
 n("ARE&M","Amara Raja Energy & Mobility","ANCILLARY","AUTO_ANCILLARY","ADD","GBL",BOARD,GBL,notes="HALF-PLATE only (EBITDA margin compression); universe veto at reduced weight",yf="ARE&M.NS")
 n("RELIANCE","Reliance Industries","ENERGY_GAS",None,"HOLD","OWNED",BOARD,None,"AGREE_NOTE","ledger §8 05-Sep",notes="Conglomerate: classify at runtime (SC edge rule, strictest gate); P5 AGREE = hold",classified=False)
-n("WIPRO","Wipro","IT","IT_SERVICES","HOLD","OWNED",BOARD,None,notes="D48 hold-no-add; swap SOURCE (shrinks in USD)")
-n("M&M","Mahindra & Mahindra","AUTO_PV_FARM","AUTO_OEM","ADD","GBL",BOARD,GBL,notes="Designated add",yf="M&M.NS")
-n("HCLTECH","HCL Technologies","IT","IT_SERVICES","HOLD","OWNED",BOARD,None,notes="Museum (Varshu); no add")
+n("WIPRO","Wipro","IT","IT_SERVICES","HOLD","OWNED",BOARD,None,notes="D48 hold-no-add; swap SOURCE (shrinks in USD)",no_add=1)
+n("M&M","Mahindra & Mahindra","AUTO_PV_FARM","AUTO_OEM","ADD","GBL",BOARD,GBL,notes="Designated add",yf="M&M.NS",p_mult=1.0)
+n("HCLTECH","HCL Technologies","IT","IT_SERVICES","HOLD","OWNED",BOARD,None,notes="Museum (Varshu); no add",no_add=1)
 n("ENGINERSIN","Engineers India","CAPGOODS_PSU","DEFAULT","ADD","GBL",BOARD,GBL,psu=1,notes="Prices commercially (regulated≠directed)")
 n("RITES","RITES","CAPGOODS_PSU","DEFAULT","ADD","GBL",BOARD,GBL,psu=1)
 n("POWERGRID","Power Grid Corp","POWER","REGULATED","ADD","GBL",BOARD,GBL,psu=1,notes="Was ABOVE trigger on 12-Sep — dropped from buy band; trigger stands")
 n("SBIN","State Bank of India","LENDING_BANKS","LENDER","ADD","GBL",BOARD,GBL,psu=1,notes="At justified P/B ~1.6x; PSU cap applies")
-n("HDFCBANK","HDFC Bank","LENDING_BANKS","LENDER","HOLD","OWNED",BOARD,None,"AGREE_NOTE","ledger §8 05-Sep",notes="P-board BLOCKED (at/over target); crash-shelf ~419 (D47); 10-Sep 5sh = control exception D62")
-n("MUTHOOTFIN","Muthoot Finance","GOLD_NBFC","LENDER","ADD","GBN",BOARD,GBN,"DISAGREE_NOTE","ledger §8 05-Sep (approved, unlocked)",notes="Starter only; tripwires: gold -20% · RBI LTV · ROE floor · P/B above his objection")
+n("HDFCBANK","HDFC Bank","LENDING_BANKS","LENDER","HOLD","OWNED",BOARD,None,"AGREE_NOTE","ledger §8 05-Sep",notes="P-board BLOCKED (at/over target); crash-shelf ~419 (D47); 10-Sep 5sh = control exception D62",p_mult=0.0)
+n("MUTHOOTFIN","Muthoot Finance","GOLD_NBFC","LENDER","ADD","GBN",BOARD,GBN,"DISAGREE_NOTE","ledger §8 05-Sep (approved, unlocked)",notes="Starter only; tripwires: gold -20% · RBI LTV · ROE floor · P/B above his objection",p_mult=1.0)
 n("FIVESTAR","Five-Star Business Finance","LENDING_BANKS","LENDER","HOLD","OWNED",BOARD,None,notes="D53 HOLD")
 n("CHAMBLFERT","Chambal Fertilisers","AGRI_INPUTS","CYCLICAL","ADD","GBN","2026-09-17",exp("2026-09-17",30),cyc=1,notes="D59/D61 starter 10sh; NEXT BUY 10sh ≤415; tranche-2 gated on FY27 OCF/PAT toward 70%+; kill <~40% with rising borrowings; subsidy rule D60")
 n("COROMANDEL","Coromandel International","AGRI_INPUTS","CYCLICAL","WATCH","GBL",BOARD,GBL,cyc=1,notes="Trigger 1,225 (far); subsidy-linked sovereign flag per D60 check")
@@ -58,8 +65,8 @@ for s,nm in [("FINCABLES","Finolex Cables"),("POLYCAB","Polycab India"),("KEI","
 n("ULTRACEMCO","UltraTech Cement","CEMENT","CYCLICAL","WATCH","HARD_PASS","2026-09-08",None,cyc=1,notes="D42 HP; alert 5,820")
 n("TRENT","Trent","RETAIL","RETAIL","WATCH","HARD_PASS","2026-09-08",None,notes="D42 HP; alert 679")
 n("TITAN","Titan Company","RETAIL","RETAIL","WATCH","WATCH_CRASH",None,None,"AVOID",notes="Diamond needle (75-90x); alert 1,209")
-n("HAL","Hindustan Aeronautics","DEFENCE","DEFENCE","HOLD","OWNED",None,None,psu=1,notes="Defence cell FULL; crash-shelf name; working-capital objection logged; 52wk-high marker ~4,900")
-n("BEL","Bharat Electronics","DEFENCE","DEFENCE","HOLD","OWNED",None,None,psu=1,notes="Defence cell FULL; crash-shelf")
+n("HAL","Hindustan Aeronautics","DEFENCE","DEFENCE","HOLD","OWNED",None,None,psu=1,notes="Defence cell FULL; crash-shelf name; working-capital objection logged; 52wk-high marker ~4,900",no_add=1)
+n("BEL","Bharat Electronics","DEFENCE","DEFENCE","HOLD","OWNED",None,None,psu=1,notes="Defence cell FULL; crash-shelf",no_add=1)
 n("LT","Larsen & Toubro","DEFENCE","DEFAULT","WATCH","WATCH_CRASH",None,None,notes="Crash-shelf only")
 n("ADANIPORTS","Adani Ports","PORTS","DEFAULT","WATCH","WATCH_CRASH")
 n("NESTLEIND","Nestle India","FMCG","FMCG","WATCH","WATCH_CRASH",None,None,"HOLD",notes="~50x; 'Nifty-50 consider, Sensex no'")
@@ -141,8 +148,8 @@ n("HFCL","HFCL","HARVEST","DEFAULT","SELL","OWNED",None,None,exit_=1,notes="Limi
 n("DRREDDY","Dr Reddy's","PHARMA_US","PHARMA","SELL","OWNED",None,None,probe=1,exit_=1,notes="⚠️ E6 CONFLICT: ledger v4.9 = exit decided (D3; 5+23 on sell list) vs 19-Sep chat 'dated hold to Jan-2027'. Register wins until overturned (D56). Semaglutide probe open")
 n("NATCOPHARM","Natco Pharma","PHARMA_US","PHARMA","HOLD","OWNED",None,None,"BUY",notes="D7 HOLD; cell FULL")
 # --- owned holds ---
-n("HEROMOTOCO","Hero MotoCorp","AUTO_2W","AUTO_OEM","HOLD","OWNED",None,None,"HOLD",notes="Hold-only museum; fair ~3,950 (01-Sep basis)")
-n("BAJAJ-AUTO","Bajaj Auto","AUTO_2W","AUTO_OEM","HOLD","OWNED",None,None,"AVOID",notes="Legacy hold; his band 'below 20x'",yf="BAJAJ-AUTO.NS")
+n("HEROMOTOCO","Hero MotoCorp","AUTO_2W","AUTO_OEM","HOLD","OWNED",None,None,"HOLD",notes="Hold-only museum; fair ~3,950 (01-Sep basis)",p_mult=0.5,no_add=1)
+n("BAJAJ-AUTO","Bajaj Auto","AUTO_2W","AUTO_OEM","HOLD","OWNED",None,None,"AVOID",notes="Legacy hold; his band 'below 20x'",yf="BAJAJ-AUTO.NS",no_add=1)
 n("HYUNDAI","Hyundai Motor India","AUTO_PV_FARM","AUTO_OEM","SELL","OWNED",None,None,exit_=1,notes="TRIM to ~3% (D33b)")
 n("TATAMOTORS","Tata Motors PV (post-demerger)","AUTO_PV_FARM","AUTO_OEM","HOLD","OWNED",None,None,notes="One line; classify fresh post demerger",yf=None)
 n("ASHOKLEY","Ashok Leyland","CV","AUTO_OEM","HOLD","OWNED",None,None,"AGREE_NOTE","ledger §8 05-Sep",notes="80sh household (3 lots incl. bonus); exit CANCELLED 13-Jul; hold no-add")
@@ -255,6 +262,10 @@ P = [
  ("fair_pe_method","1/gsec_yield","formula","osep v7 §ladder (OSEP formalisation of Anand's earnings-yield rule)",BOARD),
  ("cost_of_equity_spread_over_gsec","6.09","pct","ledger §3 (r=13.13% at G-sec 7.04%, D54)",BOARD),
  ("growth_g","5","pct","osep v7 §BANK justified P/B",BOARD),
+ ("gsec_yield_last_known","7.04","pct","RBI 10Y benchmark 2026-09-20; fallback if live fetch fails (F2)","2026-09-20"),
+ ("first_bite_l_max","2","pct above 52wk low","tiffin v5 §first-bite (a)","2026-09-21"),
+ ("first_bite_h_mult_floor","0.25","mult","tiffin v5 §first-bite","2026-09-21"),
+ ("first_bite_qty_max","5","shares","tiffin v5 §first-bite","2026-09-21"),
  ("lender_first_bite_gate","JUSTIFIED_PB_ONLY","rule","tiffin v6 §(c) — defect-2 fix","2026-09-17"),
  ("cap_name_pct","20","pct of household equity","pattaz-book §4","2026-07-13"),
  ("cap_sector_pct","40","pct of household equity","pattaz-book §4","2026-07-13"),
@@ -319,9 +330,21 @@ def build() -> None:
         DB.unlink()
     con = sqlite3.connect(DB)
     con.executescript(SCHEMA.read_text())
-    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", N)
+    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", N)
     con.executemany("INSERT INTO triggers VALUES (?,?,?,?,?,?,?,?,?,?)", T)
     con.executemany("INSERT INTO holdings VALUES (?,?,?,?,?,?)", H)
+    # UC2.1 CSV snapshots (db/holdings/*.csv, oldest first). Each is a FULL household
+    # snapshot: pairs held before but absent now get a qty-0 row (recorded exit).
+    held: set[tuple[str, str]] = {(a, s) for a, s, q, *_ in H if q > 0}
+    for csv_path in sorted((HERE / "holdings").glob("*.csv"), key=lambda p: parse_household_csv(p).as_of):
+        snap = parse_household_csv(csv_path)
+        rows = snapshot_with_zeroing(snap, held)
+        con.executemany(
+            "INSERT OR REPLACE INTO holdings VALUES (?,?,?,?,?,?)",
+            [(r.account, r.symbol, r.qty, float(r.avg_cost) if r.avg_cost is not None else None,
+              snap.as_of, snap.source) for r in rows],
+        )
+        held = {(r.account, r.symbol) for r in rows if r.qty > 0}
     con.executemany("INSERT INTO cells VALUES (?,?,?,?,?,?,?)", [(*c, LEDGER) for c in C])
     con.executemany("INSERT INTO policy VALUES (?,?,?,?,?)", P)
     con.executemany("INSERT INTO decisions VALUES (?,?,?,?,?)", sorted(D))

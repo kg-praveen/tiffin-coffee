@@ -48,6 +48,8 @@ class NameRow:
     flag_exit_decided: bool
     notes: str | None
     as_of: str
+    p_mult_book: Decimal | None = None
+    flag_no_add: bool = False
 
 
 @dataclass(frozen=True)
@@ -83,6 +85,19 @@ class CellRow:
     is_full: bool
     notes: str | None
     as_of: str
+
+
+@dataclass(frozen=True)
+class FundamentalsRow:
+    symbol: str
+    as_of: str
+    eps_ttm: Decimal | None
+    book_value_ps: Decimal | None
+    roe: Decimal | None
+    promoter_pct: Decimal | None
+    pledge_pct: Decimal | None
+    auditor_flag: str | None
+    source: str | None
 
 
 @dataclass(frozen=True)
@@ -144,7 +159,12 @@ class PattazRepo:
 
     @staticmethod
     def _to_name_row(r: sqlite3.Row) -> NameRow:
+        keys = r.keys()
+        p_mult_raw = r["p_mult_book"] if "p_mult_book" in keys else None
+        no_add_raw = r["flag_no_add"] if "flag_no_add" in keys else 0
         return NameRow(
+            p_mult_book=Decimal(str(p_mult_raw)) if p_mult_raw is not None else None,
+            flag_no_add=bool(no_add_raw),
             symbol=r["symbol"],
             name=r["name"],
             yf_ticker=r["yf_ticker"],
@@ -201,15 +221,53 @@ class PattazRepo:
 
     # --- holdings ---
 
+    _NEWEST_HOLDINGS_SQL = (
+        "SELECT h.* FROM holdings h"
+        " JOIN (SELECT account, symbol, MAX(as_of) AS as_of FROM holdings"
+        "       GROUP BY account, symbol) m"
+        " ON h.account = m.account AND h.symbol = m.symbol AND h.as_of = m.as_of"
+    )
+
     def load_holdings(self) -> list[HoldingRow]:
-        rows = self._con.execute("SELECT * FROM holdings").fetchall()
+        """Newest row per (account, symbol) — sync-holdings skill step 3.
+
+        A qty-0 row is a recorded exit and is returned as such (E3: never assume)."""
+        rows = self._con.execute(self._NEWEST_HOLDINGS_SQL).fetchall()
+        return [self._to_holding_row(r) for r in rows]
+
+    def load_holdings_history(self) -> list[HoldingRow]:
+        rows = self._con.execute(
+            "SELECT * FROM holdings ORDER BY as_of, account, symbol"
+        ).fetchall()
         return [self._to_holding_row(r) for r in rows]
 
     def get_holdings_for(self, symbol: str) -> list[HoldingRow]:
         rows = self._con.execute(
-            "SELECT * FROM holdings WHERE symbol = ?", (symbol,)
+            self._NEWEST_HOLDINGS_SQL + " WHERE h.symbol = ?", (symbol,)
         ).fetchall()
         return [self._to_holding_row(r) for r in rows]
+
+    def held_pairs(self) -> set[tuple[str, str]]:
+        """(account, symbol) pairs whose newest row has qty > 0."""
+        return {(h.account, h.symbol) for h in self.load_holdings() if h.qty > 0}
+
+    def insert_holdings(
+        self,
+        rows: list[tuple[str, str, int, Decimal | None]],
+        as_of: str,
+        source: str,
+    ) -> int:
+        """Append a dated snapshot. Older rows are kept as history (never edited)."""
+        self._con.executemany(
+            "INSERT OR REPLACE INTO holdings (account, symbol, qty, avg_cost, as_of, source)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                (acct, sym, qty, float(cost) if cost is not None else None, as_of, source)
+                for acct, sym, qty, cost in rows
+            ],
+        )
+        self._con.commit()
+        return len(rows)
 
     @staticmethod
     def _to_holding_row(r: sqlite3.Row) -> HoldingRow:
@@ -266,9 +324,9 @@ class PattazRepo:
         run_id: str,
         ran_at: str,
         usecase: str,
-        inputs: dict,
-        outputs: dict,
-        drops: list[dict],
+        inputs: dict[str, object],
+        outputs: dict[str, object],
+        drops: list[dict[str, object]],
         rules_fired: list[str],
     ) -> None:
         """Append a session record. Spec: sessions is append-only; a run that
@@ -320,3 +378,61 @@ class PattazRepo:
             "SELECT * FROM names WHERE yf_ticker IS NULL"
         ).fetchall()
         return [self._to_name_row(r) for r in rows]
+
+    # --- fundamentals ---
+
+    def save_fundamentals(
+        self,
+        symbol: str,
+        as_of: str,
+        eps_ttm: Decimal | None = None,
+        book_value_ps: Decimal | None = None,
+        roe: Decimal | None = None,
+        promoter_pct: Decimal | None = None,
+        pledge_pct: Decimal | None = None,
+        auditor_flag: str | None = None,
+        source: str | None = None,
+    ) -> None:
+        """INSERT OR REPLACE a fundamentals row for audit trail (E8)."""
+        self._con.execute(
+            "INSERT OR REPLACE INTO fundamentals"
+            " (symbol, as_of, eps_ttm, book_value_ps, roe,"
+            "  promoter_pct, pledge_pct, auditor_flag, source)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                symbol,
+                as_of,
+                float(eps_ttm) if eps_ttm is not None else None,
+                float(book_value_ps) if book_value_ps is not None else None,
+                float(roe) if roe is not None else None,
+                float(promoter_pct) if promoter_pct is not None else None,
+                float(pledge_pct) if pledge_pct is not None else None,
+                auditor_flag,
+                source,
+            ),
+        )
+        self._con.commit()
+
+    def load_latest_fundamentals(self, symbol: str) -> FundamentalsRow | None:
+        """Return the newest fundamentals row for a symbol, or None."""
+        row = self._con.execute(
+            "SELECT * FROM fundamentals WHERE symbol = ? ORDER BY as_of DESC LIMIT 1",
+            (symbol,),
+        ).fetchone()
+        if row is None:
+            return None
+        def _dec(col: str) -> Decimal | None:
+            v = row[col]
+            return Decimal(str(v)) if v is not None else None
+
+        return FundamentalsRow(
+            symbol=row["symbol"],
+            as_of=row["as_of"],
+            eps_ttm=_dec("eps_ttm"),
+            book_value_ps=_dec("book_value_ps"),
+            roe=_dec("roe"),
+            promoter_pct=_dec("promoter_pct"),
+            pledge_pct=_dec("pledge_pct"),
+            auditor_flag=row["auditor_flag"],
+            source=row["source"],
+        )
