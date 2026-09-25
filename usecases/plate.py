@@ -79,6 +79,7 @@ class PlateRunResult:
     breadth_max: int
     name_inputs: tuple[NameInput, ...] = ()
     config: PlateConfig | None = None
+    unpriced: tuple[PlateDrop, ...] = ()
 
 
 def _aggregate_holdings(
@@ -185,6 +186,40 @@ def _build_name_input(
         owned_per_book=(name.bucket == "OWNED" or name.status == "HOLD"),
     )
     return ni, gate_result
+
+
+def _by_register_symbol[V](
+    by_stem: dict[str, V],
+    symbol_to_ticker: dict[str, str],
+) -> dict[str, V]:
+    """Map adapter results (keyed by ticker stem) onto register symbols."""
+    return {sym: by_stem[t.removesuffix(".NS")] for sym, t in symbol_to_ticker.items()
+            if t.removesuffix(".NS") in by_stem}
+
+
+def _unpriced_drops(
+    names: list[NameRow],
+    prices: dict[str, PriceSnapshot],
+    failures: dict[str, str],
+) -> list[PlateDrop]:
+    """E8 + E9 (MIGRATION-AND-VALIDATION case 19): a name with no price this run is
+    NO ACTION naming the missing input — "not found" is not a result, and it is not
+    silence either. These never reach the engine (there is nothing to score)."""
+    out: list[PlateDrop] = []
+    for n in names:
+        if n.symbol in prices:
+            continue
+        if not n.yf_ticker:
+            out.append(PlateDrop(n.symbol, n.name, PlateDropReason.NO_TICKER,
+                                 "no yf_ticker in the register",
+                                 what_would_change="assign + verify a ticker "
+                                                   "(tools/verify_tickers.py)"))
+        else:
+            why = failures.get(n.yf_ticker.removesuffix(".NS"), "not fetched this run")
+            out.append(PlateDrop(n.symbol, n.name, PlateDropReason.PRICE_FETCH_FAILED,
+                                 f"{n.yf_ticker}: {why}",
+                                 what_would_change="a price fetched this run (E3)"))
+    return out
 
 
 def _policy_decimal(policy: dict, key: str) -> Decimal:
@@ -313,7 +348,9 @@ def run_plate(
         else:
             batch_result = BatchPriceResult()
 
-        prices = batch_result.prices
+        # adapters key by ticker stem (RECLTD.NS → RECLTD); the register keys by symbol
+        # (REC). Re-key once so a name whose ticker differs is never silently unpriced.
+        prices = _by_register_symbol(batch_result.prices, symbol_to_ticker)
 
         # --- fetch fundamentals for ALL tickered names (UC4) ---
         fund_result: BatchFundamentalsResult
@@ -324,7 +361,7 @@ def run_plate(
         else:
             fund_result = BatchFundamentalsResult()
 
-        fund_map = fund_result.fundamentals
+        fund_map = _by_register_symbol(fund_result.fundamentals, symbol_to_ticker)
 
         # --- save fundamentals to DB for audit trail (E8) ---
         for sym, fsnap in (fund_map.items() if record_session else ()):
@@ -363,6 +400,9 @@ def run_plate(
             )
             name_inputs.append(ni)
             gate_results[n.symbol] = gate_result
+
+        # --- E8/E9: a name that could not be priced is a named drop, never silence ---
+        unpriced = _unpriced_drops(all_names, prices, batch_result.failures)
 
         log.info(
             "plate inputs: %d names with prices, household_equity=%.0f, psu_weight=%.1f%%",
@@ -458,7 +498,7 @@ def run_plate(
              "what_would_change": d.what_would_change,
              "h": str(d.h) if d.h is not None else None,
              "l_pct": str(d.l_pct) if d.l_pct is not None else None}
-            for d in plate_result.drops
+            for d in [*plate_result.drops, *unpriced]
         ]
 
         if record_session:
@@ -491,6 +531,7 @@ def run_plate(
             breadth_max=int(_policy_decimal(policy, "breadth_max")),
             name_inputs=tuple(name_inputs),
             config=config,
+            unpriced=tuple(unpriced),
         )
     finally:
         repo.close()
@@ -634,6 +675,15 @@ def format_plate(result: PlateRunResult) -> str:
         for r in ordered:
             if r in bulk:
                 L.append(f"  {r.name} ({len(bulk[r])}): {', '.join(sorted(bulk[r]))}")
+        L.append("")
+
+    if result.unpriced:
+        by: dict[PlateDropReason, list[str]] = {}
+        for d in result.unpriced:
+            by.setdefault(d.reason, []).append(d.symbol)
+        L.append("NOT PRICED THIS RUN — no action on these (E3/E9)")
+        for r, syms in by.items():
+            L.append(f"  {r.name} ({len(syms)}): {', '.join(sorted(syms))}")
         L.append("")
 
     # --- guardrails ---
