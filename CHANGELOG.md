@@ -2,7 +2,20 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `test/acceptance-22`
+## [Unreleased] — branch `feat/gsec-and-review-first`
+
+### 2026-09-26 — live bond rate works again; "don't buy" names are raised, not bought
+
+**fix (tools/gsec.py)** — the India 10-year yield now comes from CNBC (`IN10Y-IN`),
+with yfinance as backup. yfinance `IN10Y.SI` had been returning 404, so every live
+plate was using the 12-Sep stored rate (7.04%). Live on 25-Sep: 7.119%.
+**feat (engine/plate.py)** — Praveen 26-Sep: a name the register marks don't-buy
+(bucket WITHDRAWN or HARD_PASS) that passes every other gate is dropped as
+`REVIEW_FIRST` with the register's reason, and listed at the top of the report.
+It is bought only after analysis and Praveen's approval (a register change).
+Found by UC5: Canara would have been bought in every falling-market scenario.
+
+## 2026-09-26 — acceptance suite (PR #6)
 
 ### 2026-09-26 — the 22-case acceptance suite (spec/MIGRATION-AND-VALIDATION.md)
 

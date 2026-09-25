@@ -14,7 +14,6 @@ from engine.invariants import (
     Severity,
     check_plate,
     find_budget_and_breadth,
-    find_register_zero_bucket,
     inv_accounting,
     inv_drops_explained,
     inv_eligibility,
@@ -108,12 +107,11 @@ class TestEachInvariantFires:
         assert [c.invariant for c in f] == ["OVER_SESSION"]
         assert f[0].severity == Severity.FINDING
 
-    def test_withdrawn_bucket_is_finding(self, plate: PlateResult) -> None:
+    def test_dont_buy_bucket_on_plate_is_violation(self, plate: PlateResult,
+                                                   cfg: PlateConfig) -> None:
         sym = plate.entries[0].symbol
         names = [replace(n, bucket="WITHDRAWN") if n.symbol == sym else n for n in NAMES]
-        f = find_register_zero_bucket(names, plate)
-        assert [(c.symbol, c.severity) for c in f] == [(sym, Severity.FINDING)]
-        assert find_register_zero_bucket(NAMES, plate) == []
+        assert _names(inv_no_banned_entry(names, plate, cfg), "NO_BANNED_ENTRY") == {sym}
 
     def test_fail_closed(self, plate: PlateResult) -> None:
         assert inv_fail_closed(plate)

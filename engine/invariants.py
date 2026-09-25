@@ -7,8 +7,7 @@ gate is defined once; this module only asserts its consequences).
 Two severities:
   VIOLATION — a law is broken; the plate must not be trusted (E9 → NO ACTION).
   FINDING   — legal per spec but Praveen should see it (e.g. breadth outside 8-15,
-              the plate spending more than the session because of the 1-share floor,
-              a WITHDRAWN/HARD_PASS name that no engine rule blocks).
+              the plate spending more than the session because of the 1-share floor).
 
 Pure: no I/O, no clock. Inputs are the NameInputs, config and result of one build.
 """
@@ -19,6 +18,7 @@ from decimal import Decimal
 from enum import Enum
 
 from engine.plate import (
+    REVIEW_FIRST_BUCKETS,
     NameInput,
     PlateConfig,
     PlateResult,
@@ -109,6 +109,7 @@ def inv_no_banned_entry(names: list[NameInput], result: PlateResult,
             ("fraud tail", n.flag_fraud_tail),
             ("PSU cap breached", n.flag_psu
              and config.psu_weight_pct >= config.cap_psu_regulated_pct),
+            (f"register bucket {n.bucket} (review first)", n.bucket in REVIEW_FIRST_BUCKETS),
         ) if bad]
         if why:
             out.append(Check("NO_BANNED_ENTRY", Severity.VIOLATION, e.symbol, ", ".join(why)))
@@ -174,22 +175,6 @@ def find_budget_and_breadth(result: PlateResult, breadth_min: int,
     return out
 
 
-_REGISTER_ZERO_BUCKETS = frozenset({"WITHDRAWN", "HARD_PASS"})
-
-
-def find_register_zero_bucket(names: list[NameInput], result: PlateResult) -> list[Check]:
-    """FINDING: the register's bucket says zero (ledger §7 WITHDRAWN/ZERO, HARD PASS) but
-    no engine rule blocks the name — e.g. Canara 26-Sep what-if (-15%): WITHDRAWN + PSU,
-    plated as a first bite while PSU weight < 25%. Register vs engine → Praveen rules
-    (E6); the engine is not changed by a simulation."""
-    by_sym = {n.symbol: n for n in names}
-    return [Check("REGISTER_ZERO_BUCKET", Severity.FINDING, e.symbol,
-                  f"bucket {by_sym[e.symbol].bucket} but plated qty {e.qty} "
-                  f"({'first bite' if e.is_first_bite else e.mode.value})")
-            for e in result.entries
-            if e.symbol in by_sym and by_sym[e.symbol].bucket in _REGISTER_ZERO_BUCKETS]
-
-
 def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult,
                 breadth_min: int, breadth_max: int) -> list[Check]:
     """Run every single-plate invariant. Order is stable (deterministic output)."""
@@ -202,7 +187,6 @@ def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult
         *inv_eligibility(names, result, config),
         *inv_totals(result),
         *find_budget_and_breadth(result, breadth_min, breadth_max),
-        *find_register_zero_bucket(names, result),
     ]
 
 

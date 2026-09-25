@@ -52,6 +52,7 @@ class PlateDropReason(Enum):
     NO_ADD_HOLD_ONLY = "hold-only / museum name — builds blocked, first-bite allowed"
     E6_CAPS_OFF_CONFLICT = "first-bite blocked only by cell/P cap — §12b caps-off unresolved"
     E6_PEAK_CYCLE_CONFLICT = "register says ADD but name is flagged cyclical — peak test unresolved"
+    REVIEW_FIRST = "register marks this name don't-buy — analyse and approve before any buy"
     SCORE_ZERO = "score is zero after HxLxP"
     STATUS_BLOCKED = "name status blocks adds"
     EXIT_DECIDED = "on the sell list (overlay #7)"
@@ -112,6 +113,7 @@ class NameInput:
     p_mult_book: Decimal | None = None
     flag_no_add: bool = False
     owned_per_book: bool = False
+    register_note: str = ""
 
 
 @dataclass(frozen=True)
@@ -377,6 +379,13 @@ _OVERLAY_WHAT_WOULD_CHANGE: dict[PlateDropReason, str] = {
     PlateDropReason.FRAUD_TAIL: "legacy tail cleared in the register",
     PlateDropReason.DECAY_EXPIRED: "re-underwrite (GBN 30d / GBL 90d decay)",
 }
+
+
+# Register buckets that mean "don't buy" (ledger v4.9 §7 WITHDRAWN/ZERO, HARD PASS).
+# Praveen 26-Sep-2026: such a name is never bought silently and never dropped silently —
+# if it passes every other gate it is RAISED for analysis; a buy needs his approval
+# (a register change). Defined once here (E7); engine/invariants.py imports it.
+REVIEW_FIRST_BUCKETS = frozenset({"WITHDRAWN", "HARD_PASS"})
 
 
 # ----------------------------------------------------- first-bite check ---
@@ -646,6 +655,17 @@ def build_plate(
             _drop(n, PlateDropReason.SCORE_ZERO,
                   f"H-mult={h_mult} x L-mult={l_mult} x P-mult={p_mult} = 0",
                   "any multiplier above zero", h=h, l_pct=l_pct)
+            continue
+
+        # --- register says don't-buy: raise for analysis, never buy silently ---
+        if n.bucket in REVIEW_FIRST_BUCKETS:
+            why = n.register_note or "no reason recorded in the register"
+            _drop(n, PlateDropReason.REVIEW_FIRST,
+                  f"passes every gate ({'first bite' if is_first_bite else mode.value}) but "
+                  f"register bucket is {n.bucket} — why: {why}",
+                  "analyse the name (OSEP) → Praveen approves → register bucket changes",
+                  h=h, l_pct=l_pct)
+            rules_fired.append(f"REVIEW_FIRST:{n.symbol}")
             continue
 
         scored.append((n, h, mode, low_band, l_pct, h_mult, l_mult, p_mult, p_tier,

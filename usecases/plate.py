@@ -184,6 +184,7 @@ def _build_name_input(
         p_mult_book=name.p_mult_book,
         flag_no_add=name.flag_no_add,
         owned_per_book=(name.bucket == "OWNED" or name.status == "HOLD"),
+        register_note=name.notes or "",
     )
     return ni, gate_result
 
@@ -446,7 +447,7 @@ def run_plate(
             advisory.append(
                 f"WARN: triggers without a basis date, not armed: {', '.join(unarmable)}"
             )
-        if not gsec_source.startswith("yfinance"):
+        if not gsec_source.startswith(("cnbc", "yfinance")):
             advisory.append(f"WARN: GoI yield not live — {gsec_source}")
         if unclassified:
             advisory.append(
@@ -462,6 +463,12 @@ def run_plate(
             )
         if e6:
             advisory.append(f"WARN: E6 caps-off conflict — needs your ruling: {', '.join(e6)}")
+        review = sorted(d.symbol for d in plate_result.drops
+                        if d.reason == PlateDropReason.REVIEW_FIRST)
+        if review:
+            advisory.append(
+                f"REVIEW FIRST: marked don't-buy but passing every gate — analyse before "
+                f"buying: {', '.join(review)}")
 
         # --- write session ---
         gate_details = {
@@ -561,6 +568,7 @@ _NEAR_MISS_ALWAYS = frozenset({
     PlateDropReason.FIRST_BITE_FAILED,
     PlateDropReason.E6_CAPS_OFF_CONFLICT,
     PlateDropReason.E6_PEAK_CYCLE_CONFLICT,
+    PlateDropReason.REVIEW_FIRST,
     PlateDropReason.DECAY_EXPIRED,
     PlateDropReason.P_BLOCKED,
     PlateDropReason.NO_ADD_HOLD_ONLY,

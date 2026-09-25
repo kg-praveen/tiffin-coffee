@@ -674,3 +674,25 @@ class TestBuildPathFirstBiteIsE6:
                                  trigger_level=Decimal(190), valuation_gate_passed=True)],
                           _cfg_cells(self.IT))
         assert res.drops[0].reason == PlateDropReason.CELL_FULL
+
+
+class TestReviewFirst:
+    """Praveen 26-Sep-2026: a don't-buy name that passes every gate is raised with its
+    register reason for analysis — never bought silently, never dropped silently."""
+
+    def test_withdrawn_first_bite_is_raised_with_reason(self) -> None:
+        from tests.acceptance.test_behavioral_regression import _n, _plate
+        c = _n("CANBK", "107", "107", sector="LENDER", status="WATCH", bucket="WITHDRAWN",
+               cell="LENDING_BANKS", held=17, gate=True,
+               register_note="Watch Q2 provisions; PSU cap")
+        r = _plate(c)
+        assert r.entries == []
+        d = next(d for d in r.drops if d.symbol == "CANBK")
+        assert d.reason == PlateDropReason.REVIEW_FIRST
+        assert "Watch Q2 provisions" in d.detail and "Praveen approves" in d.what_would_change
+
+    def test_same_name_as_owned_bucket_plates(self) -> None:
+        from tests.acceptance.test_behavioral_regression import _n, _plate
+        c = _n("CANBK", "107", "107", sector="LENDER", status="WATCH", bucket="OWNED",
+               cell="LENDING_BANKS", held=17, gate=True)
+        assert [e.symbol for e in _plate(c).entries] == ["CANBK"]
