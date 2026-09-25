@@ -369,7 +369,8 @@ def run_plate(
         stale = [d.symbol for d in plate_result.drops
                  if d.reason == PlateDropReason.HOLDINGS_STALE]
         e6 = [d.symbol for d in plate_result.drops
-              if d.reason == PlateDropReason.E6_CAPS_OFF_CONFLICT]
+              if d.reason in (PlateDropReason.E6_CAPS_OFF_CONFLICT,
+                              PlateDropReason.E6_PEAK_CYCLE_CONFLICT)]
         unclassified = [n.symbol for n in all_names
                         if n.symbol in prices and n.classified_on is None]
         advisory: list[str] = []
@@ -492,6 +493,7 @@ _NEAR_MISS_ALWAYS = frozenset({
     PlateDropReason.HOLDINGS_STALE,
     PlateDropReason.FIRST_BITE_FAILED,
     PlateDropReason.E6_CAPS_OFF_CONFLICT,
+    PlateDropReason.E6_PEAK_CYCLE_CONFLICT,
     PlateDropReason.DECAY_EXPIRED,
     PlateDropReason.P_BLOCKED,
     PlateDropReason.NO_ADD_HOLD_ONLY,

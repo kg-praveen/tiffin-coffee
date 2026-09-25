@@ -217,8 +217,13 @@ class TestCheckOverlays:
         assert reason == PlateDropReason.SOVEREIGN
 
     def test_cyclical_drops(self) -> None:
-        reason = check_overlays(_name(flag_cyclical=True), _config())
+        reason = check_overlays(_name(flag_cyclical=True, status="WATCH"), _config())
         assert reason == PlateDropReason.PEAK_CYCLE
+
+    def test_cyclical_with_register_add_is_e6(self) -> None:
+        """Chambal D59/D61: register ADD vs overlay #3 → E6, surfaced not bought."""
+        reason = check_overlays(_name(flag_cyclical=True, status="ADD"), _config())
+        assert reason == PlateDropReason.E6_PEAK_CYCLE_CONFLICT
 
     def test_psu_under_cap_passes(self) -> None:
         assert check_overlays(_name(flag_psu=True), _config()) is None

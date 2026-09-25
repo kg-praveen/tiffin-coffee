@@ -4,6 +4,20 @@ All notable changes to tiffin-coffee-app. Conventional commits; one concern per 
 
 ## [Unreleased] — branch `feat/uc2-plate-engine`
 
+### 2026-09-25 — Chambal: peak-cycle overlay vs register ADD is an E6
+
+Spec: tiffin-coffee v6 §overlays row 3 ("cyclical AT PEAK MARGINS") · osep v7 E6 ·
+ledger v4.9 D59/D61 (Chambal 10sh starter ≤415, tranche-2 gated).
+
+**fix (engine/plate.py)** — `flag_cyclical` alone no longer silently drops a name the
+register marks ADD. New `E6_PEAK_CYCLE_CONFLICT`: surfaced as a near-miss and in the
+advisory E6 list; the engine takes no action. Cyclicals without an ADD status still drop
+`PEAK_CYCLE`. Golden 20-Sep: CHAMBLFERT now reports the conflict instead of PEAK_CYCLE.
+
+Register check (25-Sep): Drive ledger v4.9 §7 trigger board == DB (12-Sep D54 levels).
+The 20-Sep chat report's levels (Wipro ~165, HCL ~1200, Muthoot ~2600) were unsourced;
+the register stands (D56).
+
 ### 2026-09-22 — UC2.1 holdings sync (CSV path) — the register is real
 
 Spec: sync-holdings skill steps 2–5, CLAUDE.md §3, pattaz-book §4.

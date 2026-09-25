@@ -145,7 +145,7 @@ class TestGolden20Sep:
 
     def test_cyclical_at_trigger_is_surfaced_not_bought(self, result) -> None:  # type: ignore[no-untyped-def]
         d = _drop(result, "CHAMBLFERT")
-        assert d.reason == PlateDropReason.PEAK_CYCLE
+        assert d.reason == PlateDropReason.E6_PEAK_CYCLE_CONFLICT
         assert d.h == Decimal("1.003")
 
     def test_not_owned_cannot_first_bite(self, result) -> None:  # type: ignore[no-untyped-def]

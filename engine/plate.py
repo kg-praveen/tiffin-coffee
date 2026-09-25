@@ -51,6 +51,7 @@ class PlateDropReason(Enum):
     HOLDINGS_STALE = "book says OWNED but holdings has no row (CLAUDE.md §3)"
     NO_ADD_HOLD_ONLY = "hold-only / museum name — builds blocked, first-bite allowed"
     E6_CAPS_OFF_CONFLICT = "first-bite blocked only by cell/P cap — §12b caps-off unresolved"
+    E6_PEAK_CYCLE_CONFLICT = "register says ADD but name is flagged cyclical — peak test unresolved"
     SCORE_ZERO = "score is zero after HxLxP"
     STATUS_BLOCKED = "name status blocks adds"
     EXIT_DECIDED = "on the sell list (overlay #7)"
@@ -306,6 +307,11 @@ def check_quality_overlays(
         return PlateDropReason.SOVEREIGN
 
     if n.flag_cyclical:
+        # Overlay #3 bars a cyclical AT PEAK MARGINS (tiffin v6 §overlays row 3); the
+        # flag only says "cyclical". A register ADD (Chambal D59/D61) vs the overlay is
+        # two rules disagreeing → E6: surface, never decide.
+        if n.status == "ADD":
+            return PlateDropReason.E6_PEAK_CYCLE_CONFLICT
         return PlateDropReason.PEAK_CYCLE
 
     if n.flag_psu and config.psu_weight_pct >= config.cap_psu_regulated_pct:
@@ -360,6 +366,9 @@ _OVERLAY_WHAT_WOULD_CHANGE: dict[PlateDropReason, str] = {
     PlateDropReason.PROBE_OPEN: "probe resolved and flag cleared in the register",
     PlateDropReason.SOVEREIGN: "never while state-directed (P1)",
     PlateDropReason.PEAK_CYCLE: "through-cycle test (osep G-CYCLICAL) or flag review",
+    PlateDropReason.E6_PEAK_CYCLE_CONFLICT: (
+        "Praveen rules: peak margins (drop) or the register ADD stands — engine takes no action"
+    ),
     PlateDropReason.PSU_CAP: "PSU/regulated weight back under the cap",
     PlateDropReason.CELL_FULL: "a seat in the cell (≤2 active adds, pattaz-book §5)",
     PlateDropReason.P5_VETO: "a written disagreement note logged (overlay #6)",
