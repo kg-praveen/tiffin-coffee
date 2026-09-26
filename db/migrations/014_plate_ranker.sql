@@ -10,6 +10,6 @@
 -- Ticket band and breadth bounds reuse the existing policy rows ticket_band_min/max and
 -- breadth_min/max. Order proposed by the build; Praveen to confirm (open question).
 
-INSERT INTO policy VALUES ('ranker_criteria_order','ticket_band,no_raise,breadth,residual',
+INSERT OR IGNORE INTO policy VALUES ('ranker_criteria_order','ticket_band,no_raise,breadth,residual',
  'criteria, best first','UC3 ranker — tiffin v4 §TICKET SIZE, v6 §BREADTH TARGET, v6 STEP 6 — migration 014',
  '2026-09-26');

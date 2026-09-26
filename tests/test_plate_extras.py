@@ -381,6 +381,9 @@ class TestUsecase:
 
     def test_without_migration_012_the_checks_say_so(self, scratch_db: Path,
                                                      market: MarketSnapshot) -> None:
+        with sqlite3.connect(scratch_db) as con:       # simulate a pre-012 register
+            con.execute("DELETE FROM policy WHERE key IN ('hockey_nifty_week_fall_pct', "
+                        "'hockey_name_day_fall_pct')")
         shocked = market_move(Decimal(-5), "nifty-5")(market, CTX)
         r = run_plate(scratch_db, Decimal(10000), market=shocked, today=market.recorded_at,
                       record_session=False)

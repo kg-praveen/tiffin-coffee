@@ -8,3 +8,4 @@ __pycache__/
 .mypy_cache/
 tests/fixtures/_scratch/
 *.egg-info/
+.claude/worktrees/

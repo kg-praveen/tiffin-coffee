@@ -168,6 +168,8 @@ def test_no_ledger_fails_closed_and_still_logs(reg: Path, tmp_path: Path) -> Non
 
 def test_works_before_migration_011(scratch_db: Path, tmp_path: Path) -> None:
     """Without the alias table SBI/EIL are unknown names — reported, never guessed."""
+    with sqlite3.connect(scratch_db) as con:           # simulate a pre-011 register
+        con.execute("DROP TABLE IF EXISTS ledger_aliases")
     rep = run_ledger_sync(scratch_db, file=V410, drafts_dir=tmp_path)
     assert {"SBI", "EIL"} <= {u.ledger_name for u in rep.unknown_names}
     assert rep.trigger_changes == []

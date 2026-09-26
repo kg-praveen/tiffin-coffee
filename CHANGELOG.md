@@ -2,7 +2,31 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/uc4-osep`
+## [Unreleased] — branch `integrate/four-usecases`
+
+### 2026-09-26 — four use cases built in parallel (workflow: build → review → fix → integrate)
+
+- **UC6 ledger sync** (`usecases/ledger_sync.py`, `tools/ledger_file.py`, skill `ledger-sync`,
+  migration 011 `ledger_aliases`) — parses the newest local ledger export, diffs it against
+  the register (decisions, triggers, names, cells) and writes a DRAFT migration for review
+  (never applied). Conflicting ledger levels (E6), register rows newer than the ledger (E3)
+  and unreadable D-numbers (E9) go to review. First live run: ledger v4.11 has D71.
+- **UC2 plate extras** (migration 012) — single-deployment cap on a confirmed surplus given
+  per run (over the cap → NO ACTION; cap below the BeES floor → E6 CONFLICT); HOCKEY
+  detection for Nifty −5% in a week, name −10% in a day and the D37 −15% / −25% rungs
+  (`tools/index_moves.py`, `engine/hockey.py`) — detection + advisory only, no reserve
+  sizing; stale index data is not used (E3); two-pocket 60/40 stated, not checked. Every
+  open question prints as "OPEN QUESTION for Praveen".
+- **UC2.1 Kite holdings sync** (`tools/kite.py`, `run_sync_holdings_kite`) — read-only
+  Zerodha holdings for ZERODHA_P; login URL + request token from Praveen, token cached for
+  the day in a git-ignored file; every failure writes a NO ACTION session.
+- **UC3 plate ranker** (`engine/ranker.py`, `usecases/ranker.py`, skill `plate-ranker`,
+  migration 014) — legal plate variants side by side, each passing every invariant; ranking
+  order is PROVISIONAL until Praveen confirms it (policy `ranker_criteria_order`).
+Integration: migrations 011/012/014 applied to the register (sessions kept); 634 passed;
+UC5 128 runs, 0 violations.
+
+## UC4 OSEP (PR #13)
 
 ### 2026-09-26 — UC4 OSEP analyser
 

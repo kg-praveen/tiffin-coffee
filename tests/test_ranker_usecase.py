@@ -117,6 +117,8 @@ def test_missing_policy_row_is_no_action_with_a_session(
         scratch_db: Path, market: MarketSnapshot) -> None:
     """CLAUDE.md §3 / E9: a failed run prints NO ACTION — <reason> and still writes
     a UC3_RANKER session with verdict NO_ACTION."""
+    with sqlite3.connect(scratch_db) as con:           # simulate a pre-014 register
+        con.execute("DELETE FROM policy WHERE key = 'ranker_criteria_order'")
     r = run_ranker(scratch_db, D(7500), market=market, market_source="recording",
                    today=market.recorded_at)
     assert r.best is None and r.no_action_reason is not None
