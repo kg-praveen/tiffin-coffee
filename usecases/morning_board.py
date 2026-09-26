@@ -26,6 +26,7 @@ from store.repo import NameRow, PattazRepo, TriggerRow
 from tools.prices import PriceSnapshot, fetch_price
 from tools.results_dates import BatchResultDates, fetch_result_dates_batch
 from tools.stamped import Stamped
+from usecases.results import effective_results
 
 
 def _json_safe(obj: object) -> object:
@@ -92,6 +93,10 @@ def run_morning_board(
                               if t.symbol in names_map and names_map[t.symbol].yf_ticker})
             results = (fetch_result_dates_batch(tickers) if fetch_prices and prices is None
                        else BatchResultDates())
+        results = effective_results(
+            results, repo.load_results_verified(),
+            {s: (n.yf_ticker or s).removesuffix(".NS") for s, n in names_map.items()}, today)
+        max_age = int(repo.load_policy()["results_max_age_days"].value)
 
         for t in all_triggers:
             name = names_map.get(t.symbol)
@@ -114,6 +119,7 @@ def run_morning_board(
                 name_status=name.status,
                 flag_exit_decided=name.flag_exit_decided,
                 result_dates=_dates_for(results, name.yf_ticker or t.symbol),
+                results_max_age_days=max_age,
             )
 
             if result.armable:

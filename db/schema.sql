@@ -95,6 +95,17 @@ CREATE TABLE policy (
   adopted_on      TEXT NOT NULL
 );
 
+-- Results dates verified online where the market-data source is wrong or stale
+-- (migration 007). A row replaces the fetched dates until valid_until, then the name
+-- fails closed until re-verified (E3/E9).
+CREATE TABLE results_verified (
+  symbol       TEXT PRIMARY KEY,
+  last_result  TEXT NOT NULL,
+  valid_until  TEXT NOT NULL,
+  source       TEXT NOT NULL,
+  verified_on  TEXT NOT NULL
+);
+
 -- Decision register mirror (the ledger's D-register; narrative stays in Drive).
 CREATE TABLE decisions (
   d_no            INTEGER PRIMARY KEY,

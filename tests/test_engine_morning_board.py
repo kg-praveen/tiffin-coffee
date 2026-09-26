@@ -25,7 +25,7 @@ class TestBasisVersusResults:
         return check_armability(
             symbol="INFY", kind="BUY", active=True, basis_eps_date=basis,
             decay_expiry=None, today=today, yf_ticker="INFY.NS", name_status="ADD",
-            flag_exit_decided=False, result_dates=dates)
+            flag_exit_decided=False, result_dates=dates, results_max_age_days=150)
 
     def test_basis_after_results_is_armable(self) -> None:
         assert self._arm("2026-09-01", ("2026-07-23", "2026-10-23")).armable
@@ -42,6 +42,12 @@ class TestBasisVersusResults:
         assert self._arm("2026-09-01", ("2026-10-23",)).drop_reason == \
             DropReason.RESULT_DATE_UNKNOWN          # nothing reported yet in the window
 
+    def test_stale_source_fails_closed(self) -> None:
+        """SEBI LODR: every listed company reports each quarter — a 'latest' result
+        older than the policy window means the data source is stale (Texmaco: 2019)."""
+        r = self._arm("2026-09-17", ("2019-02-11", "2019-05-13"))
+        assert r.drop_reason == DropReason.RESULT_DATE_UNKNOWN and "stale" in r.detail
+
 
 class TestCheckArmability:
     """Spec: trigger-check v2 step 2 (VALIDITY GATE, E3)."""
@@ -52,7 +58,7 @@ class TestCheckArmability:
             basis_eps_date="2026-09-01", decay_expiry="2026-10-01",
             today="2026-09-19", yf_ticker="PETRONET.NS",
             name_status="ADD", flag_exit_decided=False,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is True
         assert r.drop_reason is None
@@ -63,7 +69,7 @@ class TestCheckArmability:
             basis_eps_date="2026-08-01", decay_expiry="2026-11-01",
             today="2026-09-19", yf_ticker="TMB.NS",
             name_status="ADD", flag_exit_decided=False,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is False
         assert r.drop_reason == DropReason.INACTIVE
@@ -74,7 +80,7 @@ class TestCheckArmability:
             basis_eps_date=None, decay_expiry="2026-12-01",
             today="2026-09-19", yf_ticker="ZYDUSLIFE.NS",
             name_status="ADD", flag_exit_decided=False,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is False
         assert r.drop_reason == DropReason.NO_BASIS_EPS
@@ -85,7 +91,7 @@ class TestCheckArmability:
             basis_eps_date="2026-06-01", decay_expiry="2026-08-31",
             today="2026-09-19", yf_ticker="TEST.NS",
             name_status="ADD", flag_exit_decided=False,
-            result_dates=("2026-04-20",),
+            result_dates=("2026-05-20",), results_max_age_days=150,
         )
         assert r.armable is False
         assert r.drop_reason == DropReason.DECAY_EXPIRED
@@ -96,7 +102,7 @@ class TestCheckArmability:
             basis_eps_date="2026-09-01", decay_expiry="2026-10-01",
             today="2026-09-19", yf_ticker=None,
             name_status="ADD", flag_exit_decided=False,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is False
         assert r.drop_reason == DropReason.NO_TICKER
@@ -107,7 +113,7 @@ class TestCheckArmability:
             basis_eps_date="2026-09-01", decay_expiry="2026-10-01",
             today="2026-09-19", yf_ticker="TEST.NS",
             name_status="SOLD", flag_exit_decided=False,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is False
         assert r.drop_reason == DropReason.STATUS_BLOCKED
@@ -118,7 +124,7 @@ class TestCheckArmability:
             basis_eps_date="2026-09-01", decay_expiry="2026-10-01",
             today="2026-09-19", yf_ticker="TEST.NS",
             name_status="ADD", flag_exit_decided=True,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is False
         assert r.drop_reason == DropReason.EXIT_DECIDED
@@ -130,7 +136,7 @@ class TestCheckArmability:
             basis_eps_date="2026-09-01", decay_expiry=None,
             today="2026-09-19", yf_ticker="TEST.NS",
             name_status="ADD", flag_exit_decided=False,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.armable is True
 
@@ -141,7 +147,7 @@ class TestCheckArmability:
             basis_eps_date=None, decay_expiry=None,
             today="2026-09-19", yf_ticker="TEST.NS",
             name_status="ADD", flag_exit_decided=True,
-            result_dates=("2026-07-20",),
+            result_dates=("2026-07-20",), results_max_age_days=150,
         )
         assert r.drop_reason == DropReason.EXIT_DECIDED
 

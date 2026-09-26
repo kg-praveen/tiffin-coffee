@@ -2,7 +2,22 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/brand-gate-and-result-date`
+## [Unreleased] — branch `fix/verified-facts`
+
+### 2026-09-26 — facts looked up online and recorded (migration 007)
+
+Praveen 26-Sep: "find it from online and record them". Sources are in the migration.
+- **Brand ownership:** ITC, Dabur, Godrej Consumer, Jyothy, Sula own their brands;
+  HUL, Nestle India, Bata India do not (royalties to foreign parents) — never bought.
+- **Results dates Yahoo gets wrong/stale:** M&M 30-Jul (Yahoo said 10-Sep), Engineers
+  India 13-Aug, RITES 4-Aug, Paradeep 31-Jul, Texmaco 3-Aug. New table
+  `results_verified` overrides the feed until 14-Oct, then fails closed until re-checked.
+- **New safety check:** a "latest results" date older than 150 days is treated as
+  unknown (SEBI LODR Reg 33: results within 45 days of each quarter, 60 for Q4). Policy
+  `results_max_age_days`.
+M&M's trigger is armed again. UC5: 0 violations.
+
+## 2026-09-26 — brand gate + results date (PR #9)
 
 ### 2026-09-26 — FMCG brand-ownership gate; triggers disarm after new results
 

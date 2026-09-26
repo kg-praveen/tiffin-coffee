@@ -55,6 +55,15 @@ class NameRow:
 
 
 @dataclass(frozen=True)
+class VerifiedResult:
+    symbol: str
+    last_result: str
+    valid_until: str
+    source: str
+    verified_on: str
+
+
+@dataclass(frozen=True)
 class TriggerRow:
     symbol: str
     kind: str
@@ -133,6 +142,15 @@ class PattazRepo:
         self.close()
 
     # --- policy ---
+
+    def load_results_verified(self) -> list[VerifiedResult]:
+        """Results dates verified online (migration 007); empty on older databases."""
+        try:
+            rows = self._con.execute("SELECT * FROM results_verified").fetchall()
+        except sqlite3.OperationalError:
+            return []
+        return [VerifiedResult(r["symbol"], r["last_result"], r["valid_until"],
+                               r["source"], r["verified_on"]) for r in rows]
 
     def load_policy(self) -> dict[str, PolicyRow]:
         rows = self._con.execute("SELECT * FROM policy").fetchall()

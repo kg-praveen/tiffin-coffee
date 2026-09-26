@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from enum import Enum
 
@@ -70,7 +71,7 @@ def last_result_on(result_dates: Sequence[str], today: str) -> str | None:
 
 
 def check_basis_fresh(basis_eps_date: str, result_dates: Sequence[str] | None,
-                      today: str) -> tuple[DropReason | None, str]:
+                      today: str, max_age_days: int) -> tuple[DropReason | None, str]:
     """E3 (osep v7 ENGINE CONTRACT): a trigger is armable only on a fresh-EPS basis
     younger than the last result. Unknown results date → not armable (E9: no path
     from missing data to a buy). Defined once here; the plate usecase calls it (E7)."""
@@ -79,6 +80,13 @@ def check_basis_fresh(basis_eps_date: str, result_dates: Sequence[str] | None,
     last = last_result_on(result_dates, today)
     if last is None:
         return DropReason.RESULT_DATE_UNKNOWN, f"no results on record before {today}"
+    age = (date.fromisoformat(today) - date.fromisoformat(last)).days
+    if age > max_age_days:
+        # SEBI LODR Reg 33: a listed company reports every quarter, so a "latest"
+        # result this old means the data source is stale, not the company (policy).
+        return DropReason.RESULT_DATE_UNKNOWN, (
+            f"latest results on record {last} is {age} days old (> {max_age_days}) — "
+            f"source stale, verify online")
     if basis_eps_date < last:
         return DropReason.STALE_BASIS, f"basis {basis_eps_date} < latest results {last}"
     return None, f"basis {basis_eps_date} >= latest results {last}"
@@ -96,6 +104,7 @@ def check_armability(
     flag_exit_decided: bool,
     *,
     result_dates: Sequence[str] | None,
+    results_max_age_days: int,
 ) -> ArmabilityResult:
     """Spec: trigger-check v2 step 2 (VALIDITY GATE, E3).
 
@@ -129,7 +138,8 @@ def check_armability(
             "basis_eps_date is NULL — re-derive trigger from fresh EPS"
         )
 
-    stale, why = check_basis_fresh(basis_eps_date, result_dates, today)
+    stale, why = check_basis_fresh(basis_eps_date, result_dates, today,
+                                   results_max_age_days)
     if stale is not None:
         return ArmabilityResult(symbol, kind, False, stale, why)
 
