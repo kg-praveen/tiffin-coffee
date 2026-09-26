@@ -46,10 +46,16 @@ def fetch_price(yf_ticker: str) -> PriceSnapshot:
     if not info or info.get("regularMarketPrice") is None:
         raise ValueError(f"ticker {yf_ticker!r} did not resolve or returned no price")
 
-    now = datetime.now(UTC).isoformat(timespec="seconds")
     source = f"yfinance:{yf_ticker}"
+    # The LAST traded price (Friday's close on a weekend, live LTP in market hours),
+    # stamped with the time it traded. regularMarketPreviousClose is the session BEFORE
+    # that — on 26-Sep (Sat) it returned Thursday's close (fixed 26-Sep-2026).
+    traded = info.get("regularMarketTime")
+    now = (datetime.fromtimestamp(int(traded), tz=UTC).isoformat(timespec="seconds")
+           if isinstance(traded, (int, float)) and traded > 0
+           else datetime.now(UTC).isoformat(timespec="seconds"))
 
-    price_raw = info.get("regularMarketPreviousClose") or info.get("regularMarketPrice")
+    price_raw = info.get("regularMarketPrice") or info.get("regularMarketPreviousClose")
     low_raw = info.get("fiftyTwoWeekLow")
     high_raw = info.get("fiftyTwoWeekHigh")
 

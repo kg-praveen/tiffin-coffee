@@ -39,7 +39,7 @@ class TestFetchPriceFromFixture:
         assert isinstance(snap.price, Stamped)
         assert isinstance(snap.low_52w, Stamped)
         assert isinstance(snap.high_52w, Stamped)
-        assert snap.price.value == Decimal("1858.30")
+        assert snap.price.value == Decimal("1862.45")   # last traded, not previous close
         assert snap.low_52w.value == Decimal("1358.35")
         assert snap.high_52w.value == Decimal("2006.45")
 
@@ -49,9 +49,22 @@ class TestFetchPriceFromFixture:
         snap = fetch_price("HDFCBANK.NS")
 
         assert snap.symbol == "HDFCBANK"
-        assert snap.price.value == Decimal("1706.85")
+        assert snap.price.value == Decimal("1712.50")
         assert snap.low_52w.value == Decimal("1363.55")
         assert snap.high_52w.value == Decimal("1880.00")
+
+    @patch("tools.prices.yf.Ticker")
+    def test_weekend_uses_last_close_and_its_time(self, mock_ticker_cls: MagicMock) -> None:
+        """26-Sep-2026 (Sat): Infosys closed 1000.20 on Friday; previousClose 1014.50 is
+        Thursday. The plate must use Friday's close, stamped with Friday's time."""
+        mock = MagicMock()
+        mock.info = {"regularMarketPrice": 1000.2, "regularMarketPreviousClose": 1014.5,
+                     "regularMarketTime": 1790329500, "marketState": "CLOSED",
+                     "fiftyTwoWeekLow": 982.4, "fiftyTwoWeekHigh": 1700.0}
+        mock_ticker_cls.return_value = mock
+        snap = fetch_price("INFY.NS")
+        assert snap.price.value == Decimal("1000.2")
+        assert snap.price.as_of.startswith("2026-09-25")
 
     @patch("tools.prices.yf.Ticker")
     def test_missing_ticker_raises(self, mock_ticker_cls: MagicMock) -> None:

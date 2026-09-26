@@ -44,7 +44,7 @@ class TestPolicy:
 class TestNames:
     def test_load_names_count(self, repo: PattazRepo) -> None:
         names = repo.load_names()
-        assert len(names) == 126
+        assert len(names) == 127   # + RSYSTEMS (D65, migration 009)
 
     def test_get_name_infy(self, repo: PattazRepo) -> None:
         n = repo.get_name("INFY")
@@ -89,13 +89,13 @@ class TestNames:
 class TestTriggers:
     def test_load_triggers_count(self, repo: PattazRepo) -> None:
         triggers = repo.load_triggers()
-        assert len(triggers) == 39
+        assert len(triggers) == 40   # + RSYSTEMS 251
 
     def test_active_only(self, repo: PattazRepo) -> None:
         active = repo.load_triggers(active_only=True)
         assert all(t.active for t in active)
         inactive_count = len(repo.load_triggers()) - len(active)
-        assert inactive_count == 4  # FEDERALBNK, TMB, INDIGRID, ZYDUSLIFE
+        assert inactive_count == 5  # FEDERALBNK, TMB, INDIGRID, ZYDUSLIFE, TCS (D65)
 
     def test_trigger_level_is_decimal(self, repo: PattazRepo) -> None:
         for t in repo.load_triggers():
@@ -116,13 +116,14 @@ class TestHoldings:
         assert len(pairs) == len(set(pairs))
         assert len(repo.load_holdings_history()) > len(holdings)
 
-    def test_csv_snapshot_21sep_is_newest(self, repo: PattazRepo) -> None:
-        """db/holdings/household_equity_21sep2026.csv supersedes the ledger rows."""
+    def test_csv_snapshot_25sep_is_newest(self, repo: PattazRepo) -> None:
+        """db/holdings/household_equity_25sep2026.csv (broker exports) is the newest;
+        Int-P HDFC 29 → 34 is the D67 one-time override."""
         hdfc = {h.account: h for h in repo.get_holdings_for("HDFCBANK")}
         assert hdfc["ZERODHA_P"].qty == 126
-        assert hdfc["ZERODHA_P"].as_of == "2026-09-21"
-        assert hdfc["ZERODHA_P"].source == "CSV:household_equity_21sep2026.csv"
-        assert hdfc["INTEGRATED_P"].qty == 29 and hdfc["INTEGRATED_V"].qty == 29
+        assert hdfc["INTEGRATED_P"].as_of == "2026-09-25"
+        assert hdfc["INTEGRATED_P"].source == "CSV:household_equity_25sep2026.csv"
+        assert hdfc["INTEGRATED_P"].qty == 34 and hdfc["INTEGRATED_V"].qty == 29
 
     def test_muthootfin_household_total(self, repo: PattazRepo) -> None:
         holdings = repo.get_holdings_for("MUTHOOTFIN")
@@ -158,7 +159,7 @@ class TestCells:
 class TestDecisions:
     def test_load_decisions_count(self, repo: PattazRepo) -> None:
         decisions = repo.load_decisions()
-        assert len(decisions) == 64
+        assert len(decisions) == 70   # + D65-D70 (migration 009)
 
     def test_open_decisions(self, repo: PattazRepo) -> None:
         open_d = repo.load_decisions(status="OPEN")

@@ -337,6 +337,7 @@ def run_plate(
             results, repo.load_results_verified(),
             {n.symbol: (n.yf_ticker or n.symbol).removesuffix(".NS") for n in all_names}, today)
         max_age = int(_policy_decimal(policy, "results_max_age_days"))
+        waivers = repo.caps_off_waivers_on(today)
 
         # E3: a trigger is armable only on a dated basis not older than the latest results
         triggers_map: dict[str, TriggerRow] = {}
@@ -478,6 +479,7 @@ def run_plate(
             cap_psu_regulated_pct=_policy_decimal(policy, "cap_psu_regulated_pct"),
             event_hold_days=int(_policy_decimal(policy, "event_hold_days")),
             event_opt_in=event_opt_in,
+            caps_off_waived=frozenset(waivers),
         )
 
         plate_result = build_plate(name_inputs, config)
@@ -528,6 +530,9 @@ def run_plate(
             advisory.append(
                 f"BRAND CHECK: FMCG names eligible today but brand ownership not recorded "
                 f"— confirm who owns the brand: {', '.join(brand)}")
+        if waivers:
+            advisory.append("CAPS-OFF WAIVER today (register): " + ", ".join(
+                f"{s} ({d})" for s, d in sorted(waivers.items())))
         held = sorted(d.symbol for d in plate_result.drops
                       if d.reason == PlateDropReason.EVENT_HOLD)
         if held:

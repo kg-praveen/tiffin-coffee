@@ -742,3 +742,33 @@ class TestResultsWeekPause:
 
     def test_opt_in_buys_anyway(self) -> None:
         assert self._run("2026-10-20", frozenset({"INFY"})).entries
+
+
+class TestCapsOffWaiver:
+    """D6/D44 via a one-session register waiver (D70 Wipro, 28-Sep): lifts cell cap,
+    hold-only and P=0 — never a quality overlay, valuation gate or ban."""
+
+    def _wipro(self, **kw):  # type: ignore[no-untyped-def]
+        from tests.acceptance.test_behavioral_regression import _n
+        return _n("WIPRO", "164.02", "161.66", "190", sector="IT_SERVICES", status="HOLD",
+                  bucket="OWNED", cell="IT", held=185, gate=True, flag_no_add=True, **kw)
+
+    def _cfg(self, waived: frozenset[str]) -> PlateConfig:
+        from tests.acceptance.test_behavioral_regression import CELLS
+        return PlateConfig(session_amount=Decimal(10000), today="2026-09-28",
+                           psu_weight_pct=Decimal(10), cells=CELLS, bees_price=Decimal(264),
+                           caps_off_waived=waived)
+
+    def test_without_waiver_it_is_the_e6_question(self) -> None:
+        r = build_plate([self._wipro()], self._cfg(frozenset()))
+        assert r.entries == [] and r.drops[0].reason == PlateDropReason.E6_CAPS_OFF_CONFLICT
+
+    def test_waiver_plates_it_with_the_normal_clamp(self) -> None:
+        r = build_plate([self._wipro()], self._cfg(frozenset({"WIPRO"})))
+        assert [e.symbol for e in r.entries] == ["WIPRO"]
+        assert 1 <= r.entries[0].qty <= 10
+        assert "CAPS_OFF_WAIVED:WIPRO" in r.rules_fired
+
+    def test_waiver_never_lifts_a_quality_overlay(self) -> None:
+        r = build_plate([self._wipro(flag_probe_open=True)], self._cfg(frozenset({"WIPRO"})))
+        assert r.entries == [] and r.drops[0].reason == PlateDropReason.PROBE_OPEN

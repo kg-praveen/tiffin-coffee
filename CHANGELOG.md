@@ -2,7 +2,26 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/results-week-pause`
+## [Unreleased] — branch `feat/ledger-v4-10`
+
+### 2026-09-26 — register catches up with ledger v4.10 + D69/D70; weekend prices fixed
+
+**fix (tools/prices.py)** — use the last traded price (`regularMarketPrice`) stamped with
+its trade time. `regularMarketPreviousClose` is the session before: on Sat 26-Sep it gave
+Thursday's close (Infosys 1,014.50 vs Friday's 1,000.20).
+**db (migration 009)** — from ledger v4.10 (local copy; Drive returned 403) and the 26-Sep
+handoff: decisions D65-D70; R Systems added (IT add #2, trigger 251, spec <=1%); TCS
+HOLD-no-add and its trigger retired; IT cell seats INFY + RSYSTEMS; NTPC and Power Grid
+NO ACTION until the E6 solvency ruling (§14 0b); Petronet held for the reserve decision
+(§14 1(v)); `caps_off_waivers` table with D70 (Wipro, 28-Sep only).
+**feat (engine/plate.py)** — `caps_off_waived`: a register waiver for this session lifts
+cell cap, hold-only and P=0 (D6/D44) — never quality, valuation, bans or event hold.
+**feat (tools/csv_import.py)** — accepts the compact 25-Sep export headers; 25-Sep broker
+holdings imported (incl. D67 override buys).
+Monday 28-Sep preview (live, Friday closes): Infosys 3 · R Systems 6 · Wipro 5 (D70) ·
+Muthoot 1 · Amara Raja 1 · SBI 1 = Rs9,844. 412 passed.
+
+## 2026-09-26 — results-week pause (PR #11)
 
 ### 2026-09-26 — results-week pause (event hold)
 

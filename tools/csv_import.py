@@ -52,6 +52,17 @@ def as_of_from_filename(name: str) -> str | None:
     return f"{year:04d}-{mon:02d}-{day:02d}"
 
 
+# Newer exports (25-Sep-2026 onward) use compact headers; map them to the canonical ones.
+_HEADER_ALIASES: dict[str, str] = {
+    "TotalQty": "Total Qty",
+    "KiteP": "Kite-P Qty",
+    "IntP": "Int-P Qty",
+    "IntV": "Int-V Qty",
+    "IntV_20Sep": "Int-V Qty",     # Varshu not re-exported; last confirmed qty carried
+    "Value": "Total Value",
+}
+
+
 def _int(raw: str | None) -> int:
     return int(Decimal(raw.strip())) if raw and raw.strip() else 0
 
@@ -69,7 +80,8 @@ def parse_household_csv(path: str | Path, as_of: str | None = None) -> Household
 
     with p.open(newline="") as fh:
         reader = csv.DictReader(fh)
-        header = set(reader.fieldnames or [])
+        reader.fieldnames = [_HEADER_ALIASES.get(h, h) for h in (reader.fieldnames or [])]
+        header = set(reader.fieldnames)
         missing = ({"Stock", "Total Qty"} | set(_ACCOUNT_COLS)) - header
         if missing:
             raise ValueError(f"{p.name}: missing columns {sorted(missing)}")

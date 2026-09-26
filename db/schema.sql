@@ -106,6 +106,15 @@ CREATE TABLE results_verified (
   verified_on  TEXT NOT NULL
 );
 
+-- One-session caps-off waivers from the register (migration 009; D6/D44, e.g. D70).
+CREATE TABLE caps_off_waivers (
+  symbol    TEXT NOT NULL,
+  valid_on  TEXT NOT NULL,
+  decision  TEXT NOT NULL,
+  note      TEXT,
+  PRIMARY KEY (symbol, valid_on)
+);
+
 -- Decision register mirror (the ledger's D-register; narrative stays in Drive).
 CREATE TABLE decisions (
   d_no            INTEGER PRIMARY KEY,

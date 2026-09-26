@@ -125,12 +125,19 @@ def test_report_leads_with_verdict(suite: SimulationResult) -> None:
 
 def test_session_written_once_to_register(market: MarketSnapshot, scratch_db: Path) -> None:
     base = [s for s in CATALOG if s.name == "baseline"]
+
+    def _count() -> tuple[int, int]:
+        with PattazRepo(scratch_db) as repo:
+            c = repo._con
+            return (c.execute("SELECT count(*) FROM sessions WHERE usecase='UC5_SIMULATION'"
+                              ).fetchone()[0],
+                    c.execute("SELECT count(*) FROM sessions WHERE usecase='UC2_PLATE'"
+                              ).fetchone()[0])
+
+    before = _count()
     r = run_simulation(scratch_db, market, base, (Decimal(10000),))
-    with PattazRepo(scratch_db) as repo:
-        rows = repo._con.execute(
-            "SELECT usecase FROM sessions WHERE run_id LIKE 'UC5_%' OR run_id LIKE 'UC2_%'"
-        ).fetchall()
-    assert [row["usecase"] for row in rows] == ["UC5_SIMULATION"]
+    after = _count()
+    assert after == (before[0] + 1, before[1])     # one UC5 row, no UC2 rows
     assert r.run_id.startswith("UC5_")
 
 

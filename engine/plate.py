@@ -141,6 +141,10 @@ class PlateConfig:
     cap_psu_regulated_pct: Decimal = Decimal(25)
     event_hold_days: int = 5
     event_opt_in: frozenset[str] = frozenset()
+    # names with a register caps-off waiver for THIS session (D6/D44; e.g. D70 Wipro
+    # 28-Sep). Waives portfolio construction only — cell cap, hold-only, P=0 — never a
+    # quality overlay, valuation gate, ban or event hold.
+    caps_off_waived: frozenset[str] = frozenset()
 
 
 # -------------------------------------------------------------- outputs ---
@@ -660,7 +664,10 @@ def build_plate(
                       f"all of: L ≤ {config.first_bite_l_max}% · owned · sector gate pass",
                       h=h, l_pct=l_pct)
                 continue
-            if cell_drop is not None or p_tier == PriorityTier.BLOCKED:
+            waived = n.symbol in config.caps_off_waived
+            if waived and (cell_drop is not None or p_tier == PriorityTier.BLOCKED):
+                rules_fired.append(f"CAPS_OFF_WAIVED:{n.symbol}")
+            elif cell_drop is not None or p_tier == PriorityTier.BLOCKED:
                 blocker = "cell cap" if cell_drop is not None else "P=0 (at/over target)"
                 _drop(n, PlateDropReason.E6_CAPS_OFF_CONFLICT,
                       f"first-bite passes quality gates but is blocked by {blocker}; "
@@ -679,7 +686,14 @@ def build_plate(
                 else "hold-only/museum" if n.flag_no_add
                 else None
             )
-            if build_blocker is not None and check_first_bite(
+            if n.symbol in config.caps_off_waived and (
+                build_blocker is not None or p_tier == PriorityTier.BLOCKED
+            ):
+                # register waiver for this session (D6/D44): construction blocks lifted
+                rules_fired.append(f"CAPS_OFF_WAIVED:{n.symbol}")
+                build_blocker = None
+                cell_drop = None
+            elif build_blocker is not None and check_first_bite(
                 l_pct, True, n.valuation_gate_passed, is_owned, n.sector_class,
                 l_max=config.first_bite_l_max,
             ):
@@ -697,13 +711,13 @@ def build_plate(
                       _OVERLAY_WHAT_WOULD_CHANGE[cell_drop], h=h, l_pct=l_pct)
                 rules_fired.append(f"overlay:{cell_drop.name}:{n.symbol}")
                 continue
-            if n.flag_no_add:
+            if n.flag_no_add and n.symbol not in config.caps_off_waived:
                 _drop(n, PlateDropReason.NO_ADD_HOLD_ONLY,
                       f"H={h} would build, but name is hold-only/museum per pattaz-book",
                       "register status change; a first bite at the low is still allowed",
                       h=h, l_pct=l_pct)
                 continue
-            if p_tier == PriorityTier.BLOCKED:
+            if p_tier == PriorityTier.BLOCKED and n.symbol not in config.caps_off_waived:
                 _drop(n, PlateDropReason.P_BLOCKED,
                       f"P-tier BLOCKED (weight={n.current_weight_pct}%, book={n.p_mult_book})",
                       "household weight back inside the target band",
