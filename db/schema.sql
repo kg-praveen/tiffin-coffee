@@ -172,3 +172,13 @@ CREATE TABLE market_snapshot (
 
 CREATE TABLE schema_version (version INTEGER NOT NULL, applied_on TEXT NOT NULL);
 INSERT INTO schema_version VALUES (1, '2026-09-19');
+
+-- ---- UC6 ledger sync (migration 011) ----
+-- Short names the Drive ledger uses for register symbols (e.g. SBI -> SBIN). A ledger
+-- name that matches neither names.symbol, names.name nor an alias is "needs review".
+CREATE TABLE ledger_aliases (
+  alias    TEXT PRIMARY KEY COLLATE NOCASE,
+  symbol   TEXT NOT NULL,
+  source   TEXT NOT NULL,
+  set_on   TEXT NOT NULL
+);
