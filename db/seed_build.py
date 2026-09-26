@@ -337,7 +337,7 @@ def build() -> None:
         DB.unlink()
     con = sqlite3.connect(DB)
     con.executescript(SCHEMA.read_text())
-    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL)", N)
+    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)", N)
     # osep v7 §G brand-ownership gate (migration 006): only VBL is stated
     con.execute("UPDATE names SET brand_owned = 0 WHERE symbol = 'VBL'")
     # NSE official sector (migration 005) from the newest committed reference list
@@ -371,6 +371,7 @@ def build() -> None:
     for mig in sorted((HERE / "migrations").glob("*.sql")):
         if int(mig.name[:3]) >= 7:
             sql = re.sub(r"CREATE TABLE \w+ \(.*?\);", "", mig.read_text(), flags=re.DOTALL)
+            sql = re.sub(r"ALTER TABLE \w+ ADD COLUMN [^;]*;", "", sql)
             con.executescript(sql)
     con.commit()
     DUMP.write_text("\n".join(con.iterdump()))

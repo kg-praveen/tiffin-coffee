@@ -2,7 +2,32 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/ledger-v4-10`
+## [Unreleased] — branch `feat/uc4-osep`
+
+### 2026-09-26 — UC4 OSEP analyser
+
+Spec: osep v7 (E-laws, §SC, §G, Stages 0-3, P3, P5, decay clock, output format);
+CLAUDE.md §9 (re-underwriting is a chat job; the DB records the outcome).
+- **engine/osep.py** — the verdict, stage by stage. Computed from data: promoter <26%
+  kill, P4 net-selling flag, solvency (debt ex-leases, newest balance sheet), negative
+  cumulative profit, loss-scales-with-volume, Stage-1 watch flags, sector valuation gate,
+  trigger (fair P/E x EPS; lender justified P/B x book; none for cyclical/gold/ETF), P5,
+  Stage 3, expiry (GBN 30 / GBL 90 / HARD PASS 180 days). Judgments (P1, P2, governance,
+  industry, investability, Stage-1 score, thesis type, promoter exemption, sector class)
+  come from chat research with a source; a missing one → INCOMPLETE, never a buy (E9).
+- **tools/company_data.py** — promoter % and company-REPORTED quarterly EPS from
+  Screener; debt, equity, profit, revenue, cash flow and business description from Yahoo.
+- **usecases/osep.py** — `analyse` (session UC4_OSEP) · `judge` (records a judgment with
+  its source) · `apply` (on Praveen's yes: append-only verdict log old → new + reason,
+  bucket/expiry/thesis/trigger to the register; status stays his) · `rederive` (every
+  active trigger on fresh EPS/book, no writes — the October job). Skill `osep`.
+- **db migration 010** — `osep_judgments`, `osep_verdicts`, `names.thesis_type`; policy
+  `decay_hard_pass_days` 180, `stage1_gate` 35, `promoter_net_sell_flag_pct` 2.
+Findings on first run (26-Sep, not applied): R Systems' ledger trigger 251 uses EPS 17.7
+(Screener P/E incl. minority interest); reported 4-quarter EPS is 16.27 → fair 228.59 →
+GOOD BUY LATER at 235.62. `rederive` at 7.119%: most triggers move -1% to -11%.
+
+## 2026-09-26 — ledger v4.10 + weekend prices (PR #12)
 
 ### 2026-09-26 — register catches up with ledger v4.10 + D69/D70; weekend prices fixed
 
