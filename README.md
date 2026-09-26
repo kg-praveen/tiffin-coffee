@@ -26,13 +26,32 @@ near miss, then bulk exclusions by rule, then the guardrails checklist.
 Every drop names its rule and what would flip it. `E6_CAPS_OFF_CONFLICT` and
 `E6_PEAK_CYCLE_CONFLICT` are questions for Praveen, not decisions by the engine.
 
+## Usage — sync holdings (UC2.1, Kite path — Zerodha ZERODHA_P)
+
+Read-only Kite Connect. Put `KITE_API_KEY` / `KITE_API_SECRET` in `.env` (see
+`.env.example`). Login is never automated:
+
+```bash
+uv run python -m usecases.sync_holdings kite --login-url              # open it, log in
+uv run python -m usecases.sync_holdings kite --request-token <TOKEN>  # from the redirect
+uv run python -m usecases.sync_holdings kite                          # later today: cached token
+```
+
+Only ZERODHA_P rows are written (source `KITE_API`, as_of = IST fetch date; qty =
+settled + T1). A Zerodha name held before and absent from Kite is recorded as an exit.
+Kite symbols map to the register via the `names.yf_ticker` stem (`RECLTD` → `REC`);
+symbols not in `names` are kept under their Kite name and listed as UNKNOWN. An empty
+Kite answer while the register shows Zerodha holdings writes nothing (fail-closed).
+The daily access token is cached in the git-ignored `.kite_access.token` and treated
+as expired after the IST day.
+
 ## Usage — sync holdings (UC2.1, CSV path)
 
 Drop the household CSV (columns `Stock, Total Qty, Kite-P Qty, Int-P Qty, Int-V Qty`,
 date in the filename) into `db/holdings/` so the seed rebuilds with it, then:
 
 ```bash
-uv run python -c "from usecases.sync_holdings import run_sync_holdings_csv, format_sync; print(format_sync(run_sync_holdings_csv('db/pattaz.db', 'db/holdings/household_equity_21sep2026.csv')))"
+uv run python -m usecases.sync_holdings csv db/holdings/household_equity_21sep2026.csv
 ```
 
 A snapshot is the whole household: a name that was held before and is missing now is
