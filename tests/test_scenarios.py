@@ -58,6 +58,52 @@ class TestRecording:
         assert found is not None and found.name == "market_2026-10-15.json"
 
 
+class TestNseSectors:
+    def test_reference_list_parses(self) -> None:
+        from tools.nse_sectors import newest_reference, parse_nse_industry_csv
+        ref = newest_reference()
+        assert ref is not None
+        ind = parse_nse_industry_csv(ref.read_text())
+        assert len(ind) > 700
+        assert ind["INFY"] == "Information Technology"
+        assert ind["RECLTD"] == "Financial Services"
+        assert "Industry" not in ind.values()
+
+    def test_nse_symbol_uses_ticker_stem(self) -> None:
+        from tools.nse_sectors import nse_symbol
+        assert nse_symbol("REC", "RECLTD.NS") == "RECLTD"
+        assert nse_symbol("TMCV", None) == "TMCV"
+
+    def test_register_carries_nse_sector(self) -> None:
+        import sqlite3
+        db = Path(__file__).parent.parent / "db" / "pattaz.db"
+        with sqlite3.connect(f"file:{db}?mode=ro", uri=True) as con:
+            got = dict(con.execute("SELECT symbol, nse_sector FROM names").fetchall())
+        assert got["HDFCBANK"] == "Financial Services"
+        assert got["REC"] == "Financial Services"          # matched via RECLTD
+        assert got["NIFTYBEES"] is None                     # ETFs are not in NSE's list
+        assert sum(v is not None for v in got.values()) >= 100
+
+    def test_every_sector_gets_a_crash(self) -> None:
+        ctx = SimContext(sector_of={"INFY": "IT_SERVICES", "SBIN": "LENDER"}, seats=(),
+                         policy=CTX.policy, nse_sector_of={"INFY": "Information Technology",
+                                                           "SBIN": "Financial Services"})
+        names = {s.name for s in build_catalog(ctx)}
+        assert {"app_sector_IT_SERVICES_-12", "app_sector_LENDER_-12",
+                "nse_Information_Technology_-12", "nse_Financial_Services_-12"} <= names
+
+    def test_nse_crash_moves_only_that_sector(self, snap: MarketSnapshot) -> None:
+        ctx = SimContext(sector_of={}, seats=(), policy=CTX.policy,
+                         nse_sector_of={"INFY": "Information Technology",
+                                        "TCS": "Information Technology",
+                                        "SBIN": "Financial Services"})
+        sc = next(s for s in build_catalog(ctx) if s.name == "nse_Information_Technology_-12")
+        out = sc.shock(snap, ctx)
+        for sym in ("INFY", "TCS"):
+            assert out.prices.prices[sym].price.value < snap.prices.prices[sym].price.value
+        assert out.prices.prices["SBIN"] == snap.prices.prices["SBIN"]
+
+
 class TestShocks:
     def test_move_scales_price_ratios_not_earnings(self, snap: MarketSnapshot) -> None:
         out = move_prices(snap, lambda s: Decimal(-10) if s == "INFY" else None, "t")

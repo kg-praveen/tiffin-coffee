@@ -50,6 +50,7 @@ class NameRow:
     as_of: str
     p_mult_book: Decimal | None = None
     flag_no_add: bool = False
+    nse_sector: str | None = None
 
 
 @dataclass(frozen=True)
@@ -163,6 +164,7 @@ class PattazRepo:
         p_mult_raw = r["p_mult_book"] if "p_mult_book" in keys else None
         no_add_raw = r["flag_no_add"] if "flag_no_add" in keys else 0
         return NameRow(
+            nse_sector=r["nse_sector"] if "nse_sector" in keys else None,
             p_mult_book=Decimal(str(p_mult_raw)) if p_mult_raw is not None else None,
             flag_no_add=bool(no_add_raw),
             symbol=r["symbol"],
