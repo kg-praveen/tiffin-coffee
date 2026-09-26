@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 
@@ -96,9 +97,39 @@ def highest_rung(drawdown_pct: Decimal, cfg: HockeyConfig) -> tuple[HockeyKind, 
     return None
 
 
-def detect_index_hockey(index: IndexInput | None,
-                        cfg: HockeyConfig) -> tuple[list[HockeySignal], list[str]]:
-    """Nifty -X% in a week (tiffin v6 §H) and the drawdown ladder rungs (D37)."""
+def latest_completed_session(run_date: date) -> date:
+    """E3 freshness for market data: the last weekday strictly before the run date.
+
+    Definition used (the spec gives none): data stamped on this day or later is "this
+    run's" data (a run on Tuesday accepts Monday's close or Tuesday's live bar; a run on
+    Saturday/Sunday/Monday accepts Friday's). NSE holidays are not known to the engine,
+    so data before a holiday reads stale — fail-closed (E9), never assumed fresh."""
+    d = run_date - timedelta(days=1)
+    while d.weekday() >= 5:           # Sat=5, Sun=6
+        d -= timedelta(days=1)
+    return d
+
+
+def is_market_data_fresh(as_of: date, run_date: date) -> bool:
+    """E3: True when `as_of` is not older than the latest completed session."""
+    return as_of >= latest_completed_session(run_date)
+
+
+def stale_market_data_reason(as_of: date, run_date: date) -> str | None:
+    """None when fresh; otherwise the named reason used in the not-checked list."""
+    if is_market_data_fresh(as_of, run_date):
+        return None
+    return (f"stale data: as of {as_of.isoformat()}, older than the latest session "
+            f"{latest_completed_session(run_date).isoformat()} for run date "
+            f"{run_date.isoformat()}")
+
+
+def detect_index_hockey(index: IndexInput | None, cfg: HockeyConfig,
+                        index_missing_why: str = "no Nifty data this run",
+                        ) -> tuple[list[HockeySignal], list[str]]:
+    """Nifty -X% in a week (tiffin v6 §H) and the drawdown ladder rungs (D37).
+
+    `index_missing_why` names why `index` is None (e.g. stale index data, E3)."""
     signals: list[HockeySignal] = []
     missing: list[str] = []
     week = index.week_change_pct if index else None
@@ -106,14 +137,14 @@ def detect_index_hockey(index: IndexInput | None,
     if cfg.nifty_week_fall_pct is None:
         missing.append("Nifty week fall (policy hockey_nifty_week_fall_pct missing)")
     elif week is None:
-        missing.append("Nifty week fall (no Nifty data this run)")
+        missing.append(f"Nifty week fall ({index_missing_why})")
     elif is_fall_at_least(week, cfg.nifty_week_fall_pct):
         signals.append(HockeySignal(HockeyKind.NIFTY_WEEK, MARKET, week,
                                     cfg.nifty_week_fall_pct))
     if cfg.rung1_drawdown_pct is None and cfg.rung2_drawdown_pct is None:
         missing.append("hockey ladder (policy rung rows missing)")
     elif dd is None:
-        missing.append("hockey ladder (no Nifty 52-week-high drawdown this run)")
+        missing.append(f"hockey ladder ({index_missing_why})")
     else:
         rung = highest_rung(dd, cfg)
         if rung is not None:
@@ -151,14 +182,25 @@ def detect_h_hockey(result: PlateResult) -> list[HockeySignal]:
 
 
 def detect_hockey(names: Sequence[NameInput], result: PlateResult,
-                  index: IndexInput | None, cfg: HockeyConfig) -> HockeyReport:
-    """Every HOCKEY condition in tiffin v6 §H + the D37 ladder, in a stable order."""
-    idx_sig, idx_missing = detect_index_hockey(index, cfg)
+                  index: IndexInput | None, cfg: HockeyConfig, *,
+                  index_missing_why: str = "no Nifty data this run",
+                  not_checked_extra: Sequence[str] = ()) -> HockeyReport:
+    """Every HOCKEY condition in tiffin v6 §H + the D37 ladder, in a stable order.
+
+    `not_checked_extra`: inputs the caller already dropped with a named reason (E3)."""
+    idx_sig, idx_missing = detect_index_hockey(index, cfg, index_missing_why)
     day_sig, day_missing = detect_name_day_hockey(names, result, cfg)
     return HockeyReport(
         signals=tuple([*idx_sig, *day_sig, *detect_h_hockey(result)]),
-        not_checked=tuple([*idx_missing, *day_missing]),
+        not_checked=tuple([*idx_missing, *day_missing, *not_checked_extra]),
     )
+
+
+def hockey_rules_fired(report: HockeyReport) -> list[str]:
+    """E8 "rules fired by name": one label per HOCKEY detection, e.g. HOCKEY:NIFTY_WEEK,
+    HOCKEY:RUNG_1, HOCKEY:NAME_DAY:INFY, HOCKEY:H_ABOVE:INFY. Detection only."""
+    return [f"HOCKEY:{s.kind.name}" if s.symbol == MARKET
+            else f"HOCKEY:{s.kind.name}:{s.symbol}" for s in report.signals]
 
 
 def parse_two_pocket_split(value: str) -> tuple[Decimal, Decimal]:

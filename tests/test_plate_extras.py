@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import replace
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
@@ -23,7 +24,10 @@ from engine.hockey import (
     IndexInput,
     compute_change_pct,
     detect_hockey,
+    hockey_rules_fired,
+    latest_completed_session,
     parse_two_pocket_split,
+    stale_market_data_reason,
 )
 from engine.invariants import check_plate, inv_deployment_cap, inv_hockey_seen
 from engine.plate import (
@@ -387,3 +391,197 @@ class TestUsecase:
         r = run_plate(db012, Decimal(10000), fetch_prices=False, record_session=False)
         assert r.hockey is not None and r.hockey.signals == ()
         assert any("no Nifty data" in n for n in r.hockey.not_checked)
+
+
+# ------------------------------------------- review fixes (fix/plate-extras) ---
+
+
+def _session_row(db: Path, run_id: str) -> tuple[dict, dict, list[str]]:
+    con = sqlite3.connect(db)
+    try:
+        inputs, outputs, rules = con.execute(
+            "SELECT inputs_json, outputs_json, rules_fired FROM sessions WHERE run_id=?",
+            (run_id,)).fetchone()
+    finally:
+        con.close()
+    return json.loads(inputs), json.loads(outputs), (rules or "").split(",")
+
+
+class TestCapPolicyOnly:
+    """E2: the cap % comes only from policy — no bare default in PlateConfig."""
+
+    def test_no_default_pct(self) -> None:
+        cfg = PlateConfig(session_amount=Decimal(3000), today="2026-09-26",
+                          psu_weight_pct=Decimal(0), cells={}, bees_price=Decimal(250),
+                          confirmed_surplus=Decimal(10000))
+        assert cfg.single_deployment_cap_pct is None
+        r = build_plate(NAMES, cfg)
+        assert r.deployment_cap is None and r.halt_reason is None and r.entries
+        assert inv_deployment_cap(r, cfg) == []
+
+    def test_usecase_without_policy_row_says_not_checkable(
+            self, db012: Path, market: MarketSnapshot) -> None:
+        con = sqlite3.connect(db012)
+        con.execute("DELETE FROM policy WHERE key='single_deployment_cap_pct'")
+        con.commit()
+        con.close()
+        r = run_plate(db012, Decimal(10000), market=market, today=market.recorded_at,
+                      record_session=False, confirmed_surplus=Decimal(20000))
+        assert r.config is not None and r.config.single_deployment_cap_pct is None
+        assert r.plate.halt_reason is None
+        assert "single-deployment cap — not checkable" in format_plate(r)
+
+
+class TestE6CapVsBeesFloor:
+    """E6: cap below 1 NIFTYBEES → tiffin v4 cap vs tiffin v6 BeES NO-SKIP, NO ACTION."""
+
+    def test_conflict_halts_and_names_both_rules(self) -> None:
+        cfg = _cfg(surplus="1000")                         # cap 150 < BeES 250
+        r = build_plate(NAMES, cfg)
+        assert r.e6_conflict == ("tiffin v4 SINGLE-DEPLOYMENT CAP",
+                                 "tiffin v6 BeES FLOOR NO-SKIP")
+        assert r.entries == [] and r.bees_sweep_qty == 0 and r.total_with_sweep == 0
+        assert r.halt_reason is not None and "E6 CONFLICT" in r.halt_reason
+        assert "E6:CONFLICT:SINGLE_DEPLOYMENT_CAP_vs_BEES_FLOOR_NO_SKIP" in r.rules_fired
+        assert "HALT:SINGLE_DEPLOYMENT_CAP" not in r.rules_fired
+        reasons = {d.reason for d in r.drops if d.symbol in {"AAA", "BBB", "CCC"}}
+        assert reasons == {PlateDropReason.E6_CAP_VS_BEES_FLOOR}
+        assert [c for c in check_plate(NAMES, cfg, r, 1, 15)
+                if c.severity.value == "VIOLATION"] == []
+
+    def test_conflict_even_with_nothing_eligible(self) -> None:
+        r = build_plate([], _cfg(surplus="1000"))
+        assert r.e6_conflict is not None and r.bees_sweep_qty == 0
+
+    def test_cap_at_one_unit_is_not_a_conflict(self) -> None:
+        r = build_plate([], _cfg(session="250", surplus="1666.67"))   # cap 250.00
+        assert r.e6_conflict is None
+
+    def test_invariant_fires_when_conflict_is_settled_silently(self) -> None:
+        cfg = _cfg(surplus="1000")
+        silent = replace(build_plate(NAMES, cfg), e6_conflict=None)
+        assert any("no E6 conflict" in c.detail for c in inv_deployment_cap(silent, cfg))
+
+    def test_usecase_reports_conflict_no_action(self, db012: Path,
+                                                market: MarketSnapshot) -> None:
+        r = run_plate(db012, Decimal(10000), market=market, today=market.recorded_at,
+                      confirmed_surplus=Decimal(1000))     # cap 150 < NIFTYBEES 263.99
+        assert r.plate.e6_conflict is not None and r.plate.entries == []
+        first = r.advisory_flags[0]
+        assert first.startswith("E6 CONFLICT — NO ACTION")
+        assert "tiffin v4 SINGLE-DEPLOYMENT CAP" in first
+        assert "tiffin v6 BeES FLOOR NO-SKIP" in first
+        text = format_plate(r)
+        assert "PLATE — NO ACTION (E6 CONFLICT" in text and "DO NOT EXECUTE" in text
+        _, outputs, rules = _session_row(db012, r.run_id)
+        assert outputs["e6_conflict"] == list(r.plate.e6_conflict)
+        assert "E6:CONFLICT:SINGLE_DEPLOYMENT_CAP_vs_BEES_FLOOR_NO_SKIP" in rules
+
+
+class TestHockeyRulesFired:
+    """E8: every HOCKEY detection appears in rules_fired by name."""
+
+    def test_labels(self) -> None:
+        names = [_name("AAA", "90", prev_close="100"), _name("HHH", "80", trigger="100")]
+        rep = detect_hockey(names, build_plate(names, _cfg()),
+                            IndexInput(Decimal(-6), Decimal(-16)), HCFG)
+        assert hockey_rules_fired(rep) == ["HOCKEY:NIFTY_WEEK", "HOCKEY:RUNG_1",
+                                           "HOCKEY:NAME_DAY:AAA", "HOCKEY:H_ABOVE:HHH"]
+
+    def test_usecase_rules_fired_carry_hockey(self, db012: Path,
+                                              market: MarketSnapshot) -> None:
+        shocked = name_move("INFY", Decimal(-10), "flash")(
+            market_move(Decimal(-25), "rung2")(market, CTX), CTX)
+        r = run_plate(db012, Decimal(10000), market=shocked, today=market.recorded_at)
+        fired = r.plate.rules_fired
+        assert "HOCKEY:NIFTY_WEEK" in fired and "HOCKEY:RUNG_2" in fired
+        assert "HOCKEY:NAME_DAY:INFY" in fired
+        _, _, rules = _session_row(db012, r.run_id)
+        assert "HOCKEY:RUNG_2" in rules and "HOCKEY:NAME_DAY:INFY" in rules
+
+
+class TestMarketDataFreshness:
+    """E3: index / previous-close data older than the latest session is dropped (live)."""
+
+    @pytest.mark.parametrize(("run", "latest"), [
+        ("2026-09-26", "2026-09-25"),    # Sat → Fri
+        ("2026-09-27", "2026-09-25"),    # Sun → Fri
+        ("2026-09-28", "2026-09-25"),    # Mon → Fri
+        ("2026-09-29", "2026-09-28"),    # Tue → Mon
+    ])
+    def test_latest_completed_session(self, run: str, latest: str) -> None:
+        assert latest_completed_session(date.fromisoformat(run)) == date.fromisoformat(latest)
+
+    def test_stale_reason(self) -> None:
+        assert stale_market_data_reason(date(2026, 9, 25), date(2026, 9, 28)) is None
+        why = stale_market_data_reason(date(2026, 9, 25), date(2026, 9, 29))
+        assert why is not None and "2026-09-28" in why and "stale" in why
+
+    @staticmethod
+    def _live(monkeypatch: pytest.MonkeyPatch, market: MarketSnapshot,
+              nifty_as_of: str) -> None:
+        """Stand in for every live adapter (no network): the recorded day, INFY -10%
+        on the day, and a Nifty -6% week stamped `nifty_as_of`."""
+        import usecases.plate as uc
+        flashed = name_move("INFY", Decimal(-10), "flash")(market, CTX)
+        wk = Stamped(value=Decimal(-6), source="yfinance:^NSEI", as_of=nifty_as_of)
+        dd = Stamped(value=Decimal(-8), source="yfinance:^NSEI", as_of=nifty_as_of)
+
+        def no_gsec() -> Stamped[Decimal]:
+            raise ValueError("offline")
+
+        monkeypatch.setattr(uc, "fetch_prices_batch", lambda _t: flashed.prices)
+        monkeypatch.setattr(uc, "fetch_fundamentals_batch", lambda _t: flashed.fundamentals)
+        monkeypatch.setattr(uc, "fetch_result_dates_batch", lambda _t: flashed.results)
+        monkeypatch.setattr(uc, "fetch_gsec_yield", no_gsec)
+        monkeypatch.setattr(uc, "fetch_nifty_moves",
+                            lambda: IndexMoves("^NSEI", None, wk, dd))
+
+    def test_live_fresh_inputs_are_checked(self, db012: Path, market: MarketSnapshot,
+                                           monkeypatch: pytest.MonkeyPatch) -> None:
+        self._live(monkeypatch, market, "2026-09-25")
+        r = run_plate(db012, Decimal(10000), today="2026-09-28", record_session=False)
+        assert r.nifty is not None
+        assert "HOCKEY:NIFTY_WEEK" in r.plate.rules_fired
+        assert "HOCKEY:NAME_DAY:INFY" in r.plate.rules_fired
+
+    def test_live_stale_inputs_are_dropped_with_a_reason(
+            self, db012: Path, market: MarketSnapshot,
+            monkeypatch: pytest.MonkeyPatch) -> None:
+        self._live(monkeypatch, market, "2026-09-25")
+        r = run_plate(db012, Decimal(10000), today="2026-09-29")
+        assert r.hockey is not None and r.nifty is None
+        assert not [s for s in r.hockey.signals if s.kind != HockeyKind.H_ABOVE]
+        joined = " ".join(r.hockey.not_checked)
+        assert "not checked (stale index data" in joined
+        assert "stale price data" in joined and "INFY" in joined
+        assert not any(f.startswith(("HOCKEY:NIFTY", "HOCKEY:RUNG", "HOCKEY:NAME_DAY"))
+                       for f in r.plate.rules_fired)
+        inputs, _, _ = _session_row(db012, r.run_id)
+        assert inputs["nifty_dropped"] is not None
+        assert "INFY" in inputs["prev_close_dropped_stale"]
+
+    def test_replay_is_not_filtered(self, db012: Path, market: MarketSnapshot) -> None:
+        shocked = market_move(Decimal(-5), "nifty-5")(market, CTX)
+        r = run_plate(db012, Decimal(10000), market=shocked, today="2026-10-30",
+                      record_session=False)
+        assert r.hockey is not None and r.hockey.market_hockey
+
+
+class TestOpenQuestions:
+    """Praveen's open decisions are printed every run and written to the session."""
+
+    def test_every_open_question_is_in_the_output(self, db012: Path,
+                                                  market: MarketSnapshot) -> None:
+        r = run_plate(db012, Decimal(10000), market=market, today=market.recorded_at)
+        qs = [f for f in r.advisory_flags if f.startswith("OPEN QUESTION for Praveen:")]
+        text = " ".join(qs)
+        assert len(qs) == 7
+        for needle in ("trim the plate to the cap, or halt", "HALTS",
+                       "per plate", "per day", "confirmed investable surplus",
+                       "two-pocket 60/40 base", "7 calendar days", "close-to-close",
+                       "52 weeks", "Stage-0", "H > 1.15", "§14 1(v)"):
+            assert needle in text, needle
+        assert "OPEN QUESTION for Praveen:" in format_plate(r)
+        _, outputs, _ = _session_row(db012, r.run_id)
+        assert outputs["open_questions"] == qs

@@ -217,9 +217,14 @@ def inv_deployment_cap(result: PlateResult, config: PlateConfig) -> list[Check]:
     if result.halt_reason is not None and (result.entries or result.bees_sweep_qty):
         out.append(Check("DEPLOYMENT_CAP", Severity.VIOLATION, "*",
                          "plate halted but still carries entries or a sweep"))
-    if config.confirmed_surplus is None:
+    if config.confirmed_surplus is None or config.single_deployment_cap_pct is None:
         return out
     cap = single_deployment_cap(config.confirmed_surplus, config.single_deployment_cap_pct)
+    if config.bees_price is not None and cap < config.bees_price \
+            and result.e6_conflict is None:
+        out.append(Check("DEPLOYMENT_CAP", Severity.VIOLATION, "*",
+                         f"cap {cap} < 1 NIFTYBEES {config.bees_price} but no E6 conflict "
+                         f"raised (tiffin v4 cap vs tiffin v6 BeES NO-SKIP)"))
     if result.total_with_sweep > cap:
         out.append(Check("DEPLOYMENT_CAP", Severity.VIOLATION, "*",
                          f"plate {result.total_with_sweep} > cap {cap}"))
