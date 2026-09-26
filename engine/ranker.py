@@ -21,7 +21,9 @@ LEXICOGRAPHICALLY by the criteria listed, in order, in policy `ranker_criteria_o
 1-10 clamp is not a score: a clamp breach is a QTY_CLAMP VIOLATION and discards the
 variant outright. Ties: smaller plan amount (tiffin v4 §TICKET SIZE — ticket x 30 is
 the reserve, so the smaller ticket asks less of it), then fewer trimmed names, then
-the variant label (stable text order). Pure: no I/O, no clock.
+the variant label (stable text order). The criteria ORDER and the tie-break are NOT
+spec text — they are PROVISIONAL until Praveen confirms (usecases/ranker prints the
+open question). Pure: no I/O, no clock.
 """
 from __future__ import annotations
 

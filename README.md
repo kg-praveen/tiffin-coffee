@@ -79,15 +79,21 @@ the same plate with the bottom-scoring names left off (tiffin v6 §BREADTH TARGE
 Each is a real `build_plate` run checked by every law; a variant that breaks one is
 thrown out. The rest are ranked in the order set by policy `ranker_criteria_order`
 (migration 014): in the ticket band → no raised budget → breadth 8-15 → least left
-over. Ties go to the smaller ticket.
+over. Ties go to the smaller ticket. The order and the tie-break are not spec text,
+so the output marks the ranking PROVISIONAL with an "OPEN QUESTION for Praveen" line
+until he confirms them.
 
 ```bash
 uv run python -m usecases.ranker --amount 7500                # newest recording
 uv run python -m usecases.ranker --amount 7500 --live         # today's market
 ```
 
-Verdict first (BEST and why), then the variants side by side and what each buys. One
-`UC3_RANKER` session is written (`--no-session` to skip). Proposal only.
+Verdict first (BEST and why; an asked amount outside the ticket band is called out,
+with the best in-band plate and the as-asked plate), then an INPUTS line (market
+as-of/source, GoI yield), the variants side by side, what each buys, and every dropped
+name with its reason and what would change it. A failure (missing policy row, no
+market data) prints `NO ACTION — <reason>`. One `UC3_RANKER` session is written either
+way (`--no-session` to skip). Proposal only.
 
 ## Usage — OSEP analyser (UC4)
 
