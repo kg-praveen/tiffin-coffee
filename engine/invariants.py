@@ -25,6 +25,8 @@ from engine.plate import (
     PlateResult,
     compute_h,
     compute_l,
+    days_until_results,
+    in_event_window,
 )
 
 
@@ -113,6 +115,9 @@ def inv_no_banned_entry(names: list[NameInput], result: PlateResult,
             (f"register bucket {n.bucket} (review first)", n.bucket in REVIEW_FIRST_BUCKETS),
             ("FMCG brand not owned / not recorded",
              n.sector_class in BRAND_GATE_SECTORS and n.brand_owned is not True),
+            (f"results on {n.next_result_date} inside the event-hold window",
+             in_event_window(days_until_results(n.next_result_date, config.today), config)
+             and n.symbol not in config.event_opt_in),
         ) if bad]
         if why:
             out.append(Check("NO_BANNED_ENTRY", Severity.VIOLATION, e.symbol, ", ".join(why)))

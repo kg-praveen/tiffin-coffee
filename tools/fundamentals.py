@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 from decimal import Decimal
 
 import yfinance as yf
@@ -31,6 +31,8 @@ class FundamentalsSnapshot:
     eps_ttm: Stamped[Decimal] | None
     book_value_ps: Stamped[Decimal] | None
     roe_pct: Stamped[Decimal] | None
+    # results announcement dates Yahoo lists in the quote (IST dates) — no extra call
+    upcoming_results: Stamped[tuple[str, ...]] | None = None
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,12 @@ def fetch_fundamentals(yf_ticker: str) -> FundamentalsSnapshot:
     else:
         roe_stamped = None
 
+    ist = timezone(timedelta(hours=5, minutes=30))
+    stamps = [info.get(k) for k in ("earningsTimestamp", "earningsTimestampStart",
+                                    "earningsTimestampEnd")]
+    days = tuple(sorted({datetime.fromtimestamp(int(t), tz=ist).date().isoformat()
+                         for t in stamps if isinstance(t, (int, float)) and t > 0}))
+
     return FundamentalsSnapshot(
         symbol=symbol,
         pe_trailing=_stamp(pe_raw),
@@ -91,6 +99,8 @@ def fetch_fundamentals(yf_ticker: str) -> FundamentalsSnapshot:
         eps_ttm=_stamp(eps_raw),
         book_value_ps=_stamp(bv_raw),
         roe_pct=roe_stamped,
+        upcoming_results=(Stamped(value=days, source=f"{source}:earningsTimestamp", as_of=now)
+                          if days else None),
     )
 
 

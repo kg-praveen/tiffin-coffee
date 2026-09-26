@@ -502,6 +502,7 @@ INSERT INTO "policy" VALUES('planning_yield_pct','8','pct','pattaz-book §16','2
 INSERT INTO "policy" VALUES('cost_basis_is_not_a_reason','TRUE','rule','ledger D35','2026-09-08');
 INSERT INTO "policy" VALUES('caps_off_first_bite','WAIVES_CAPS_NEVER_GATES','rule','ledger D6+D44','2026-09-09');
 INSERT INTO "policy" VALUES('results_max_age_days','150','days','SEBI LODR Reg 33 (45d quarter / 60d Q4) — migration 007','2026-09-26');
+INSERT INTO "policy" VALUES('event_hold_days','5','days','tiffin-coffee v6 §procedure step 6 — migration 008','2026-09-26');
 CREATE TABLE results_verified (
   symbol       TEXT PRIMARY KEY,
   last_result  TEXT NOT NULL,

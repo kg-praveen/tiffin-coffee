@@ -104,6 +104,14 @@ def test_stale_basis_after_october_results(suite: SimulationResult) -> None:
     assert len(late.fired) < len(base.fired)
 
 
+def test_results_week_holds_every_stock(suite: SimulationResult) -> None:
+    """Results in 2 days for everyone → nothing with results dates is bought."""
+    for o in _outcomes(suite, "results_week"):
+        assert o.drops_by_reason.get("EVENT_HOLD", 0) >= 1
+        assert o.entries == () or all(e.symbol in {"NIFTYBEES", "GOLDBEES", "JUNIORBEES"}
+                                      for e in o.entries)
+
+
 def test_bees_missing_means_no_sweep(suite: SimulationResult) -> None:
     for o in _outcomes(suite, "bees_missing"):
         assert o.sweep_qty == 0

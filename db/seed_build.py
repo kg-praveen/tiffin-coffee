@@ -366,11 +366,12 @@ def build() -> None:
     con.executemany("INSERT INTO cells VALUES (?,?,?,?,?,?,?)", [(*c, LEDGER) for c in C])
     con.executemany("INSERT INTO policy VALUES (?,?,?,?,?)", P)
     con.executemany("INSERT INTO decisions VALUES (?,?,?,?,?)", sorted(D))
-    # migration 007 (facts verified online): data statements only — the table itself
-    # is already in schema.sql
-    sql = (HERE / "migrations" / "007_verified_facts.sql").read_text()
-    sql = re.sub(r"CREATE TABLE results_verified \(.*?\);", "", sql, flags=re.DOTALL)
-    con.executescript(sql)
+    # migrations 007+ carry data (verified facts, policy rows): apply their statements;
+    # any CREATE TABLE is skipped because schema.sql already has the table
+    for mig in sorted((HERE / "migrations").glob("*.sql")):
+        if int(mig.name[:3]) >= 7:
+            sql = re.sub(r"CREATE TABLE \w+ \(.*?\);", "", mig.read_text(), flags=re.DOTALL)
+            con.executescript(sql)
     con.commit()
     DUMP.write_text("\n".join(con.iterdump()))
     con.close()

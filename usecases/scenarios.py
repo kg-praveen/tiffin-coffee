@@ -124,6 +124,17 @@ def drop_result_dates(snap: MarketSnapshot, tag: str) -> MarketSnapshot:
     return replace(snap, results=BatchResultDates(dates={}, failures=failures))
 
 
+def results_in_days(snap: MarketSnapshot, days: int, tag: str) -> MarketSnapshot:
+    """Every stock with results dates gets one more, `days` after the recording."""
+    from datetime import date, timedelta
+    extra = (date.fromisoformat(snap.recorded_at) + timedelta(days=days)).isoformat()
+    dates = {s: Stamped(value=tuple(sorted({*st.value, extra})),
+                        source=f"sim:{tag}<-{st.source}", as_of=st.as_of)
+             for s, st in snap.results.dates.items()}
+    return replace(snap, results=BatchResultDates(dates=dates,
+                                                  failures=dict(snap.results.failures)))
+
+
 def shift_gsec(snap: MarketSnapshot, bp: Decimal | None, tag: str,
                ctx: SimContext | None = None) -> MarketSnapshot:
     """Move the GoI yield by bp basis points; bp=None removes it (feed down).
@@ -223,6 +234,9 @@ def build_catalog(ctx: SimContext) -> list[Scenario]:
                  lambda s, _c: drop_prices(s, _every_third(s), "partial")),
         Scenario("fundamentals_down", "No P/E, P/B or ROE for anyone",
                  "E9 — valuation gates fail closed", lambda s, _c: drop_fundamentals(s, "fund")),
+        Scenario("results_week", "Every stock reports results in 2 days",
+                 "tiffin v6 §procedure step 6 event hold",
+                 lambda s, _c: results_in_days(s, 2, "results-week")),
         Scenario("results_dates_down", "No results dates — no trigger can be armed",
                  "E3/E9 basis freshness fails closed",
                  lambda s, _c: drop_result_dates(s, "results")),
