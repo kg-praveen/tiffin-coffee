@@ -222,6 +222,14 @@ class PattazRepo:
             return {}
         return {r["symbol"]: r["decision"] for r in rows}
 
+    def load_ledger_aliases(self) -> dict[str, str]:
+        """Ledger short name → register symbol (migration 011, UC6); {} on older DBs."""
+        try:
+            rows = self._con.execute("SELECT alias, symbol FROM ledger_aliases").fetchall()
+        except sqlite3.OperationalError:
+            return {}
+        return {r["alias"]: r["symbol"] for r in rows}
+
     def load_results_verified(self) -> list[VerifiedResult]:
         """Results dates verified online (migration 007); empty on older databases."""
         try:

@@ -85,3 +85,17 @@ uv run python -m usecases.osep rederive
 and its expiry. Judgments the data can't answer are researched in chat and recorded with
 `judge SYMBOL <item> <value> --source "..."`; `apply SYMBOL --reason "..."` records a
 verdict only after Praveen agrees. `rederive` recomputes every trigger after results.
+
+## Usage — ledger sync (UC6)
+
+```bash
+uv run python -m usecases.ledger_sync                     # newest ../tiffin-coffee/investing_plans/PATTAZ_MASTER_LEDGER_v*.txt
+uv run python -m usecases.ledger_sync --file path/to/PATTAZ_MASTER_LEDGER_v4.11_2026-09-28.txt
+```
+
+Reads the local text export of the Drive ledger (no Drive calls at runtime) and reports
+new decisions, trigger levels that moved, names/cells that need review and lines it
+could not read. Unambiguous items (new decisions, level changes) go to
+`db/migrations/drafts/ledger_<version>.sql` — a DRAFT, never auto-applied. Needs
+migration 011 (`ledger_aliases`) for short names like SBI / EIL; one `UC6_LEDGER_SYNC`
+session per run.
