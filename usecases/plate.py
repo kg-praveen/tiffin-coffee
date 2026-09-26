@@ -13,7 +13,7 @@ import logging
 import uuid
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, date, datetime
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 from pathlib import Path
 
 from engine.hockey import (
@@ -54,6 +54,7 @@ from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 from tools.results_dates import BatchResultDates, fetch_result_dates_batch
 from tools.stamped import Stamped
+from usecases.format import inr
 from usecases.results import effective_results
 
 log = logging.getLogger(__name__)
@@ -361,7 +362,7 @@ def open_questions_for_praveen(config: PlateConfig, report: HockeyReport) -> lis
 def _hockey_advisory(report: HockeyReport, reserve_floor: Decimal | None) -> list[str]:
     """Plain-language hockey lines. Detection only: the spec sizes hockey from a
     pre-committed thali menu in the ledger, so every reserve move needs Praveen's yes."""
-    floor = f" (reserve floor {_inr(reserve_floor)})" if reserve_floor is not None else ""
+    floor = f" (reserve floor {inr(reserve_floor)})" if reserve_floor is not None else ""
     out: list[str] = []
     for sig in report.of(HockeyKind.NIFTY_WEEK):
         out.append(
@@ -706,9 +707,9 @@ def run_plate(
         if plate_result.plan_amount > session_amount:
             more = plate_result.plan_amount - session_amount
             advisory.insert(0,
-                f"BUDGET: {_inr(session_amount)} is not enough for 1 share of each of the "
+                f"BUDGET: {inr(session_amount)} is not enough for 1 share of each of the "
                 f"{len(plate_result.entries)} ranked stocks — this plate needs "
-                f"{_inr(plate_result.plan_amount)} ({_inr(more)} more)")
+                f"{inr(plate_result.plan_amount)} ({inr(more)} more)")
         brand = sorted(d.symbol for d in plate_result.drops
                        if d.reason == PlateDropReason.BRAND_UNVERIFIED)
         if brand:
@@ -748,7 +749,7 @@ def run_plate(
             advisory.insert(0,
                 f"HALT — NO ACTION (tiffin v4 single-deployment cap): "
                 f"{plate_result.halt_reason}. Lower the ticket to within "
-                f"{_inr(plate_result.deployment_cap or Decimal(0))} or confirm a larger "
+                f"{inr(plate_result.deployment_cap or Decimal(0))} or confirm a larger "
                 f"surplus.")
         open_questions = open_questions_for_praveen(config, hockey)
         advisory.extend(open_questions)
@@ -858,22 +859,6 @@ def run_plate(
 # ------------------------------------------------------------- output ---
 
 
-def _inr(v: Decimal) -> str:
-    """Indian grouping: 3,47,775."""
-    q = int(v.quantize(Decimal(1), rounding=ROUND_HALF_UP))
-    s = str(abs(q))
-    if len(s) > 3:
-        head, tail = s[:-3], s[-3:]
-        parts: list[str] = []
-        while len(head) > 2:
-            parts.insert(0, head[-2:])
-            head = head[:-2]
-        if head:
-            parts.insert(0, head)
-        s = ",".join(parts) + "," + tail
-    return ("-" if q < 0 else "") + "Rs " + s
-
-
 _NEAR_MISS_ALWAYS = frozenset({
     PlateDropReason.HOLDINGS_STALE,
     PlateDropReason.FIRST_BITE_FAILED,
@@ -927,15 +912,15 @@ def _guardrail_extras(result: PlateRunResult) -> list[str]:
         out.append(f"  [ ] single-deployment cap {pct}% of surplus — not checked: no confirmed "
                    f"surplus this run (give it each session; never a remembered figure)")
     elif p.e6_conflict is not None:
-        out.append(f"  [!] single-deployment cap {pct}% of {_inr(result.confirmed_surplus)} = "
-                   f"{_inr(p.deployment_cap)} — below 1 NIFTYBEES: E6 CONFLICT with the BeES "
+        out.append(f"  [!] single-deployment cap {pct}% of {inr(result.confirmed_surplus)} = "
+                   f"{inr(p.deployment_cap)} — below 1 NIFTYBEES: E6 CONFLICT with the BeES "
                    f"floor NO-SKIP, NO ACTION")
     elif p.halt_reason is not None:
-        out.append(f"  [!] single-deployment cap {pct}% of {_inr(result.confirmed_surplus)} = "
-                   f"{_inr(p.deployment_cap)} — plate over the cap: HALTED, NO ACTION")
+        out.append(f"  [!] single-deployment cap {pct}% of {inr(result.confirmed_surplus)} = "
+                   f"{inr(p.deployment_cap)} — plate over the cap: HALTED, NO ACTION")
     else:
-        out.append(f"  [x] single-deployment cap {pct}% of {_inr(result.confirmed_surplus)} = "
-                   f"{_inr(p.deployment_cap)} — plate {_inr(p.total_with_sweep)} within")
+        out.append(f"  [x] single-deployment cap {pct}% of {inr(result.confirmed_surplus)} = "
+                   f"{inr(p.deployment_cap)} — plate {inr(p.total_with_sweep)} within")
     h = result.hockey
     if h is not None:
         if h.signals:
@@ -946,7 +931,7 @@ def _guardrail_extras(result: PlateRunResult) -> list[str]:
             out.append("  [x] hockey — no Nifty week fall, no ladder rung, no name day fall")
     if result.two_pocket is not None:
         t, r = result.two_pocket
-        floor = f", reserve floor {_inr(result.reserve_floor)}" if result.reserve_floor else ""
+        floor = f", reserve floor {inr(result.reserve_floor)}" if result.reserve_floor else ""
         out.append(f"  [ ] two-pocket {t}/{r} — pocket balances not in the register, not "
                    f"checked; the reserve is untouchable outside hockey{floor}")
     return out
@@ -963,11 +948,11 @@ def format_plate(result: PlateRunResult) -> str:
 
     L.append(f"TIFFIN COFFEE PLATE — {result.ran_at[:10]}  |  run {result.run_id}")
     L.append(
-        f"Ticket {_inr(p.session_amount)}"
-        + (f" → plan {_inr(p.plan_amount)}" if p.plan_amount > p.session_amount else "")
+        f"Ticket {inr(p.session_amount)}"
+        + (f" → plan {inr(p.plan_amount)}" if p.plan_amount > p.session_amount else "")
         + f"  |  GoI {result.gsec_yield_pct}% "
         f"({result.gsec_source}) → fair P/E {result.fair_pe}x  |  "
-        f"Household equity {_inr(result.household_equity)}"
+        f"Household equity {inr(result.household_equity)}"
         + ("  [PHANTOM — holdings partial]" if blocked else "")
     )
     L.append(
@@ -993,7 +978,7 @@ def format_plate(result: PlateRunResult) -> str:
         if halted:
             L.append("  would have been: " + ", ".join(d.symbol for d in halted))
     elif p.entries:
-        L.append(f"PLATE — {len(p.entries)} name(s) · {_inr(p.total_stock_amount)}")
+        L.append(f"PLATE — {len(p.entries)} name(s) · {inr(p.total_stock_amount)}")
         L.append(
             f"  {'#':>2} {'Name':12s} {'Qty':>3} {'LTP':>9} {'Amount':>10} "
             f"{'Mode':10s} {'H':>6} {'L%':>6} {'Band':12s} {'P-tier':11s} "
@@ -1010,10 +995,10 @@ def format_plate(result: PlateRunResult) -> str:
     else:
         L.append("PLATE — no stock qualifies today; BeES floor applies")
     if p.bees_sweep_qty > 0:
-        L.append(f"   ↳ NIFTYBEES sweep {p.bees_sweep_qty} = {_inr(p.bees_sweep_amount)}")
+        L.append(f"   ↳ NIFTYBEES sweep {p.bees_sweep_qty} = {inr(p.bees_sweep_amount)}")
     L.append(
-        f"  TOTAL {_inr(p.total_with_sweep)} = stocks {_inr(p.total_stock_amount)} "
-        f"+ BeES {_inr(p.bees_sweep_amount)}  |  residual {_inr(p.residual)}"
+        f"  TOTAL {inr(p.total_with_sweep)} = stocks {inr(p.total_stock_amount)} "
+        f"+ BeES {inr(p.bees_sweep_amount)}  |  residual {inr(p.residual)}"
     )
     L.append("")
 

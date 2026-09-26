@@ -76,6 +76,9 @@ class PlateDropReason(Enum):
     DEPLOYMENT_CAP_HALT = "plate exceeds the single-deployment cap — NO ACTION (tiffin v4 cap)"
     E6_CAP_VS_BEES_FLOOR = ("E6 CONFLICT: single-deployment cap below the BeES floor minimum "
                             "— NO ACTION (tiffin v4 cap vs tiffin v6 BeES NO-SKIP)")
+    # UC3 ranker only (engine/ranker.py): tiffin v6 §BREADTH TARGET "more than 15 means
+    # the ticket is too thin (raise the session or drop the bottom-scoring names)".
+    BREADTH_TRIMMED = "breadth above the ceiling — bottom-scoring name left off this variant"
 
 
 # --------------------------------------------------------------- inputs ---
