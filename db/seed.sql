@@ -422,6 +422,25 @@ INSERT INTO "holdings" VALUES('ZERODHA_P','IDFCFIRSTB',10,NULL,'2026-09-25','CSV
 INSERT INTO "holdings" VALUES('INTEGRATED_V','SAIL',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
 INSERT INTO "holdings" VALUES('INTEGRATED_V','JUNIORBEES',0,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
 INSERT INTO "holdings" VALUES('INTEGRATED_V','NIFTYBEES',0,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+CREATE TABLE ledger_aliases (
+  alias    TEXT PRIMARY KEY COLLATE NOCASE,
+  symbol   TEXT NOT NULL,
+  source   TEXT NOT NULL,
+  set_on   TEXT NOT NULL
+);
+INSERT INTO "ledger_aliases" VALUES('SBI','SBIN','ledger v4.10 §5 "SBI (add)", §7 "SBI 862"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('EIL','ENGINERSIN','ledger v4.10 §7 "EIL 177" (Engineers India)','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('DRL','DRREDDY','ledger v4.10 §5 "DRL(exit)", §6 "DRL GUARDRAIL-block"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('L&T','LT','ledger v4.10 §5 "L&T crash-shelf", §4 crash shelf','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('KVB','KARURVYSYA','ledger v4.10 §7 "KVB #1 swap for SIB"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('SIB','SOUTHBANK','ledger v4.10 §7 "KVB #1 swap for SIB"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('HZL','HINDZINC','ledger v4.10 §7 peak-cycle metals list','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('BoB','BANKBARODA','ledger v4.10 §7 "BoB (fraud tail)"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('GE Shipping','GESHIP','ledger v4.10 §2/§7 "GE Shipping"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('ICICI','ICICIBANK','ledger v4.10 §5 "ICICI SOLD (D33e)"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('HOEC','HINDOILEXP','ledger v4.10 §2/§7 "HOEC (promoter 0% — sell)"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('Hind Copper','HINDCOPPER','ledger v4.10 §7 "Hind Copper (P1+44x)"','2026-09-26');
+INSERT INTO "ledger_aliases" VALUES('Texmaco Infra','TEXINFRA','ledger v4.10 §5/§7 "Texmaco Infra"','2026-09-26');
 CREATE TABLE market_snapshot (
   run_id          TEXT NOT NULL REFERENCES sessions(run_id),
   symbol          TEXT NOT NULL,
@@ -671,6 +690,9 @@ INSERT INTO "policy" VALUES('event_hold_days','5','days','tiffin-coffee v6 §pro
 INSERT INTO "policy" VALUES('decay_hard_pass_days','180','days','osep v7 §VERDICT DECAY CLOCK — migration 010','2026-09-26');
 INSERT INTO "policy" VALUES('stage1_gate','35','points of 50','osep v7 §STAGE 1 gate — migration 010','2026-09-26');
 INSERT INTO "policy" VALUES('promoter_net_sell_flag_pct','2','pct of equity, trailing 12m','osep v7 §STAGE 0 P4 — migration 010','2026-09-26');
+INSERT INTO "policy" VALUES('hockey_nifty_week_fall_pct','5','pct fall of Nifty over a week','tiffin v6 §H HOCKEY row — migration 012','2026-09-26');
+INSERT INTO "policy" VALUES('hockey_name_day_fall_pct','10','pct fall of one name in a day','tiffin v6 §H HOCKEY row — migration 012','2026-09-26');
+INSERT INTO "policy" VALUES('ranker_criteria_order','ticket_band,no_raise,breadth,residual','criteria, best first','UC3 ranker — tiffin v4 §TICKET SIZE, v6 §BREADTH TARGET, v6 STEP 6 — migration 014','2026-09-26');
 CREATE TABLE results_verified (
   symbol       TEXT PRIMARY KEY,
   last_result  TEXT NOT NULL,

@@ -1,5 +1,6 @@
 .env
 *.token
+.kite_access.token
 __pycache__/
 .venv/
 .pytest_cache/
@@ -7,3 +8,4 @@ __pycache__/
 .mypy_cache/
 tests/fixtures/_scratch/
 *.egg-info/
+.claude/worktrees/

@@ -22,6 +22,7 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
+from engine.hockey import HockeyKind, HockeyReport
 from engine.invariants import (
     Check,
     Severity,
@@ -29,6 +30,7 @@ from engine.invariants import (
     drop_counts,
     inv_fail_closed,
     inv_gate_monotone,
+    inv_hockey_seen,
 )
 from engine.plate import PlateEntry, PlateResult
 from store.repo import PattazRepo
@@ -40,7 +42,7 @@ from tools.market_snapshot import (
     save_snapshot,
 )
 from usecases.morning_board import run_morning_board
-from usecases.plate import PlateRunResult, run_plate
+from usecases.plate import PlateRunResult, index_input, run_plate
 from usecases.scenarios import Scenario, SimContext, build_catalog, custom_scenario
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -68,6 +70,7 @@ class ScenarioOutcome:
     advisory: tuple[str, ...]
     checks: tuple[Check, ...]
     tags: tuple[str, ...] = ()
+    hockey: tuple[str, ...] = ()   # market/day HOCKEY signals detected (tiffin v6 §H)
 
     @property
     def violations(self) -> list[Check]:
@@ -138,6 +141,9 @@ def run_scenario(db: Path, base: MarketSnapshot, sc: Scenario, ctx: SimContext,
                          run.breadth_min, run.breadth_max)
     if sc.expect_fail_closed:
         checks += inv_fail_closed(run.plate)
+    if run.hockey is not None and run.hockey_config is not None:
+        checks += inv_hockey_seen(list(run.name_inputs), index_input(run.nifty),
+                                  run.hockey_config, run.hockey)
     # determinism (CLAUDE.md §4): same inputs → same plate
     again = _plate(db, snap, amount, today)
     if again.plate != run.plate:
@@ -153,8 +159,16 @@ def run_scenario(db: Path, base: MarketSnapshot, sc: Scenario, ctx: SimContext,
         total=p.total_with_sweep,
         fired=tuple(e.symbol for e in board.fired), near=tuple(e.symbol for e in board.near),
         drops_by_reason=drop_counts(p), advisory=tuple(run.advisory_flags),
-        checks=tuple(checks), tags=sc.tags,
+        checks=tuple(checks), tags=sc.tags, hockey=_hockey_labels(run.hockey),
     ), p
+
+
+def _hockey_labels(report: HockeyReport | None) -> tuple[str, ...]:
+    """Market and day-move signals only — H > 1.15 is already visible as the plate mode."""
+    if report is None:
+        return ()
+    return tuple(f"{s.kind.name}{'' if s.symbol == '*' else ' ' + s.symbol} {s.move_pct}%"
+                 for s in report.signals if s.kind != HockeyKind.H_ABOVE)
 
 
 def run_simulation(db_path: Path, base: MarketSnapshot, scenarios: Sequence[Scenario],
@@ -247,12 +261,25 @@ def format_simulation(r: SimulationResult) -> str:
         lines += ["", "FINDINGS (legal per spec — your call)"]
         lines += [f"  [{o.scenario} @ {_inr(o.amount)}] {c.invariant}: {c.detail}"
                   for o, c in finds]
-    gaps = sorted({o.scenario for o in r.outcomes if "hockey-gap" in o.tags})
-    if gaps:
-        lines += ["", "NOT MODELLED: tiffin v6 HOCKEY triggers 'Nifty -5% wk' and "
-                      "'name -10% day' — the engine has no index/day-move input, so these "
-                      f"scenarios price HOCKEY only via H > 1.15 ({len(gaps)} scenarios)."]
+    lines += _hockey_section(r)
     return "\n".join(lines)
+
+
+def _hockey_section(r: SimulationResult) -> list[str]:
+    """tiffin v6 §H + D37: which scenarios the engine now sees as HOCKEY (detection only)."""
+    seen: dict[str, tuple[str, ...]] = {}
+    for o in r.outcomes:
+        if o.hockey and o.scenario not in seen:
+            seen[o.scenario] = o.hockey
+    missed = sorted({o.scenario for o in r.outcomes if "hockey" in o.tags} - set(seen))
+    if not seen and not missed:
+        return []
+    out = ["", "HOCKEY DETECTED (reported only — any reserve move needs Praveen's yes)"]
+    out += [f"  {sc:26s} {', '.join(sig)}" for sc, sig in seen.items()]
+    if missed:
+        out.append(f"  NOT DETECTED in hockey scenarios (check the WARN lines): "
+                   f"{', '.join(missed)}")
+    return out
 
 
 def format_what_if(base: ScenarioOutcome, what: ScenarioOutcome) -> str:

@@ -26,13 +26,47 @@ near miss, then bulk exclusions by rule, then the guardrails checklist.
 Every drop names its rule and what would flip it. `E6_CAPS_OFF_CONFLICT` and
 `E6_PEAK_CYCLE_CONFLICT` are questions for Praveen, not decisions by the engine.
 
+## Usage — sync holdings (UC2.1, Kite path — Zerodha ZERODHA_P)
+
+Read-only Kite Connect. Put `KITE_API_KEY` / `KITE_API_SECRET` in `.env` (see
+`.env.example`). Login is never automated:
+
+```bash
+uv run python -m usecases.sync_holdings kite --login-url              # open it, log in
+uv run python -m usecases.sync_holdings kite --request-token <TOKEN>  # from the redirect
+uv run python -m usecases.sync_holdings kite                          # later today: cached token
+```
+
+Only ZERODHA_P rows are written (source `KITE_API`, as_of = IST fetch date; qty =
+settled + T1). A Zerodha name held before and absent from Kite is recorded as an exit.
+Kite symbols map to the register via the `names.yf_ticker` stem (`RECLTD` → `REC`);
+symbols not in `names` are kept under their Kite name and listed as UNKNOWN. An empty
+Kite answer while the register shows Zerodha holdings writes nothing (fail-closed).
+The daily access token is cached in the git-ignored `.kite_access.token` and treated
+as expired after the IST day.
+**Single-deployment cap** (tiffin v4: no plate over 15% of confirmed investable
+surplus). Surplus is never stored — give it each run:
+
+```bash
+uv run python -c "from decimal import Decimal; from usecases.plate import run_plate, format_plate; print(format_plate(run_plate('db/pattaz.db', Decimal('10000'), confirmed_surplus=Decimal('300000'))))"
+```
+
+Without it the guardrail says "not checked". A plate over the cap is `HALT — NO ACTION`
+(nothing is trimmed; every ranked name is listed as `DEPLOYMENT_CAP_HALT`).
+
+**HOCKEY check** (tiffin v6 §H + ledger D37): each run fetches Nifty (^NSEI) and each
+name's previous close, and flags Nifty −5% in a week, the −15% / −25% drawdown rungs, a
+name −10% in a day, and H > 1.15. It only reports — the plate is unchanged and any
+reserve move needs Praveen's yes. The two-pocket 60/40 rule is stated, not checked
+(pocket balances are not in the register).
+
 ## Usage — sync holdings (UC2.1, CSV path)
 
 Drop the household CSV (columns `Stock, Total Qty, Kite-P Qty, Int-P Qty, Int-V Qty`,
 date in the filename) into `db/holdings/` so the seed rebuilds with it, then:
 
 ```bash
-uv run python -c "from usecases.sync_holdings import run_sync_holdings_csv, format_sync; print(format_sync(run_sync_holdings_csv('db/pattaz.db', 'db/holdings/household_equity_21sep2026.csv')))"
+uv run python -m usecases.sync_holdings csv db/holdings/household_equity_21sep2026.csv
 ```
 
 A snapshot is the whole household: a name that was held before and is missing now is
@@ -71,6 +105,30 @@ name. `--live` shocks today's live market instead of the recording; `record` sav
 new recording (commit it deliberately — it becomes the CI baseline). One
 `UC5_SIMULATION` session is written per run; simulated plates are never UC2 sessions.
 
+## Usage — plate ranker (UC3)
+
+Builds the plates the rules let you choose between — the amount you asked, the ticket
+band bottom and top (policy `ticket_band_min`/`max`), and, when breadth is above 15,
+the same plate with the bottom-scoring names left off (tiffin v6 §BREADTH TARGET).
+Each is a real `build_plate` run checked by every law; a variant that breaks one is
+thrown out. The rest are ranked in the order set by policy `ranker_criteria_order`
+(migration 014): in the ticket band → no raised budget → breadth 8-15 → least left
+over. Ties go to the smaller ticket. The order and the tie-break are not spec text,
+so the output marks the ranking PROVISIONAL with an "OPEN QUESTION for Praveen" line
+until he confirms them.
+
+```bash
+uv run python -m usecases.ranker --amount 7500                # newest recording
+uv run python -m usecases.ranker --amount 7500 --live         # today's market
+```
+
+Verdict first (BEST and why; an asked amount outside the ticket band is called out,
+with the best in-band plate and the as-asked plate), then an INPUTS line (market
+as-of/source, GoI yield), the variants side by side, what each buys, and every dropped
+name with its reason and what would change it. A failure (missing policy row, no
+market data) prints `NO ACTION — <reason>`. One `UC3_RANKER` session is written either
+way (`--no-session` to skip). Proposal only.
+
 ## Usage — OSEP analyser (UC4)
 
 ```bash
@@ -85,3 +143,17 @@ uv run python -m usecases.osep rederive
 and its expiry. Judgments the data can't answer are researched in chat and recorded with
 `judge SYMBOL <item> <value> --source "..."`; `apply SYMBOL --reason "..."` records a
 verdict only after Praveen agrees. `rederive` recomputes every trigger after results.
+
+## Usage — ledger sync (UC6)
+
+```bash
+uv run python -m usecases.ledger_sync                     # newest ../tiffin-coffee/investing_plans/PATTAZ_MASTER_LEDGER_v*.txt
+uv run python -m usecases.ledger_sync --file path/to/PATTAZ_MASTER_LEDGER_v4.11_2026-09-28.txt
+```
+
+Reads the local text export of the Drive ledger (no Drive calls at runtime) and reports
+new decisions, trigger levels that moved, names/cells that need review and lines it
+could not read. Unambiguous items (new decisions, level changes) go to
+`db/migrations/drafts/ledger_<version>.sql` — a DRAFT, never auto-applied. Needs
+migration 011 (`ledger_aliases`) for short names like SBI / EIL; one `UC6_LEDGER_SYNC`
+session per run.

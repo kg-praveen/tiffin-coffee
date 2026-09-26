@@ -26,6 +26,9 @@ class PriceSnapshot:
     price: Stamped[Decimal]
     low_52w: Stamped[Decimal]
     high_52w: Stamped[Decimal]
+    # the session before the last trade (tiffin v6 §H HOCKEY "a name -10% in a day");
+    # None when the source did not give it — the day-move check then says it was not run
+    prev_close: Stamped[Decimal] | None = None
 
 
 @dataclass(frozen=True)
@@ -63,12 +66,15 @@ def fetch_price(yf_ticker: str) -> PriceSnapshot:
         raise ValueError(f"{yf_ticker}: no price available")
     if low_raw is None or high_raw is None:
         raise ValueError(f"{yf_ticker}: 52-week range not available")
+    prev_raw = info.get("regularMarketPreviousClose")
 
     return PriceSnapshot(
         symbol=yf_ticker.removesuffix(".NS"),
         price=Stamped(value=Decimal(str(price_raw)), source=source, as_of=now),
         low_52w=Stamped(value=Decimal(str(low_raw)), source=source, as_of=now),
         high_52w=Stamped(value=Decimal(str(high_raw)), source=source, as_of=now),
+        prev_close=(Stamped(value=Decimal(str(prev_raw)), source=source, as_of=now)
+                    if prev_raw is not None else None),
     )
 
 
