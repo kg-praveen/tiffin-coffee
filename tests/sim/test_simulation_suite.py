@@ -6,6 +6,7 @@ Any VIOLATION fails the build; FINDINGS are reported, never failed (spec-legal).
 """
 from __future__ import annotations
 
+import sqlite3
 from decimal import Decimal
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from usecases.simulate import (
 )
 
 SEED_DB = Path(__file__).parent.parent.parent / "db" / "pattaz.db"
+MIGRATION_012 = SEED_DB.parent / "migrations" / "012_plate_extras.sql"
 AMOUNTS = (Decimal(5000), Decimal(10000), Decimal(40000))
 CATALOG: list[Scenario] = build_catalog(load_context(SEED_DB))
 
@@ -39,7 +41,20 @@ def market() -> MarketSnapshot:
 def suite(market: MarketSnapshot, tmp_path_factory: pytest.TempPathFactory) -> SimulationResult:
     db = tmp_path_factory.mktemp("sim") / "pattaz.db"
     db.write_bytes(SEED_DB.read_bytes())
+    _apply_012(db)
     return run_simulation(db, market, CATALOG, AMOUNTS, record_session=False)
+
+
+def _apply_012(db: Path) -> None:
+    """HOCKEY thresholds (migration 012) until the lead folds them into the register."""
+    con = sqlite3.connect(db)
+    try:
+        have = con.execute("SELECT count(*) FROM policy WHERE key="
+                           "'hockey_nifty_week_fall_pct'").fetchone()[0]
+        if not have:
+            con.executescript(MIGRATION_012.read_text())
+    finally:
+        con.close()
 
 
 def _outcomes(r: SimulationResult, name: str) -> list:  # type: ignore[type-arg]
@@ -120,7 +135,52 @@ def test_bees_missing_means_no_sweep(suite: SimulationResult) -> None:
 def test_report_leads_with_verdict(suite: SimulationResult) -> None:
     text = format_simulation(suite)
     assert text.splitlines()[1].startswith("VERDICT: PASS")
-    assert "NOT MODELLED" in text
+    assert "HOCKEY DETECTED" in text
+
+
+def test_only_unpriced_flash_names_go_undetected(suite: SimulationResult,
+                                                 market: MarketSnapshot) -> None:
+    """A flash on a name the recording never priced moves nothing — the report says
+    NOT DETECTED for it (honest), and for nothing else."""
+    text = format_simulation(suite)
+    line = next((ln for ln in text.splitlines() if "NOT DETECTED" in ln), "")
+    missed = line.split(": ", 1)[1].split(", ") if line else []
+    for sc in missed:
+        assert sc.startswith("flash_"), sc
+        assert sc.removeprefix("flash_").removesuffix("_-10") not in market.prices.prices
+
+
+def test_nifty_week_fall_is_hockey(suite: SimulationResult) -> None:
+    """tiffin v6 §H: 'Nifty -5% in a week' is HOCKEY — now seen, not just H > 1.15."""
+    for o in _outcomes(suite, "nifty_week_-5"):
+        assert any(h.startswith("NIFTY_WEEK") for h in o.hockey), o.hockey
+        assert not any(h.startswith("RUNG") for h in o.hockey)
+
+
+def test_ladder_rungs_are_detected(suite: SimulationResult) -> None:
+    """ledger D37: rung 1 at Nifty -15%, rung 2 at -25% (deepest rung reported)."""
+    for o in _outcomes(suite, "hockey_rung1"):
+        assert any(h.startswith("RUNG_1") for h in o.hockey), o.hockey
+    for o in _outcomes(suite, "hockey_rung2"):
+        assert any(h.startswith("RUNG_2") for h in o.hockey), o.hockey
+
+
+def test_flash_fall_is_name_day_hockey(suite: SimulationResult,
+                                      market: MarketSnapshot) -> None:
+    """tiffin v6 §H: 'a name -10% in a day' — every flash on a priced name flags it."""
+    flashes = [s for s in CATALOG if "flash" in s.tags]
+    assert flashes
+    for sc in flashes:
+        sym = sc.name.removeprefix("flash_").removesuffix("_-10")
+        if sym not in market.prices.prices:
+            continue
+        for o in _outcomes(suite, sc.name):
+            assert any(h.startswith(f"NAME_DAY {sym} ") for h in o.hockey), (sc.name, o.hockey)
+
+
+def test_calm_baseline_has_no_market_hockey(suite: SimulationResult) -> None:
+    for o in _outcomes(suite, "baseline"):
+        assert o.hockey == ()
 
 
 def test_session_written_once_to_register(market: MarketSnapshot, scratch_db: Path) -> None:

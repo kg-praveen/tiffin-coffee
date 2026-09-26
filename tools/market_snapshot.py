@@ -22,6 +22,7 @@ from tools.fundamentals import (
     fetch_fundamentals_batch,
 )
 from tools.gsec import fetch_gsec_yield
+from tools.index_moves import IndexMoves, fetch_nifty_moves
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 from tools.results_dates import BatchResultDates, fetch_result_dates_batch
 from tools.stamped import Stamped
@@ -38,6 +39,7 @@ class MarketSnapshot:
     fundamentals: BatchFundamentalsResult
     gsec: Stamped[Decimal] | None
     results: BatchResultDates = field(default_factory=BatchResultDates)
+    nifty: IndexMoves | None = None   # tiffin v6 §H HOCKEY inputs (None = not recorded)
 
 
 # ------------------------------------------------------------ (de)serialise ---
@@ -59,15 +61,42 @@ def _req(d: dict[str, str]) -> Stamped[Decimal]:
     return Stamped(value=Decimal(d["value"]), source=d["source"], as_of=d["as_of"])
 
 
+def _price_to_json(p: PriceSnapshot) -> dict[str, Any]:
+    d: dict[str, Any] = {"price": _st_to_json(p.price), "low_52w": _st_to_json(p.low_52w),
+                         "high_52w": _st_to_json(p.high_52w)}
+    if p.prev_close is not None:
+        d["prev_close"] = _st_to_json(p.prev_close)
+    return d
+
+
+def _nifty_to_json(m: IndexMoves | None) -> dict[str, Any] | None:
+    if m is None:
+        return None
+    return {"symbol": m.symbol, "level": _st_to_json(m.level),
+            "week_change_pct": _st_to_json(m.week_change_pct),
+            "drawdown_pct": _st_to_json(m.drawdown_pct)}
+
+
+def _nifty_from_json(d: dict[str, Any] | None) -> IndexMoves | None:
+    if d is None:
+        return None
+    return IndexMoves(symbol=d["symbol"], level=_st_from_json(d.get("level")),
+                      week_change_pct=_req(d["week_change_pct"]),
+                      drawdown_pct=_req(d["drawdown_pct"]))
+
+
 def snapshot_to_json(snap: MarketSnapshot) -> dict[str, Any]:
+    out = _snapshot_body_to_json(snap)
+    if snap.nifty is not None:          # older recordings have no Nifty: keep them byte-stable
+        out["nifty"] = _nifty_to_json(snap.nifty)
+    return out
+
+
+def _snapshot_body_to_json(snap: MarketSnapshot) -> dict[str, Any]:
     return {
         "recorded_at": snap.recorded_at,
         "gsec": _st_to_json(snap.gsec),
-        "prices": {
-            sym: {"price": _st_to_json(p.price), "low_52w": _st_to_json(p.low_52w),
-                  "high_52w": _st_to_json(p.high_52w)}
-            for sym, p in sorted(snap.prices.prices.items())
-        },
+        "prices": {sym: _price_to_json(p) for sym, p in sorted(snap.prices.prices.items())},
         "price_failures": dict(sorted(snap.prices.failures.items())),
         "fundamentals": {
             sym: {**{f: _st_to_json(getattr(fs, f)) for f in _FUND_FIELDS},
@@ -90,7 +119,8 @@ def snapshot_to_json(snap: MarketSnapshot) -> dict[str, Any]:
 def snapshot_from_json(d: dict[str, Any]) -> MarketSnapshot:
     prices = {
         sym: PriceSnapshot(symbol=sym, price=_req(p["price"]), low_52w=_req(p["low_52w"]),
-                           high_52w=_req(p["high_52w"]))
+                           high_52w=_req(p["high_52w"]),
+                           prev_close=_st_from_json(p.get("prev_close")))
         for sym, p in d["prices"].items()
     }
     def _upcoming(fd: dict[str, Any]) -> Stamped[tuple[str, ...]] | None:
@@ -114,6 +144,7 @@ def snapshot_from_json(d: dict[str, Any]) -> MarketSnapshot:
                    for sym, r in d.get("result_dates", {}).items()},
             failures=dict(d.get("result_date_failures", {})),
         ),
+        nifty=_nifty_from_json(d.get("nifty")),
     )
 
 
@@ -136,15 +167,21 @@ def newest_snapshot(folder: Path) -> Path | None:
 
 
 def record_snapshot(yf_tickers: Sequence[str]) -> MarketSnapshot:
-    """Fetch prices, fundamentals and the GoI yield live. NETWORK — never in CI."""
+    """Fetch prices, fundamentals, the GoI yield and Nifty moves live. NETWORK — never
+    in CI."""
     try:
         gsec: Stamped[Decimal] | None = fetch_gsec_yield()
     except ValueError:
         gsec = None
+    try:
+        nifty: IndexMoves | None = fetch_nifty_moves()
+    except ValueError:
+        nifty = None
     return MarketSnapshot(
         recorded_at=datetime.now(UTC).strftime("%Y-%m-%d"),
         prices=fetch_prices_batch(yf_tickers),
         fundamentals=fetch_fundamentals_batch(yf_tickers),
         gsec=gsec,
         results=fetch_result_dates_batch(yf_tickers),
+        nifty=nifty,
     )
