@@ -38,6 +38,7 @@ class SimContext:
     sector_of: Mapping[str, str | None]
     seats: tuple[str, ...]
     policy: Mapping[str, str]
+    nse_sector_of: Mapping[str, str | None] = field(default_factory=dict)
 
 
 Shock = Callable[[MarketSnapshot, SimContext], MarketSnapshot]
@@ -155,6 +156,18 @@ def sector_move(sector: str, pct: Decimal, tag: str) -> Shock:
     return _shock
 
 
+def nse_sector_move(nse_sector: str, pct: Decimal, tag: str) -> Shock:
+    def _shock(snap: MarketSnapshot, ctx: SimContext) -> MarketSnapshot:
+        return move_prices(
+            snap, lambda s: pct if ctx.nse_sector_of.get(s) == nse_sector else None, tag)
+    return _shock
+
+
+def _slug(text: str) -> str:
+    """'Metals & Mining' → 'Metals_Mining'"""
+    return "_".join("".join(c if c.isalnum() else " " for c in text).split())
+
+
 def name_move(symbol: str, pct: Decimal, tag: str) -> Shock:
     def _shock(snap: MarketSnapshot, _ctx: SimContext) -> MarketSnapshot:
         return move_prices(snap, lambda s: pct if s == symbol else None, tag)
@@ -188,10 +201,6 @@ def build_catalog(ctx: SimContext) -> list[Scenario]:
                  market_move(rung2, "rung2")),
         Scenario("melt_up_+10", f"Market +{MELT_UP_PCT}%", "E9 — nothing cheap, nothing forced",
                  market_move(MELT_UP_PCT, "meltup")),
-        Scenario("it_sector_-12", f"IT services {SECTOR_PCT}%", "tiffin v6 §breadth",
-                 sector_move("IT_SERVICES", SECTOR_PCT, "it-12")),
-        Scenario("lenders_-12", f"Lenders {SECTOR_PCT}%", "osep G-LENDER (P/B only)",
-                 sector_move("LENDER", SECTOR_PCT, "lender-12")),
         Scenario("fresh_lows_everywhere", "Every name at a fresh 52-week low (L=0)",
                  "tiffin v6 §first-bite (a)-(d), clamp to 5", lambda s, _c: reset_lows(s, "lows")),
         Scenario("gsec_+50bp", f"GoI yield +{GSEC_STEP_BP}bp", "osep v7 §3 ladder",
@@ -213,6 +222,23 @@ def build_catalog(ctx: SimContext) -> list[Scenario]:
         Scenario("clock_+45d", f"Same prices, {CLOCK_STALE_DAYS} days later",
                  "osep decay clock (GBN 30d)", _identity, clock_days=CLOCK_STALE_DAYS),
     ]
+    # one crash per sector, generated — a new sector in the register is covered
+    # automatically. App classes decide which gate applies; NSE sectors are how the
+    # market (and NSE's sectoral indices) actually move together.
+    app_sectors = sorted({s for s in ctx.sector_of.values() if s})
+    cats.extend(
+        Scenario(f"app_sector_{sec}_{SECTOR_PCT}", f"App sector {sec} {SECTOR_PCT}%",
+                 "osep v7 §G sector gate table", sector_move(sec, SECTOR_PCT, f"app-{sec}"),
+                 tags=("sector", "app-sector"))
+        for sec in app_sectors
+    )
+    nse_sectors = sorted({s for s in ctx.nse_sector_of.values() if s})
+    cats.extend(
+        Scenario(f"nse_{_slug(sec)}_{SECTOR_PCT}", f"NSE sector {sec} {SECTOR_PCT}%",
+                 "NSE Industry (db/reference)", nse_sector_move(sec, SECTOR_PCT, f"nse-{sec}"),
+                 tags=("sector", "nse-sector"))
+        for sec in nse_sectors
+    )
     cats.extend(
         Scenario(f"flash_{s}_-10", f"{s} {NAME_DAY_PCT}% in a day",
                  "tiffin v6 §H HOCKEY (name -10% day)", name_move(s, NAME_DAY_PCT, f"{s}-10"),

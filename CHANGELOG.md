@@ -2,7 +2,25 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/gsec-and-review-first`
+## [Unreleased] — branch `feat/sector-scenarios`
+
+### 2026-09-26 — crash test for every sector; NSE's official sector on every stock
+
+Praveen 26-Sep: "does the simulation take names from each sector recognised by NSE?"
+It did not (2 hand-made sector crashes). Now:
+**feat (usecases/scenarios.py)** — one −12% crash per sector, generated from the
+register: every app sector class (17) and every NSE sector (17). A new sector is
+covered automatically. Replaces the hand-made IT and lender crashes.
+**db (migration 005)** — `names.nse_sector` + `nse_sector_as_of`: NSE's official
+"Industry" from `db/reference/nse_industry_2026-09-26.csv` (NSE Indices, Nifty Total
+Market list, ~750 stocks). 107 of 126 names matched on the NSE trading symbol; not in
+the list: ETFs, REITs/InvITs, a few small caps, TATAMOTORS (demerged). Applied to the
+live register as a migration (session history kept); seed_build loads the same list.
+**feat (tools/nse_sectors.py)** — parse + deliberate refresh
+(`python -m tools.nse_sectors`).
+UC5: 124 runs at Rs10k/Rs40k, 0 violations.
+
+## 2026-09-26 — sizing, bond rate, review first (PR #7)
 
 ### 2026-09-26 — new sizing: fit the budget, spread by rank
 

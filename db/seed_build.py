@@ -15,6 +15,12 @@ import sys
 HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE.parent))
 from tools.csv_import import parse_household_csv, snapshot_with_zeroing  # noqa: E402
+from tools.nse_sectors import (  # noqa: E402
+    newest_reference,
+    nse_symbol,
+    parse_nse_industry_csv,
+    reference_date,
+)
 
 DB, SCHEMA, DUMP = HERE / "pattaz.db", HERE / "schema.sql", HERE / "seed.sql"
 LEDGER = "2026-09-17"      # ledger v4.9 date — default as_of
@@ -330,7 +336,16 @@ def build() -> None:
         DB.unlink()
     con = sqlite3.connect(DB)
     con.executescript(SCHEMA.read_text())
-    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", N)
+    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL)", N)
+    # NSE official sector (migration 005) from the newest committed reference list
+    ref = newest_reference(HERE / "reference")
+    if ref is not None:
+        industry = parse_nse_industry_csv(ref.read_text())
+        con.executemany(
+            "UPDATE names SET nse_sector = ?, nse_sector_as_of = ? WHERE symbol = ?",
+            [(industry[nse_symbol(s, yf)], reference_date(ref), s)
+             for s, _nm, yf, *_ in N if nse_symbol(s, yf) in industry],
+        )
     con.executemany("INSERT INTO triggers VALUES (?,?,?,?,?,?,?,?,?,?)", T)
     con.executemany("INSERT INTO holdings VALUES (?,?,?,?,?,?)", H)
     # UC2.1 CSV snapshots (db/holdings/*.csv, oldest first). Each is a FULL household

@@ -105,10 +105,13 @@ def load_context(db_path: Path) -> SimContext:
         policy = repo.load_policy()
     seats = sorted({s.strip() for c in cells if c.active_adds
                     for s in c.active_adds.split(",") if s.strip()})
+    # market recordings key by ticker stem (RECLTD), the register by symbol (REC): map both
+    keys = [(n, {n.symbol, (n.yf_ticker or n.symbol).removesuffix(".NS")}) for n in names]
     return SimContext(
-        sector_of={n.symbol: n.sector_class for n in names},
+        sector_of={k: n.sector_class for n, ks in keys for k in ks},
         seats=tuple(seats),
         policy={k: v.value for k, v in policy.items()},
+        nse_sector_of={k: n.nse_sector for n, ks in keys for k in ks},
     )
 
 
