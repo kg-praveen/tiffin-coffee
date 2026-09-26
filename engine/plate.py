@@ -7,6 +7,7 @@ No I/O, no network, no datetime.now(), no DB.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 
@@ -55,6 +56,7 @@ class PlateDropReason(Enum):
     REVIEW_FIRST = "register marks this name don't-buy — analyse and approve before any buy"
     BRAND_NOT_OWNED = "FMCG: the company does not own its brand (osep §G hard gate)"
     BRAND_UNVERIFIED = "FMCG: brand ownership not recorded — confirm before any buy"
+    EVENT_HOLD = "results due within the event-hold window — held unless Praveen opts in"
     SCORE_ZERO = "score is zero after HxLxP"
     STATUS_BLOCKED = "name status blocks adds"
     EXIT_DECIDED = "on the sell list (overlay #7)"
@@ -117,6 +119,7 @@ class NameInput:
     owned_per_book: bool = False
     register_note: str = ""
     brand_owned: bool | None = None
+    next_result_date: str | None = None
 
 
 @dataclass(frozen=True)
@@ -136,6 +139,8 @@ class PlateConfig:
     first_bite_h_mult_floor: Decimal = Decimal("0.25")
     first_bite_l_max: Decimal = Decimal(2)
     cap_psu_regulated_pct: Decimal = Decimal(25)
+    event_hold_days: int = 5
+    event_opt_in: frozenset[str] = frozenset()
 
 
 # -------------------------------------------------------------- outputs ---
@@ -415,6 +420,18 @@ _OVERLAY_WHAT_WOULD_CHANGE: dict[PlateDropReason, str] = {
 # if it passes every other gate it is RAISED for analysis; a buy needs his approval
 # (a register change). Defined once here (E7); engine/invariants.py imports it.
 REVIEW_FIRST_BUCKETS = frozenset({"WITHDRAWN", "HARD_PASS"})
+
+
+def days_until_results(next_result_date: str | None, today: str) -> int | None:
+    """Calendar days from today to the next results date (0 = today)."""
+    if next_result_date is None:
+        return None
+    return (date.fromisoformat(next_result_date) - date.fromisoformat(today)).days
+
+
+def in_event_window(days_to: int | None, config: PlateConfig) -> bool:
+    """tiffin v6 §procedure step 6: earnings within N calendar days (policy)."""
+    return days_to is not None and 0 <= days_to <= config.event_hold_days
 
 
 # ----------------------------------------------------- first-bite check ---
@@ -710,6 +727,16 @@ def build_plate(
                   "analyse the name (OSEP) → Praveen approves → register bucket changes",
                   h=h, l_pct=l_pct)
             rules_fired.append(f"REVIEW_FIRST:{n.symbol}")
+            continue
+
+        # --- results-week pause (tiffin v6 §procedure step 6) ---
+        days_to = days_until_results(n.next_result_date, config.today)
+        if in_event_window(days_to, config) and n.symbol not in config.event_opt_in:
+            _drop(n, PlateDropReason.EVENT_HOLD,
+                  f"results on {n.next_result_date} — {days_to} day(s) away",
+                  "wait until after the results, or Praveen opts in ('event risk, your call')",
+                  h=h, l_pct=l_pct)
+            rules_fired.append(f"EVENT_HOLD:{n.symbol}")
             continue
 
         scored.append((n, h, mode, low_band, l_pct, h_mult, l_mult, p_mult, p_tier,

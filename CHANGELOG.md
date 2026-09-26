@@ -2,7 +2,25 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `fix/verified-facts`
+## [Unreleased] — branch `feat/results-week-pause`
+
+### 2026-09-26 — results-week pause (event hold)
+
+tiffin-coffee v6 §procedure step 6: "earnings within 5 calendar days → hold that plate
+unless Praveen opts in ('event risk, your call')".
+- **engine** — a name that would be bought but has results within `event_hold_days`
+  (policy, migration 008 = 5) is dropped `EVENT_HOLD`; `event_opt_in` buys it anyway.
+  Invariants treat such a name on a plate as a violation.
+- **data** — next results date from the results feed (after verified overrides) plus the
+  dates Yahoo puts in the quote (`FundamentalsSnapshot.upcoming_results`) — no extra
+  download. Unknown next date on a plated stock → WARN, not a block (companies announce
+  only days ahead).
+- **report** — "RESULTS WEEK" advisory; guardrail line now live.
+- **UC5** — new `results_week` scenario (everyone reports in 2 days → nothing bought).
+Replay on the 25-Sep recording: 5-Oct holds TCS (results 8-Oct). 408 passed.
+seed_build now applies every data migration from 007 on.
+
+## 2026-09-26 — verified facts (PR #10)
 
 ### 2026-09-26 — facts looked up online and recorded (migration 007)
 

@@ -42,6 +42,7 @@ from tools.gsec import fetch_gsec_yield
 from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 from tools.results_dates import BatchResultDates, fetch_result_dates_batch
+from tools.stamped import Stamped
 from usecases.results import effective_results
 
 log = logging.getLogger(__name__)
@@ -134,6 +135,7 @@ def _build_name_input(
     gsec_yield_pct: Decimal,
     coe_spread: Decimal,
     growth_g: Decimal,
+    next_result_date: str | None = None,
 ) -> tuple[NameInput, ValuationGateResult]:
     """Convert store types + price snapshot into a pure engine NameInput.
 
@@ -189,6 +191,7 @@ def _build_name_input(
         owned_per_book=(name.bucket == "OWNED" or name.status == "HOLD"),
         register_note=name.notes or "",
         brand_owned=name.brand_owned,
+        next_result_date=next_result_date,
     )
     return ni, gate_result
 
@@ -200,6 +203,20 @@ def _by_register_symbol[V](
     """Map adapter results (keyed by ticker stem) onto register symbols."""
     return {sym: by_stem[t.removesuffix(".NS")] for sym, t in symbol_to_ticker.items()
             if t.removesuffix(".NS") in by_stem}
+
+
+def _next_result(
+    dates: Stamped[tuple[str, ...]] | None,
+    fund: FundamentalsSnapshot | None,
+    today: str,
+) -> str | None:
+    """Earliest results date on or after today, from the results feed (after verified
+    overrides) and the dates Yahoo lists in the quote."""
+    pool = set(dates.value) if dates else set()
+    if fund is not None and fund.upcoming_results is not None:
+        pool |= set(fund.upcoming_results.value)
+    future = sorted(d for d in pool if d >= today)
+    return future[0] if future else None
 
 
 def _unpriced_drops(
@@ -273,6 +290,7 @@ def run_plate(
     market: MarketSnapshot | None = None,
     today: str | None = None,
     record_session: bool = True,
+    event_opt_in: frozenset[str] = frozenset(),
 ) -> PlateRunResult:
     """Execute UC2: build a tiffin-coffee buy plate.
 
@@ -286,6 +304,9 @@ def run_plate(
     UC5 replay: `market` replaces every live fetch, `today` pins the clock, and
     `record_session=False` keeps a hypothetical plate out of the register (the
     simulation writes its own UC5 session instead).
+
+    `event_opt_in`: names Praveen buys despite results inside the event-hold window
+    (tiffin v6 §procedure step 6 — "event risk, your call").
     """
     now = datetime.now(UTC).isoformat(timespec="seconds")
     run_id = f"UC2_{uuid.uuid4().hex[:12]}"
@@ -423,9 +444,11 @@ def run_plate(
             snap = prices[n.symbol]
             trigger = triggers_map.get(n.symbol)
             fund = fund_map.get(n.symbol)
+            stem = symbol_to_ticker[n.symbol].removesuffix(".NS")
             ni, gate_result = _build_name_input(
                 n, snap, trigger, holdings_qty, household_equity,
                 fund, gsec_yield_pct, coe_spread, growth_g,
+                next_result_date=_next_result(results.dates.get(stem), fund, today),
             )
             name_inputs.append(ni)
             gate_results[n.symbol] = gate_result
@@ -453,6 +476,8 @@ def run_plate(
             first_bite_h_mult_floor=_policy_decimal(policy, "first_bite_h_mult_floor"),
             first_bite_l_max=_policy_decimal(policy, "first_bite_l_max"),
             cap_psu_regulated_pct=_policy_decimal(policy, "cap_psu_regulated_pct"),
+            event_hold_days=int(_policy_decimal(policy, "event_hold_days")),
+            event_opt_in=event_opt_in,
         )
 
         plate_result = build_plate(name_inputs, config)
@@ -503,6 +528,20 @@ def run_plate(
             advisory.append(
                 f"BRAND CHECK: FMCG names eligible today but brand ownership not recorded "
                 f"— confirm who owns the brand: {', '.join(brand)}")
+        held = sorted(d.symbol for d in plate_result.drops
+                      if d.reason == PlateDropReason.EVENT_HOLD)
+        if held:
+            advisory.append(
+                f"RESULTS WEEK: held — results within {config.event_hold_days} days "
+                f"(buy anyway only if you opt in): {', '.join(held)}")
+        by_sym = {n.symbol: n for n in name_inputs}
+        no_date = sorted(e.symbol for e in plate_result.entries
+                         if by_sym[e.symbol].next_result_date is None
+                         and by_sym[e.symbol].sector_class not in ("INDEX_ETF", "NON_EARNING"))
+        if no_date:
+            advisory.append(
+                f"WARN: next results date unknown — check none is due this week: "
+                f"{', '.join(no_date)}")
         review = sorted(d.symbol for d in plate_result.drops
                         if d.reason == PlateDropReason.REVIEW_FIRST)
         if review:
@@ -611,6 +650,7 @@ _NEAR_MISS_ALWAYS = frozenset({
     PlateDropReason.E6_PEAK_CYCLE_CONFLICT,
     PlateDropReason.REVIEW_FIRST,
     PlateDropReason.BRAND_UNVERIFIED,
+    PlateDropReason.EVENT_HOLD,
     PlateDropReason.DECAY_EXPIRED,
     PlateDropReason.P_BLOCKED,
     PlateDropReason.NO_ADD_HOLD_ONLY,
@@ -757,7 +797,8 @@ def format_plate(result: PlateRunResult) -> str:
     L.append("  [x] BeES floor NEVER_SKIP — residual swept")
     L.append("  [x] no buy+sell in one session (EXIT_DECIDED enforced)")
     L.append("  [ ] single-deployment cap 15% of surplus — surplus not in the register yet")
-    L.append("  [ ] event hold (earnings ≤ 5 days) — not implemented; check before executing")
+    held = [d.symbol for d in p.drops if d.reason == PlateDropReason.EVENT_HOLD]
+    L.append(f"  [x] results-week pause — held: {', '.join(held) if held else 'none'}")
     if blocked:
         L.append("  [ ] holdings synced — NO (this plate is advisory only)")
     return "\n".join(L)

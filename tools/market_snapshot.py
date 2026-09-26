@@ -70,7 +70,12 @@ def snapshot_to_json(snap: MarketSnapshot) -> dict[str, Any]:
         },
         "price_failures": dict(sorted(snap.prices.failures.items())),
         "fundamentals": {
-            sym: {f: _st_to_json(getattr(fs, f)) for f in _FUND_FIELDS}
+            sym: {**{f: _st_to_json(getattr(fs, f)) for f in _FUND_FIELDS},
+                  "upcoming_results": (
+                      {"value": list(fs.upcoming_results.value),
+                       "source": fs.upcoming_results.source,
+                       "as_of": fs.upcoming_results.as_of}
+                      if fs.upcoming_results else None)}
             for sym, fs in sorted(snap.fundamentals.fundamentals.items())
         },
         "fundamental_failures": dict(sorted(snap.fundamentals.failures.items())),
@@ -88,9 +93,14 @@ def snapshot_from_json(d: dict[str, Any]) -> MarketSnapshot:
                            high_52w=_req(p["high_52w"]))
         for sym, p in d["prices"].items()
     }
+    def _upcoming(fd: dict[str, Any]) -> Stamped[tuple[str, ...]] | None:
+        u = fd.get("upcoming_results")
+        return Stamped(value=tuple(u["value"]), source=u["source"], as_of=u["as_of"]) if u else None
+
     funds = {
         sym: FundamentalsSnapshot(symbol=sym, **{f: _st_from_json(fd.get(f))
-                                                  for f in _FUND_FIELDS})
+                                                  for f in _FUND_FIELDS},
+                                  upcoming_results=_upcoming(fd))
         for sym, fd in d["fundamentals"].items()
     }
     return MarketSnapshot(

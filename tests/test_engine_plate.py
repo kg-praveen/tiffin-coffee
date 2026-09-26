@@ -709,3 +709,36 @@ class TestReviewFirst:
         c = _n("CANBK", "107", "107", sector="LENDER", status="WATCH", bucket="OWNED",
                cell="LENDING_BANKS", held=17, gate=True)
         assert [e.symbol for e in _plate(c).entries] == ["CANBK"]
+
+
+class TestResultsWeekPause:
+    """tiffin v6 §procedure step 6: results within 5 calendar days → hold, unless
+    Praveen opts in ('event risk, your call')."""
+
+    def _run(self, next_date: str | None, opt_in: frozenset[str] = frozenset()):  # type: ignore[no-untyped-def]
+        from dataclasses import replace
+
+        from tests.acceptance.test_behavioral_regression import CELLS, _n
+        n = replace(_n("INFY", "1000", "980", "1100", sector="IT_SERVICES", cell=None,
+                       held=10), next_result_date=next_date)
+        cfg = PlateConfig(session_amount=Decimal(10000), today="2026-10-18",
+                          psu_weight_pct=Decimal(10), cells=CELLS, bees_price=Decimal(266),
+                          event_hold_days=5, event_opt_in=opt_in)
+        return build_plate([n], cfg)
+
+    def test_results_in_five_days_is_held(self) -> None:
+        r = self._run("2026-10-23")
+        assert r.entries == [] and r.drops[0].reason == PlateDropReason.EVENT_HOLD
+        assert "5 day(s)" in r.drops[0].detail
+
+    def test_results_today_is_held(self) -> None:
+        assert self._run("2026-10-18").drops[0].reason == PlateDropReason.EVENT_HOLD
+
+    def test_six_days_out_is_bought(self) -> None:
+        assert [e.symbol for e in self._run("2026-10-24").entries] == ["INFY"]
+
+    def test_past_or_unknown_date_is_bought(self) -> None:
+        assert self._run("2026-07-23").entries and self._run(None).entries
+
+    def test_opt_in_buys_anyway(self) -> None:
+        assert self._run("2026-10-20", frozenset({"INFY"})).entries
