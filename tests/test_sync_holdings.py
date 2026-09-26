@@ -58,6 +58,20 @@ class TestSyncHoldingsCsv:
         finally:
             repo.close()
 
+    def test_csv_with_zerodha_rows_surfaces_open_question(self, db: Path,
+                                                          tmp_path: Path) -> None:
+        """Behaviour unchanged (CSV still writes ZERODHA_P) — only the advisory line
+        is added, because stopping it is Praveen's call."""
+        f = tmp_path / "household_equity_30sep2026.csv"
+        f.write_text(
+            "Stock,LTP,Total Qty,Kite-P Qty,Int-P Qty,Int-V Qty,Total Value,Overlap,Accounts\n"
+            "INFY,1000,9,9,0,0,9000.00,No,K\n"
+        )
+        r = run_sync_holdings_csv(db, f, fetch_prices=False)
+        assert any(q.startswith("OPEN QUESTION for Praveen:") and "ZERODHA_P" in q
+                   for q in r.open_questions)
+        assert "OPEN QUESTION for Praveen:" in format_sync(r)
+
     def test_session_written(self, db: Path) -> None:
         r = run_sync_holdings_csv(db, FIXTURES / "household_equity_05sep2026.csv",
                                   fetch_prices=False)

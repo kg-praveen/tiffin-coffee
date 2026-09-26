@@ -1,5 +1,6 @@
 .env
 *.token
+.kite_access.token
 __pycache__/
 .venv/
 .pytest_cache/
