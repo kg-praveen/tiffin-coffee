@@ -16,8 +16,17 @@ description: UC2.1 — "sync holdings", "pull my portfolio", "import this CSV". 
    - Kite symbols map to the register via the `names.yf_ticker` stem (RECLTD -> REC).
      Symbols not in `names` are kept under their Kite name and listed as UNKNOWN —
      tell Praveen about each one.
-   - If Kite returns an empty book while the register shows Zerodha holdings, nothing
-     is written (fail-closed). Say so; do not retry in a loop.
+   - If Kite returns an empty book while the register shows Zerodha holdings, or the
+     fetch fails, nothing is written (fail-closed) but a UC2_1_SYNC_HOLDINGS session
+     is still recorded (rows_written 0, the reason, NO ACTION). Say so; do not retry
+     in a loop.
+   - If Kite rejects the token (expired/invalid), the cached token is deleted and the
+     login URL is printed again — ask Praveen for a fresh request token as above.
+   - qty = settled `quantity` + `t1_quantity`; pledged `collateral_quantity` is not
+     counted and `used_quantity` is not subtracted. Relay every "OPEN QUESTION for
+     Praveen:" line verbatim — those are his decisions, not ours.
+   - "POSSIBLE RENAME" means a ZERODHA_P exit and an unknown Kite symbol appeared in
+     the same sync — ask Praveen whether it is one renamed name before trusting it.
 2. Integrated (no API): Praveen drops the household CSV; run
    `python -m usecases.sync_holdings csv <file>`. The Kite path never touches
    INTEGRATED_P / INTEGRATED_V.

@@ -77,6 +77,24 @@ def save_token(access_token: str, issued_on: str, token_file: Path = TOKEN_FILE)
     token_file.chmod(0o600)
 
 
+def clear_cached_token(token_file: Path = TOKEN_FILE) -> None:
+    """Delete the cached token (Kite rejected it: expired/invalid). Missing file is fine."""
+    token_file.unlink(missing_ok=True)
+
+
+def is_token_error(exc: BaseException) -> bool:
+    """True when `exc` is kiteconnect's TokenException (expired/invalid access token).
+
+    Lazy import so tests and the rest of the repo never need kiteconnect loaded; if the
+    package is absent, fall back to the class name (same fail-closed outcome: re-login).
+    """
+    try:
+        from kiteconnect.exceptions import TokenException  # type: ignore[import-untyped]
+    except ImportError:  # pragma: no cover - kiteconnect is a declared dependency
+        return type(exc).__name__ == "TokenException"
+    return isinstance(exc, TokenException)
+
+
 def load_cached_token(today: str, token_file: Path = TOKEN_FILE) -> str | None:
     """The cached token only if it was issued on `today` (IST); otherwise expired → None."""
     if not token_file.exists():
@@ -112,7 +130,19 @@ def exchange_request_token(
 # ---------------------------------------------------------------- holdings ---
 @dataclass(frozen=True)
 class KiteHolding:
-    """One Kite holdings row, E2-stamped. qty = settled quantity + T1 quantity."""
+    """One Kite holdings row, E2-stamped.
+
+    QUANTITY DECISION (sync-holdings skill step 1: "qty = settled + T1"):
+      qty = `quantity` + `t1_quantity`.
+      - `quantity` is the settled demat quantity; `t1_quantity` is bought but not yet
+        settled (T+1) — both are owned, so both count toward household weight/caps.
+      - `collateral_quantity` (shares pledged as margin collateral) is NOT added: Kite
+        reports it separately from `quantity`, and whether pledged shares count as
+        held is Praveen's call (see OPEN QUESTION in the sync output). Rows with
+        collateral are named in `KiteHoldingsSnapshot.pledged` so nothing is hidden.
+      - `used_quantity` (sold today / blocked for delivery) is NOT subtracted: the
+        snapshot is the demat position, a same-day sell shows up on the next sync.
+    """
 
     tradingsymbol: str
     exchange: str
@@ -126,6 +156,8 @@ class KiteHoldingsSnapshot:
     as_of: str
     source: str
     rows: list[KiteHolding] = field(default_factory=list)
+    # tradingsymbols with collateral_quantity or used_quantity > 0 (not in qty; reported)
+    pledged: list[str] = field(default_factory=list)
 
 
 def _to_holding(rec: dict[str, Any], as_of: str) -> KiteHolding:
@@ -148,7 +180,11 @@ def parse_holdings(raw: list[dict[str, Any]], as_of: str) -> KiteHoldingsSnapsho
     """kite.holdings() → stamped rows. Zero-quantity rows (fully sold) are skipped:
     the snapshot semantics record their exit (absence = sold)."""
     rows = [h for h in (_to_holding(r, as_of) for r in raw) if h.qty.value > 0]
-    return KiteHoldingsSnapshot(as_of=as_of, source=KITE_SOURCE, rows=rows)
+    pledged = sorted({
+        str(r["tradingsymbol"]).strip().upper() for r in raw
+        if int(r.get("collateral_quantity") or 0) > 0 or int(r.get("used_quantity") or 0) > 0
+    })
+    return KiteHoldingsSnapshot(as_of=as_of, source=KITE_SOURCE, rows=rows, pledged=pledged)
 
 
 def fetch_holdings(

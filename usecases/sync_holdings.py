@@ -72,6 +72,22 @@ class SyncResult:
     cap_breaches: list[str]
     unknown_symbols: list[str] = field(default_factory=list)   # Kite symbols not in names
     symbol_map: dict[str, str] = field(default_factory=dict)    # Kite → register, if renamed
+    possible_renames: list[str] = field(default_factory=list)   # exit + unknown, same sync
+    open_questions: list[str] = field(default_factory=list)     # Praveen's calls, surfaced
+
+
+# Advisory lines — decisions that are Praveen's, not the code's (CLAUDE.md "when the
+# spec is ambiguous, STOP and ask"). Behaviour stays as documented until he decides.
+OQ_PLEDGED = (
+    "OPEN QUESTION for Praveen: pledged/collateral shares (Kite collateral_quantity) are "
+    "NOT counted in ZERODHA_P qty (qty = quantity + t1_quantity). Should pledged shares "
+    "count as held for household weights and caps? Excluded until you decide."
+)
+OQ_CSV_ZERODHA = (
+    "OPEN QUESTION for Praveen: the household CSV import still writes ZERODHA_P rows even "
+    "though Kite is now the Zerodha source. Should the CSV stop writing ZERODHA_P? "
+    "Unchanged until you decide; whichever snapshot is newer wins per account+symbol."
+)
 
 
 def _pct(part: Decimal, whole: Decimal) -> Decimal:
@@ -176,13 +192,14 @@ def run_sync_holdings_csv(
         )
         exits = sum(1 for r in rows if r.qty == 0)
         v = _household_view(repo, fetch_prices)
+        oqs = [OQ_CSV_ZERODHA] if any(r.account == ZERODHA_ACCOUNT for r in snap.rows) else []
 
         repo.append_session(
             run_id=run_id, ran_at=now, usecase="UC2_1_SYNC_HOLDINGS",
             inputs={"csv": snap.source, "as_of": snap.as_of, "rows_written": written,
                     "exits_recorded": exits, "prices_fetched": v.prices_fetched,
                     "total_value_reported": str(snap.total_value_reported)},
-            outputs=_view_outputs(v),
+            outputs={**_view_outputs(v), "open_questions": oqs},
             drops=[], rules_fired=[f"cap:{b}" for b in v.breaches],
         )
         return SyncResult(
@@ -190,6 +207,7 @@ def run_sync_holdings_csv(
             rows_written=written, exits_recorded=exits, lines=v.lines,
             household_equity_priced=v.equity, total_value_reported=snap.total_value_reported,
             unpriced_symbols=v.unpriced, psu_weight_pct=v.psu_weight, cap_breaches=v.breaches,
+            open_questions=oqs,
         )
     finally:
         repo.close()
@@ -238,6 +256,38 @@ def _kite_import_rows(
     return [HoldingImportRow(ZERODHA_ACCOUNT, s, qty[s], cost[s]) for s in sorted(qty)]
 
 
+class KiteSyncRefused(RuntimeError):
+    """The Kite sync wrote no holdings (E9). The failure session is already appended;
+    `reason` is what was recorded. The original exception, if any, is `__cause__`."""
+
+    def __init__(self, reason: str, run_id: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.run_id = run_id
+
+
+def _append_refusal_session(repo: PattazRepo, run_id: str, ran_at: str, reason: str) -> None:
+    """CLAUDE.md §3 / E8: a run that wrote nothing still writes a session — source,
+    rows_written 0, the refusal reason, and the E9 verdict NO ACTION."""
+    repo.append_session(
+        run_id=run_id, ran_at=ran_at, usecase="UC2_1_SYNC_HOLDINGS",
+        inputs={"source": KITE_SOURCE, "account": ZERODHA_ACCOUNT, "rows_written": 0,
+                "exits_recorded": 0},
+        outputs={"verdict": "NO ACTION", "refused": reason},
+        drops=[], rules_fired=["E9:fail-closed"],
+    )
+
+
+def possible_renames(exited: Iterable[str], unknown: Iterable[str]) -> list[str]:
+    """A ZERODHA_P exit and an unknown Kite symbol in the same sync may be ONE name
+    renamed/re-listed (e.g. ZOMATO -> ETERNAL), not a sale plus a new buy. The code
+    cannot tell which, so it reports the pairing for Praveen to check (never merges)."""
+    ex, un = sorted(set(exited)), sorted(set(unknown))
+    if not ex or not un:
+        return []
+    return [f"exit(s) {', '.join(ex)} alongside unknown Kite symbol(s) {', '.join(un)}"]
+
+
 def run_sync_holdings_kite(
     db_path: str | Path,
     snapshot: KiteHoldingsSnapshot | None = None,
@@ -249,25 +299,36 @@ def run_sync_holdings_kite(
 
     Snapshot semantics as the CSV path (CLAUDE.md §3): a ZERODHA_P pair held before
     but absent from Kite gets a qty-0 row (recorded exit). INTEGRATED_P/INTEGRATED_V
-    are never touched here — they stay CSV-only. E9 fail-closed: an empty Kite answer
-    while the register still shows Zerodha holdings writes nothing and raises.
+    are never touched here — they stay CSV-only.
+
+    E9 fail-closed + E8/§3 session law: if the fetch raises (network, expired token)
+    or Kite answers empty while the register still shows Zerodha holdings, NO holdings
+    are written, a UC2_1_SYNC_HOLDINGS session (rows_written 0, the reason, NO ACTION)
+    is appended, and KiteSyncRefused is raised (chained to the original exception).
     """
-    if snapshot is None:
-        if fetch is None:
-            raise ValueError("run_sync_holdings_kite needs a snapshot or a fetch callable")
-        snapshot = fetch()
+    if snapshot is None and fetch is None:
+        raise ValueError("run_sync_holdings_kite needs a snapshot or a fetch callable")
     now = datetime.now(UTC).isoformat(timespec="seconds")
     run_id = f"UC2_1_{uuid.uuid4().hex[:12]}"
 
     repo = PattazRepo(db_path)
     try:
+        if snapshot is None and fetch is not None:
+            try:
+                snapshot = fetch()
+            except Exception as exc:
+                reason = f"Kite fetch failed ({type(exc).__name__}) — nothing written"
+                _append_refusal_session(repo, run_id, now, reason)
+                raise KiteSyncRefused(reason, run_id) from exc
         held_before = {p for p in repo.held_pairs() if p[0] == ZERODHA_ACCOUNT}
         if not snapshot.rows and held_before:
-            raise ValueError(
+            reason = (
                 f"Kite returned empty holdings but the register shows {len(held_before)} "
                 "ZERODHA_P names — refusing to record them all as exits (E9). Re-run, "
                 "or import the CSV if the account really is empty."
             )
+            _append_refusal_session(repo, run_id, now, reason)
+            raise KiteSyncRefused(reason, run_id)
         mapping, unknown = map_kite_symbols(
             [h.tradingsymbol for h in snapshot.rows], repo.load_names(),
         )
@@ -277,25 +338,32 @@ def run_sync_holdings_kite(
         written = repo.insert_holdings(
             [(r.account, r.symbol, r.qty, r.avg_cost) for r in rows], snap.as_of, KITE_SOURCE,
         )
-        exits = sum(1 for r in rows if r.qty == 0)
+        exited = [r.symbol for r in rows if r.qty == 0]
+        renames = possible_renames(exited, unknown)
+        oq_pledged = OQ_PLEDGED + (
+            f" Rows with collateral/used qty today: {', '.join(snapshot.pledged)}."
+            if snapshot.pledged else ""
+        )
+        oqs = [oq_pledged, OQ_CSV_ZERODHA]
         renamed = {k: v for k, v in mapping.items() if k != v}
         v = _household_view(repo, fetch_prices)
 
         repo.append_session(
             run_id=run_id, ran_at=now, usecase="UC2_1_SYNC_HOLDINGS",
             inputs={"source": KITE_SOURCE, "account": ZERODHA_ACCOUNT, "as_of": snap.as_of,
-                    "rows_written": written, "exits_recorded": exits,
+                    "rows_written": written, "exits_recorded": len(exited),
                     "prices_fetched": v.prices_fetched, "unknown_symbols": unknown,
-                    "symbol_map": renamed},
-            outputs=_view_outputs(v),
+                    "symbol_map": renamed, "pledged": snapshot.pledged},
+            outputs={**_view_outputs(v), "possible_renames": renames, "open_questions": oqs},
             drops=[], rules_fired=[f"cap:{b}" for b in v.breaches],
         )
         return SyncResult(
             run_id=run_id, ran_at=now, as_of=snap.as_of, source=KITE_SOURCE,
-            rows_written=written, exits_recorded=exits, lines=v.lines,
+            rows_written=written, exits_recorded=len(exited), lines=v.lines,
             household_equity_priced=v.equity, total_value_reported=None,
             unpriced_symbols=v.unpriced, psu_weight_pct=v.psu_weight, cap_breaches=v.breaches,
-            unknown_symbols=unknown, symbol_map=renamed,
+            unknown_symbols=unknown, symbol_map=renamed, possible_renames=renames,
+            open_questions=oqs,
         )
     finally:
         repo.close()
@@ -349,6 +417,9 @@ def format_sync(r: SyncResult) -> str:
             f"UNKNOWN KITE SYMBOLS ({len(r.unknown_symbols)}; recorded under the Kite "
             f"name, not in the names register): {', '.join(r.unknown_symbols)}"
         )
+    for pr in r.possible_renames:
+        L.append(f"POSSIBLE RENAME — check before trusting the exit: {pr}")
+    L.extend(r.open_questions)
     return "\n".join(L)
 
 
@@ -378,11 +449,22 @@ def _run_kite(args: argparse.Namespace) -> int:
             print(_ASK_FOR_LOGIN.format(url=kite.login_url(creds.api_key, factory=factory)))
             return 2
         token = cached
-    r = run_sync_holdings_kite(
-        args.db,
-        fetch=lambda: kite.fetch_holdings(creds.api_key, token, factory=factory, today=today),
-        fetch_prices=not args.no_prices,
-    )
+    try:
+        r = run_sync_holdings_kite(
+            args.db,
+            fetch=lambda: kite.fetch_holdings(creds.api_key, token, factory=factory,
+                                              today=today),
+            fetch_prices=not args.no_prices,
+        )
+    except KiteSyncRefused as exc:
+        print(f"NO ACTION — {exc.reason} (session {exc.run_id} recorded)")
+        if exc.__cause__ is not None and kite.is_token_error(exc.__cause__):
+            # Kite rejected the token (expired/invalid): forget it, ask for a new login.
+            kite.clear_cached_token(kite.TOKEN_FILE)
+            print("Kite rejected the access token (expired or invalid); cached token deleted.")
+            print(_ASK_FOR_LOGIN.format(url=kite.login_url(creds.api_key, factory=factory)))
+            return 2
+        raise
     print(format_sync(r))
     return 0
 

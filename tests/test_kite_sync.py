@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 import pytest
+from kiteconnect.exceptions import TokenException  # type: ignore[import-untyped]
 
 import tools.kite as kite
 from store.repo import PattazRepo
@@ -26,9 +27,11 @@ from tools.kite import (
     save_token,
 )
 from usecases.sync_holdings import (
+    KiteSyncRefused,
     format_sync,
     main,
     map_kite_symbols,
+    possible_renames,
     run_sync_holdings_kite,
 )
 
@@ -66,6 +69,14 @@ class FakeKite:
     def positions(self) -> dict[str, list[dict[str, Any]]]:
         FakeKite.calls.append("positions")
         return {"net": [], "day": []}
+
+
+class ExpiredKite(FakeKite):
+    """Kite answering with an expired/invalid access token."""
+
+    def holdings(self) -> list[dict[str, Any]]:
+        FakeKite.calls.append("holdings")
+        raise TokenException("Incorrect `api_key` or `access_token`.")
 
 
 @pytest.fixture(autouse=True)
@@ -115,6 +126,34 @@ class TestKiteAdapter:
         assert by["HDFCBANK"].qty.source == "KITE_API"
         assert by["HDFCBANK"].qty.as_of == TODAY
         assert "INFY" not in by                                    # qty 0 row: sold
+
+    def test_qty_decision_settled_plus_t1_only(self) -> None:
+        """Recorded decision (KiteHolding docstring): qty = quantity + t1_quantity;
+        collateral_quantity is NOT added and used_quantity is NOT subtracted — pledged
+        rows are named in `pledged` for Praveen's OPEN QUESTION."""
+        raw = [{"tradingsymbol": "ITC", "exchange": "NSE", "isin": "X", "quantity": 100,
+                "t1_quantity": 5, "collateral_quantity": 40, "used_quantity": 7,
+                "average_price": 400.0},
+               {"tradingsymbol": "NTPC", "exchange": "NSE", "isin": "Y", "quantity": 10,
+                "t1_quantity": 0, "collateral_quantity": 0, "used_quantity": 0,
+                "average_price": 300.0}]
+        snap = parse_holdings(raw, TODAY)
+        by = {h.tradingsymbol: h for h in snap.rows}
+        assert by["ITC"].qty.value == 105
+        assert by["NTPC"].qty.value == 10
+        assert snap.pledged == ["ITC"]
+        assert parse_holdings(RAW, TODAY).pledged == []
+
+    def test_clear_cached_token(self, tmp_path: Path) -> None:
+        tf = tmp_path / ".kite_access.token"
+        save_token("T", TODAY, tf)
+        kite.clear_cached_token(tf)
+        assert not tf.exists()
+        kite.clear_cached_token(tf)                                # missing: no error
+
+    def test_is_token_error(self) -> None:
+        assert kite.is_token_error(TokenException("expired"))
+        assert not kite.is_token_error(ConnectionError("x"))
 
     def test_fetch_holdings_reads_only(self) -> None:
         snap = fetch_holdings("key1", "ACCESS_TODAY", factory=FakeKite, today=TODAY)
@@ -183,6 +222,19 @@ def _newest(db: Path) -> dict[tuple[str, str], tuple[int, str, str]]:
         repo.close()
 
 
+def _session(db: Path, run_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    repo = PattazRepo(db)
+    try:
+        row = repo._con.execute(
+            "SELECT usecase, inputs_json, outputs_json FROM sessions WHERE run_id = ?",
+            (run_id,),
+        ).fetchone()
+    finally:
+        repo.close()
+    assert row is not None and row["usecase"] == "UC2_1_SYNC_HOLDINGS"
+    return json.loads(row["inputs_json"]), json.loads(row["outputs_json"])
+
+
 class TestRunSyncHoldingsKite:
     def test_writes_zerodha_snapshot_with_exits(self, scratch_db: Path) -> None:
         before = _newest(scratch_db)
@@ -237,10 +289,70 @@ class TestRunSyncHoldingsKite:
     def test_empty_kite_snapshot_fails_closed(self, scratch_db: Path) -> None:
         """E9: an empty API answer must not zero the whole Zerodha book silently."""
         before = _newest(scratch_db)
-        with pytest.raises(ValueError, match="empty"):
+        with pytest.raises(KiteSyncRefused, match="empty") as ei:
             run_sync_holdings_kite(scratch_db, snapshot=parse_holdings([], TODAY),
                                    fetch_prices=False)
         assert _newest(scratch_db) == before
+        # CLAUDE.md §3 / E8: the refusal still appends a session (NO ACTION)
+        inputs, outputs = _session(scratch_db, ei.value.run_id)
+        assert inputs["source"] == "KITE_API" and inputs["rows_written"] == 0
+        assert outputs["verdict"] == "NO ACTION"
+        assert "empty" in str(outputs["refused"])
+
+    def test_fetch_exception_fails_closed_with_session(self, scratch_db: Path) -> None:
+        before = _newest(scratch_db)
+
+        def boom() -> Any:
+            raise ConnectionError("network down")
+
+        with pytest.raises(KiteSyncRefused, match="ConnectionError") as ei:
+            run_sync_holdings_kite(scratch_db, fetch=boom, fetch_prices=False)
+        assert isinstance(ei.value.__cause__, ConnectionError)
+        assert _newest(scratch_db) == before
+        inputs, outputs = _session(scratch_db, ei.value.run_id)
+        assert inputs["rows_written"] == 0 and outputs["verdict"] == "NO ACTION"
+
+    def test_token_exception_fails_closed_with_session(self, scratch_db: Path) -> None:
+        before = _newest(scratch_db)
+        with pytest.raises(KiteSyncRefused, match="TokenException") as ei:
+            run_sync_holdings_kite(
+                scratch_db,
+                fetch=lambda: fetch_holdings("key1", "STALE", factory=ExpiredKite, today=TODAY),
+                fetch_prices=False,
+            )
+        assert kite.is_token_error(ei.value.__cause__)  # type: ignore[arg-type]
+        assert _newest(scratch_db) == before
+        _, outputs = _session(scratch_db, ei.value.run_id)
+        assert outputs["verdict"] == "NO ACTION"
+
+    def test_possible_rename_reported(self, scratch_db: Path) -> None:
+        """A ZERODHA_P exit and an unknown symbol in one sync → POSSIBLE RENAME line."""
+        r = run_sync_holdings_kite(scratch_db, snapshot=parse_holdings(RAW, TODAY),
+                                   fetch_prices=False)
+        assert len(r.possible_renames) == 1
+        assert "INFY" in r.possible_renames[0] and "ETERNAL" in r.possible_renames[0]
+        out = format_sync(r)
+        assert "POSSIBLE RENAME" in out
+        _, outputs = _session(scratch_db, r.run_id)
+        assert outputs["possible_renames"] == r.possible_renames
+
+    def test_possible_renames_needs_both_sides(self) -> None:
+        assert possible_renames([], ["ETERNAL"]) == []
+        assert possible_renames(["ZOMATO"], []) == []
+        assert possible_renames(["ZOMATO"], ["ETERNAL"]) == [
+            "exit(s) ZOMATO alongside unknown Kite symbol(s) ETERNAL"
+        ]
+
+    def test_open_questions_printed_and_recorded(self, scratch_db: Path) -> None:
+        r = run_sync_holdings_kite(scratch_db, snapshot=parse_holdings(RAW, TODAY),
+                                   fetch_prices=False)
+        out = format_sync(r)
+        oq = [ln for ln in out.splitlines() if ln.startswith("OPEN QUESTION for Praveen:")]
+        assert len(oq) == 2
+        assert any("pledged" in ln for ln in oq)
+        assert any("CSV" in ln and "ZERODHA_P" in ln for ln in oq)
+        _, outputs = _session(scratch_db, r.run_id)
+        assert outputs["open_questions"] == r.open_questions
 
     def test_needs_snapshot_or_fetch(self, scratch_db: Path) -> None:
         with pytest.raises(ValueError):
@@ -289,3 +401,44 @@ class TestCli:
         assert rc == 2
         assert "request_token" in capsys.readouterr().out
         assert "holdings" not in FakeKite.calls
+
+    def test_expired_token_clears_cache_and_asks_for_login(
+        self, scratch_db: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Kite TokenException → session recorded, cached token deleted, login URL
+        printed again, request token asked for; nothing written (E9)."""
+        tf = tmp_path / ".kite_access.token"
+        save_token("STALE", TODAY, tf)
+        monkeypatch.setattr(kite, "load_credentials", lambda *a, **k: CREDS)
+        monkeypatch.setattr(kite, "_default_factory", ExpiredKite)
+        monkeypatch.setattr(kite, "TOKEN_FILE", tf)
+        monkeypatch.setattr(kite, "ist_today", lambda: TODAY)
+        before = _newest(scratch_db)
+        rc = main(["--db", str(scratch_db), "kite", "--no-prices"])
+        assert rc == 2
+        assert not tf.exists()
+        out = capsys.readouterr().out
+        assert "NO ACTION" in out
+        assert "request_token" in out and "api_key=key1" in out
+        assert "STALE" not in out                                   # token never printed
+        assert FakeKite.calls == ["holdings", "login_url"]
+        assert _newest(scratch_db) == before
+
+    def test_non_token_failure_reraises(
+        self, scratch_db: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        tf = tmp_path / ".kite_access.token"
+        save_token("ACCESS_TODAY", TODAY, tf)
+
+        class DownKite(FakeKite):
+            def holdings(self) -> list[dict[str, Any]]:
+                raise ConnectionError("down")
+
+        monkeypatch.setattr(kite, "load_credentials", lambda *a, **k: CREDS)
+        monkeypatch.setattr(kite, "_default_factory", DownKite)
+        monkeypatch.setattr(kite, "TOKEN_FILE", tf)
+        monkeypatch.setattr(kite, "ist_today", lambda: TODAY)
+        with pytest.raises(KiteSyncRefused):
+            main(["--db", str(scratch_db), "kite", "--no-prices"])
+        assert tf.exists()                                          # token kept
