@@ -70,3 +70,18 @@ breadth outside 8-15). `what-if` shows today's plate against the shocked one, na
 name. `--live` shocks today's live market instead of the recording; `record` saves a
 new recording (commit it deliberately — it becomes the CI baseline). One
 `UC5_SIMULATION` session is written per run; simulated plates are never UC2 sessions.
+
+## Usage — OSEP analyser (UC4)
+
+```bash
+uv run python -m usecases.osep analyse RSYSTEMS
+```
+
+```bash
+uv run python -m usecases.osep rederive
+```
+
+`analyse` gives the verdict (good buy now / later / hard pass / incomplete), the trigger
+and its expiry. Judgments the data can't answer are researched in chat and recorded with
+`judge SYMBOL <item> <value> --source "..."`; `apply SYMBOL --reason "..."` records a
+verdict only after Praveen agrees. `rederive` recomputes every trigger after results.

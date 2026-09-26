@@ -143,6 +143,75 @@ class PattazRepo:
 
     # --- policy ---
 
+    # ---------------------------------------------------------------- UC4 OSEP ---
+
+    def load_judgments(self, symbol: str) -> dict[str, tuple[str, str, str]]:
+        """item → (value, source, as_of)."""
+        rows = self._con.execute(
+            "SELECT item, value, source, as_of FROM osep_judgments WHERE symbol = ?",
+            (symbol,)).fetchall()
+        return {r["item"]: (r["value"], r["source"], r["as_of"]) for r in rows}
+
+    def save_judgment(self, symbol: str, item: str, value: str, source: str,
+                      as_of: str) -> None:
+        self._con.execute(
+            "INSERT OR REPLACE INTO osep_judgments VALUES (?,?,?,?,?)",
+            (symbol, item, value, source, as_of))
+        self._con.commit()
+
+    def log_verdict(self, run_id: str, symbol: str, decided_on: str, old_bucket: str | None,
+                    new_bucket: str, thesis_type: str | None, trigger: Decimal | None,
+                    expiry: str | None, reason: str) -> None:
+        """Append-only (osep v7: verdict changes are first-class, never overwritten)."""
+        self._con.execute(
+            "INSERT INTO osep_verdicts VALUES (?,?,?,?,?,?,?,?,?)",
+            (run_id, symbol, decided_on, old_bucket, new_bucket, thesis_type,
+             float(trigger) if trigger is not None else None, expiry, reason))
+        self._con.commit()
+
+    def load_verdict_log(self, symbol: str) -> list[sqlite3.Row]:
+        return self._con.execute(
+            "SELECT * FROM osep_verdicts WHERE symbol = ? ORDER BY decided_on, run_id",
+            (symbol,)).fetchall()
+
+    def apply_verdict(self, symbol: str, name: str, yf_ticker: str | None,
+                      sector_class: str | None, bucket: str, verdict_date: str,
+                      expiry: str | None, thesis_type: str | None,
+                      trigger: Decimal | None, derivation: str) -> None:
+        """Record an approved OSEP verdict: names row (created WATCH if new) and the BUY
+        trigger (upserted, or retired on HARD PASS). Status stays Praveen's call."""
+        exists = self._con.execute("SELECT 1 FROM names WHERE symbol = ?",
+                                   (symbol,)).fetchone()
+        if not exists:
+            self._con.execute(
+                "INSERT INTO names (symbol, name, yf_ticker, ticker_verified, cell, "
+                "sector_class, classified_on, classification_source, status, bucket, "
+                "verdict_date, decay_expiry, as_of, thesis_type) "
+                "VALUES (?,?,?,0,NULL,?,?,?,'WATCH',?,?,?,?,?)",
+                (symbol, name, yf_ticker, sector_class, verdict_date, "UC4 OSEP (§SC)",
+                 bucket, verdict_date, expiry, verdict_date, thesis_type))
+        else:
+            self._con.execute(
+                "UPDATE names SET bucket = ?, verdict_date = ?, decay_expiry = ?, "
+                "thesis_type = ?, as_of = ? WHERE symbol = ?",
+                (bucket, verdict_date, expiry, thesis_type, verdict_date, symbol))
+        if bucket == "HARD_PASS" or trigger is None:
+            self._con.execute(
+                "UPDATE triggers SET active = 0, notes = ? WHERE symbol = ? AND kind = 'BUY'",
+                (f"retired by UC4 verdict {bucket} {verdict_date}", symbol))
+        else:
+            self._con.execute(
+                "INSERT INTO triggers (symbol, kind, level, basis_eps_date, derivation, "
+                "set_on, valid_until, gtt_id, active, notes) "
+                "VALUES (?, 'BUY', ?, ?, ?, ?, ?, NULL, 1, ?) "
+                "ON CONFLICT(symbol, kind) DO UPDATE SET level = excluded.level, "
+                "basis_eps_date = excluded.basis_eps_date, derivation = excluded.derivation, "
+                "set_on = excluded.set_on, valid_until = excluded.valid_until, active = 1, "
+                "notes = excluded.notes",
+                (symbol, float(trigger), verdict_date, derivation, verdict_date, expiry,
+                 f"UC4 OSEP {bucket} {verdict_date}"))
+        self._con.commit()
+
     def caps_off_waivers_on(self, day: str) -> dict[str, str]:
         """symbol → decision for waivers valid on `day` (migration 009); {} on older DBs."""
         try:

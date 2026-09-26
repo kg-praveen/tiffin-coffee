@@ -32,7 +32,8 @@ CREATE TABLE names (
   flag_no_add       INTEGER NOT NULL DEFAULT 0,-- hold-only / museum: builds blocked, first-bite allowed
   nse_sector        TEXT,                      -- NSE's official "Industry" (migration 005); NULL = not in NSE list
   nse_sector_as_of  TEXT,                      -- date of the db/reference/nse_industry_*.csv used
-  brand_owned       INTEGER CHECK (brand_owned IN (0, 1)) -- FMCG brand gate (migration 006); NULL = not recorded
+  brand_owned       INTEGER CHECK (brand_owned IN (0, 1)), -- FMCG brand gate (migration 006); NULL = not recorded
+  thesis_type       TEXT                       -- P3 thesis type from the last applied OSEP verdict (migration 010)
 );
 
 -- Trigger board. A trigger is ARMABLE only if active=1 AND basis_eps_date is fresh (E3).
@@ -113,6 +114,28 @@ CREATE TABLE caps_off_waivers (
   decision  TEXT NOT NULL,
   note      TEXT,
   PRIMARY KEY (symbol, valid_on)
+);
+
+-- UC4 OSEP (migration 010): chat-researched judgments with sources; verdict change log.
+CREATE TABLE osep_judgments (
+  symbol   TEXT NOT NULL,
+  item     TEXT NOT NULL,
+  value    TEXT NOT NULL,
+  source   TEXT NOT NULL,
+  as_of    TEXT NOT NULL,
+  PRIMARY KEY (symbol, item)
+);
+CREATE TABLE osep_verdicts (
+  run_id      TEXT NOT NULL,
+  symbol      TEXT NOT NULL,
+  decided_on  TEXT NOT NULL,
+  old_bucket  TEXT,
+  new_bucket  TEXT NOT NULL,
+  thesis_type TEXT,
+  trigger     REAL,
+  expiry      TEXT,
+  reason      TEXT NOT NULL,
+  PRIMARY KEY (run_id, symbol)
 );
 
 -- Decision register mirror (the ledger's D-register; narrative stays in Drive).
