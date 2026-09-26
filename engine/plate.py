@@ -53,6 +53,8 @@ class PlateDropReason(Enum):
     E6_CAPS_OFF_CONFLICT = "first-bite blocked only by cell/P cap — §12b caps-off unresolved"
     E6_PEAK_CYCLE_CONFLICT = "register says ADD but name is flagged cyclical — peak test unresolved"
     REVIEW_FIRST = "register marks this name don't-buy — analyse and approve before any buy"
+    BRAND_NOT_OWNED = "FMCG: the company does not own its brand (osep §G hard gate)"
+    BRAND_UNVERIFIED = "FMCG: brand ownership not recorded — confirm before any buy"
     SCORE_ZERO = "score is zero after HxLxP"
     STATUS_BLOCKED = "name status blocks adds"
     EXIT_DECIDED = "on the sell list (overlay #7)"
@@ -114,6 +116,7 @@ class NameInput:
     flag_no_add: bool = False
     owned_per_book: bool = False
     register_note: str = ""
+    brand_owned: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -311,6 +314,10 @@ def check_quality_overlays(
     if n.flag_sovereign:
         return PlateDropReason.SOVEREIGN
 
+    brand = check_brand_ownership(n)
+    if brand is not None:
+        return brand
+
     if n.flag_cyclical:
         # Overlay #3 bars a cyclical AT PEAK MARGINS (tiffin v6 §overlays row 3); the
         # flag only says "cyclical". A register ADD (Chambal D59/D61) vs the overlay is
@@ -337,6 +344,23 @@ def check_quality_overlays(
     if n.decay_expiry is not None and n.decay_expiry < config.today:
         return PlateDropReason.DECAY_EXPIRED
 
+    return None
+
+
+# osep v7 §G FMCG/CONSUMER-BRAND: "HARD GATE: the company must OWN its brand" (VBL/Pepsi
+# worked case: "contract termination = business death"). Defined once (E7).
+BRAND_GATE_SECTORS = frozenset({"FMCG"})
+
+
+def check_brand_ownership(n: NameInput) -> PlateDropReason | None:
+    """Brand gate for FMCG names: not owned → hard fail; not recorded → fail closed
+    and raise for Praveen (E4: never classify from memory; E9: no guess to a buy)."""
+    if n.sector_class not in BRAND_GATE_SECTORS:
+        return None
+    if n.brand_owned is False:
+        return PlateDropReason.BRAND_NOT_OWNED
+    if n.brand_owned is None:
+        return PlateDropReason.BRAND_UNVERIFIED
     return None
 
 
@@ -381,6 +405,8 @@ _OVERLAY_WHAT_WOULD_CHANGE: dict[PlateDropReason, str] = {
     PlateDropReason.NEVER_ADD: "register change (pattaz-book §8)",
     PlateDropReason.FRAUD_TAIL: "legacy tail cleared in the register",
     PlateDropReason.DECAY_EXPIRED: "re-underwrite (GBN 30d / GBL 90d decay)",
+    PlateDropReason.BRAND_NOT_OWNED: "never while the brand belongs to someone else",
+    PlateDropReason.BRAND_UNVERIFIED: "Praveen confirms who owns the brand (names.brand_owned)",
 }
 
 

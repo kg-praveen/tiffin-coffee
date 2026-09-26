@@ -2,7 +2,29 @@
 
 All notable changes to tiffin-coffee-app. Conventional commits; one concern per PR.
 
-## [Unreleased] — branch `feat/sector-scenarios`
+## [Unreleased] — branch `feat/brand-gate-and-result-date`
+
+### 2026-09-26 — FMCG brand-ownership gate; triggers disarm after new results
+
+**1. Brand gate** — osep v7 §G FMCG/CONSUMER-BRAND: "HARD GATE: the company must OWN
+its brand" (VBL/Pepsi). `engine/plate.py check_brand_ownership`: FMCG name that does
+not own its brand → `BRAND_NOT_OWNED` (never bought); ownership not recorded →
+`BRAND_UNVERIFIED` (fail closed, listed as BRAND CHECK for Praveen — E4: never
+classified from memory). **db migration 006** `names.brand_owned` (1/0/NULL): only VBL
+= 0 is stated; every other FMCG name waits for Praveen. Applied to the live register
+(sessions kept). Golden 20-Sep: ITC still refused, now as BRAND_UNVERIFIED.
+**2. Results date (E3)** — "armable only on a fresh-EPS basis younger than the last
+result". `engine/morning_board.py check_basis_fresh` (used by UC1 and UC2):
+basis older than the latest results → `STALE_BASIS`; results date unknown →
+`RESULT_DATE_UNKNOWN` (fail closed). `tools/results_dates.py` fetches past and
+scheduled results dates (Yahoo). Market recordings now carry them; the 25-Sep
+recording was extended (106 stocks; ETFs have none).
+UC5: new scenario `results_dates_down`; `clock_+45d` now crosses the October results
+and disarms the 1-Sep triggers (0 fire). Acceptance: cases 04 and 16 now pass (19/22).
+Live check 26-Sep: M&M disarmed — Yahoo lists M&M results on 10-Sep, after its 1-Sep
+basis. Yahoo's M&M dates look irregular; verify before re-deriving.
+
+## 2026-09-26 — sector crashes + NSE sectors (PR #8)
 
 ### 2026-09-26 — crash test for every sector; NSE's official sector on every stock
 

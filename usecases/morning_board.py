@@ -24,6 +24,7 @@ from engine.morning_board import (
 )
 from store.repo import NameRow, PattazRepo, TriggerRow
 from tools.prices import PriceSnapshot, fetch_price
+from tools.results_dates import BatchResultDates, fetch_result_dates_batch
 from tools.stamped import Stamped
 
 
@@ -60,6 +61,7 @@ def run_morning_board(
     fetch_prices: bool = True,
     *,
     prices: dict[str, PriceSnapshot] | None = None,
+    results: BatchResultDates | None = None,
     today: str | None = None,
     record_session: bool = True,
 ) -> BoardResult:
@@ -84,6 +86,13 @@ def run_morning_board(
         armable_triggers: list[TriggerRow] = []
         not_armable: list[ArmabilityResult] = []
 
+        # E3: latest results dates (replay passes them; a live run fetches them)
+        if results is None:
+            tickers = sorted({names_map[t.symbol].yf_ticker or "" for t in all_triggers
+                              if t.symbol in names_map and names_map[t.symbol].yf_ticker})
+            results = (fetch_result_dates_batch(tickers) if fetch_prices and prices is None
+                       else BatchResultDates())
+
         for t in all_triggers:
             name = names_map.get(t.symbol)
             if name is None:
@@ -104,6 +113,7 @@ def run_morning_board(
                 yf_ticker=name.yf_ticker,
                 name_status=name.status,
                 flag_exit_decided=name.flag_exit_decided,
+                result_dates=_dates_for(results, name.yf_ticker or t.symbol),
             )
 
             if result.armable:
@@ -222,6 +232,11 @@ def run_morning_board(
         )
     finally:
         repo.close()
+
+
+def _dates_for(results: BatchResultDates, ticker: str) -> tuple[str, ...] | None:
+    st = results.dates.get(ticker.removesuffix(".NS"))
+    return st.value if st is not None else None
 
 
 def format_board(result: BoardResult) -> str:

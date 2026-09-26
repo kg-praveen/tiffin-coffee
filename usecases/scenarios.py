@@ -17,6 +17,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from tools.fundamentals import BatchFundamentalsResult, FundamentalsSnapshot
 from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot
+from tools.results_dates import BatchResultDates
 from tools.stamped import Stamped
 
 # Shock sizes quoted from the spec (tiffin v6 §H HOCKEY: "Nifty -5% wk / name -10% day").
@@ -115,6 +116,12 @@ def drop_fundamentals(snap: MarketSnapshot, tag: str) -> MarketSnapshot:
     failures = dict(snap.fundamentals.failures)
     failures.update({s: f"sim:{tag} — fundamentals down" for s in snap.fundamentals.fundamentals})
     return replace(snap, fundamentals=BatchFundamentalsResult(fundamentals={}, failures=failures))
+
+
+def drop_result_dates(snap: MarketSnapshot, tag: str) -> MarketSnapshot:
+    """Results-dates feed down: no trigger can prove a fresh basis (E3 → fail closed)."""
+    failures = {s: f"sim:{tag} — results dates down" for s in snap.results.dates}
+    return replace(snap, results=BatchResultDates(dates={}, failures=failures))
 
 
 def shift_gsec(snap: MarketSnapshot, bp: Decimal | None, tag: str,
@@ -216,6 +223,9 @@ def build_catalog(ctx: SimContext) -> list[Scenario]:
                  lambda s, _c: drop_prices(s, _every_third(s), "partial")),
         Scenario("fundamentals_down", "No P/E, P/B or ROE for anyone",
                  "E9 — valuation gates fail closed", lambda s, _c: drop_fundamentals(s, "fund")),
+        Scenario("results_dates_down", "No results dates — no trigger can be armed",
+                 "E3/E9 basis freshness fails closed",
+                 lambda s, _c: drop_result_dates(s, "results")),
         Scenario("bees_missing", "NIFTYBEES unpriced — no floor sweep possible",
                  "tiffin v6 §BeES floor", lambda s, _c: drop_prices(
                      s, lambda x: x == "NIFTYBEES", "bees")),

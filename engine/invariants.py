@@ -18,6 +18,7 @@ from decimal import Decimal
 from enum import Enum
 
 from engine.plate import (
+    BRAND_GATE_SECTORS,
     REVIEW_FIRST_BUCKETS,
     NameInput,
     PlateConfig,
@@ -110,6 +111,8 @@ def inv_no_banned_entry(names: list[NameInput], result: PlateResult,
             ("PSU cap breached", n.flag_psu
              and config.psu_weight_pct >= config.cap_psu_regulated_pct),
             (f"register bucket {n.bucket} (review first)", n.bucket in REVIEW_FIRST_BUCKETS),
+            ("FMCG brand not owned / not recorded",
+             n.sector_class in BRAND_GATE_SECTORS and n.brand_owned is not True),
         ) if bad]
         if why:
             out.append(Check("NO_BANNED_ENTRY", Severity.VIOLATION, e.symbol, ", ".join(why)))

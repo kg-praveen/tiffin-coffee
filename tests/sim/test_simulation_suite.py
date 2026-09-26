@@ -89,6 +89,21 @@ def test_canara_is_raised_for_review_not_bought(suite: SimulationResult) -> None
         assert o.drops_by_reason.get("REVIEW_FIRST", 0) >= 1
 
 
+def test_results_dates_down_arms_no_trigger(suite: SimulationResult) -> None:
+    """E3/E9: without results dates no basis is provably fresh — nothing fires, and
+    only first bites (which need no trigger) can reach a plate."""
+    for o in _outcomes(suite, "results_dates_down"):
+        assert o.fired == ()
+        assert all(e.is_first_bite for e in o.entries)
+
+
+def test_stale_basis_after_october_results(suite: SimulationResult) -> None:
+    """clock +45d crosses the October results: 1-Sep triggers go stale and disarm."""
+    base = _outcomes(suite, "baseline")[0]
+    late = _outcomes(suite, "clock_+45d")[0]
+    assert len(late.fired) < len(base.fired)
+
+
 def test_bees_missing_means_no_sweep(suite: SimulationResult) -> None:
     for o in _outcomes(suite, "bees_missing"):
         assert o.sweep_qty == 0
