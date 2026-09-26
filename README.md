@@ -71,6 +71,24 @@ name. `--live` shocks today's live market instead of the recording; `record` sav
 new recording (commit it deliberately — it becomes the CI baseline). One
 `UC5_SIMULATION` session is written per run; simulated plates are never UC2 sessions.
 
+## Usage — plate ranker (UC3)
+
+Builds the plates the rules let you choose between — the amount you asked, the ticket
+band bottom and top (policy `ticket_band_min`/`max`), and, when breadth is above 15,
+the same plate with the bottom-scoring names left off (tiffin v6 §BREADTH TARGET).
+Each is a real `build_plate` run checked by every law; a variant that breaks one is
+thrown out. The rest are ranked in the order set by policy `ranker_criteria_order`
+(migration 014): in the ticket band → no raised budget → breadth 8-15 → least left
+over. Ties go to the smaller ticket.
+
+```bash
+uv run python -m usecases.ranker --amount 7500                # newest recording
+uv run python -m usecases.ranker --amount 7500 --live         # today's market
+```
+
+Verdict first (BEST and why), then the variants side by side and what each buys. One
+`UC3_RANKER` session is written (`--no-session` to skip). Proposal only.
+
 ## Usage — OSEP analyser (UC4)
 
 ```bash

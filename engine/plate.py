@@ -73,6 +73,9 @@ class PlateDropReason(Enum):
     PRICE_FETCH_FAILED = "price fetch failed this run"
     P_BLOCKED = "P-tier is BLOCKED (at cap/target)"
     NO_TICKER = "no yf_ticker — cannot fetch price"
+    # UC3 ranker only (engine/ranker.py): tiffin v6 §BREADTH TARGET "more than 15 means
+    # the ticket is too thin (raise the session or drop the bottom-scoring names)".
+    BREADTH_TRIMMED = "breadth above the ceiling — bottom-scoring name left off this variant"
 
 
 # --------------------------------------------------------------- inputs ---
