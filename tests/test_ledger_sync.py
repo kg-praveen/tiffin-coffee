@@ -76,6 +76,7 @@ def test_v410_matches_register(reg: Path, tmp_path: Path) -> None:
     assert rep.version == "4.10" and rep.ledger_date == "2026-09-26"
     assert rep.new_decisions == []
     assert rep.register_ahead == [69, 70]           # D69/D70 went straight to the register
+    assert rep.declared_unread == []                # every D1-D68 number was read
     assert rep.trigger_changes == []
     assert rep.cell_diffs == []
     assert rep.draft_path is None                   # nothing unambiguous to draft
@@ -203,3 +204,97 @@ def test_migration_011_survives_seed_build_style(tmp_path: Path) -> None:
     con.close()
     assert all(p.parent == root / "migrations"
                for p in (root / "migrations").glob("*.sql"))
+
+
+# ------------------------------------------------- review fixes (fix/ledger-sync) ---
+
+def _variant(folder: Path, *pairs: tuple[str, str]) -> Path:
+    """A v4.10 copy with text replacements (each `old` must be present)."""
+    t = V410.read_text()
+    for old, new in pairs:
+        assert old in t, old
+        t = t.replace(old, new)
+    p = folder / V410.name
+    p.write_text(t)
+    return p
+
+
+def test_conflicting_ledger_levels_halt_not_drafted(reg: Path, tmp_path: Path) -> None:
+    """E6: the same register trigger row read at two ledger levels -> review, no draft."""
+    led = _variant(tmp_path, ("· NTPC 407 ·", "· NTPC 407 · NTPC 400 ·"))
+    rep = run_ledger_sync(reg, file=led, drafts_dir=tmp_path / "drafts")
+    assert all(c.symbol != "NTPC" for c in rep.trigger_changes)
+    assert all(c.symbol != "NTPC" for c in rep.compared)
+    conflict = [r for r in rep.trigger_review if r.symbol == "NTPC"]
+    assert [r.reason for r in conflict] == ["LEDGER_CONFLICT"]
+    assert rep.draft_path is None
+    assert "NTPC" in format_report(rep)
+
+
+def test_repeated_equal_ledger_level_compares_once(reg: Path, tmp_path: Path) -> None:
+    led = _variant(tmp_path, ("· NTPC 407 ·", "· NTPC 407 · NTPC 407 ·"))
+    rep = run_ledger_sync(reg, file=led, drafts_dir=tmp_path / "drafts")
+    assert [c.symbol for c in rep.compared].count("NTPC") == 1
+    assert all(r.symbol != "NTPC" for r in rep.trigger_review)
+
+
+def test_register_row_newer_than_ledger_is_not_reverted(reg: Path, tmp_path: Path) -> None:
+    """E3: a register level set after the ledger date is never drafted back to the
+    older ledger level — it goes to review instead."""
+    con = sqlite3.connect(reg)
+    con.execute("UPDATE triggers SET set_on='2026-09-27' WHERE symbol='NTPC' AND kind='BUY'")
+    con.commit()
+    con.close()
+    led = _variant(tmp_path, ("· NTPC 407 ·", "· NTPC 400 ·"))
+    rep = run_ledger_sync(reg, file=led, drafts_dir=tmp_path / "drafts")
+    assert all(c.symbol != "NTPC" for c in rep.trigger_changes)
+    assert [r.reason for r in rep.trigger_review if r.symbol == "NTPC"] == ["REGISTER_NEWER"]
+    assert rep.draft_path is None
+
+
+def test_declared_but_unread_decisions_are_flagged(reg: Path, tmp_path: Path) -> None:
+    """A D-number inside the ledger's declared range that the parser could not read is
+    shown as unread — never reported as 'register ahead', never 'in step'."""
+    led = _variant(tmp_path, ("· D48 WIPRO", "· X48 WIPRO"))
+    rep = run_ledger_sync(reg, file=led, drafts_dir=tmp_path / "drafts")
+    assert rep.declared_unread == [48]
+    assert 48 not in rep.register_ahead
+    text = format_report(rep)
+    assert "in step" not in text
+    assert "D48" in text
+
+
+def test_explicit_symbol_not_in_register_is_unknown(reg: Path, tmp_path: Path) -> None:
+    led = _variant(tmp_path, ("★ R SYSTEMS (RSYSTEMS)", "★ R SYSTEMS (RSYSX)"))
+    rep = run_ledger_sync(reg, file=led, drafts_dir=tmp_path / "drafts")
+    assert "R SYSTEMS" in {u.ledger_name for u in rep.unknown_names}
+    assert all(r.symbol != "RSYSX" for r in rep.trigger_review)
+
+
+def test_session_row_carries_every_unused_item(reg: Path, tmp_path: Path) -> None:
+    """E8: the session row holds the same review / unread lists the report prints."""
+    rep = run_ledger_sync(reg, file=_v411(tmp_path), drafts_dir=tmp_path / "drafts")
+    _u, outputs, drops = _sessions(reg)[-1]
+    out = json.loads(outputs)
+    assert out["unparsed"] == rep.unparsed
+    assert out["unmatched_mentions"] == rep.unmatched_mentions
+    assert out["cell_unclear"] == rep.cell_unclear
+    assert out["declared_unread"] == rep.declared_unread
+    reasons = {d["reason"] for d in json.loads(drops)}
+    assert {"NOT_IN_REGISTER", "AMBIGUOUS_NAME", "NO_REGISTER_TRIGGER"} <= reasons
+
+
+def test_unreadable_file_fails_closed_and_logs(reg: Path, tmp_path: Path,
+                                               monkeypatch: pytest.MonkeyPatch) -> None:
+    import usecases.ledger_sync as uc
+
+    def boom(_p: object) -> object:
+        raise OSError("permission denied")
+
+    monkeypatch.setattr(uc, "parse_ledger", boom)
+    before = len(_sessions(reg))
+    rep = run_ledger_sync(reg, file=V410, drafts_dir=tmp_path / "drafts")
+    assert rep.error is not None and "permission denied" in rep.error
+    assert rep.draft_path is None
+    assert len(_sessions(reg)) == before + 1
+    assert format_report(rep).splitlines()[1].startswith("NO ACTION")

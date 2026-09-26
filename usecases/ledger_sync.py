@@ -43,6 +43,9 @@ DRAFT_HEADER = "-- DRAFT — review before applying"
 _LEVEL_KINDS = ("BUY", "CRASH_SHELF", "NEXT_BUY")
 _RULES = ["LEDGER_POINTER_RULE_NEWEST", "D66_LEDGER_TRIGGERS_AUTHORITATIVE",
           "D56_REGISTER_WINS_UNTIL_APPLIED", "DRAFT_NEVER_AUTO_APPLIED"]
+# review reasons that also name a rule in the session's rules_fired (E8)
+_REASON_RULES = {"LEDGER_CONFLICT": "E6_LEDGER_CONFLICT_HALT",
+                 "REGISTER_NEWER": "E3_REGISTER_NEWER_THAN_LEDGER_KEPT"}
 
 
 # ------------------------------------------------------------------ models ---
@@ -97,6 +100,7 @@ class SyncReport:
     new_decisions: list[LedgerDecision] = field(default_factory=list)
     new_index_only: list[int] = field(default_factory=list)
     register_ahead: list[int] = field(default_factory=list)
+    declared_unread: list[int] = field(default_factory=list)
     compared: list[TriggerCompare] = field(default_factory=list)
     trigger_changes: list[TriggerCompare] = field(default_factory=list)
     trigger_review: list[ReviewItem] = field(default_factory=list)
@@ -122,6 +126,11 @@ class NameResolver:
         for alias, sym in aliases.items():
             self._exact.setdefault(alias.lower(), set()).add(sym)
         self._names = [(n.name.lower(), n.symbol) for n in names]
+        self._symbols = {n.symbol for n in names}
+
+    def known(self, symbol: str) -> bool:
+        """True when `symbol` is a register row (names.symbol)."""
+        return symbol in self._symbols
 
     def lookup(self, text: str) -> set[str]:
         k = text.lower().strip(" .,;:~")
@@ -159,16 +168,22 @@ def _to_resolution(hits: set[str]) -> Resolution:
 # ------------------------------------------------------------------- diffs ---
 
 def diff_decisions(led: ParsedLedger, register: set[int]
-                   ) -> tuple[list[LedgerDecision], list[int], list[int]]:
-    """(new titled decisions, new index-only numbers, register numbers the ledger lacks)."""
+                   ) -> tuple[list[LedgerDecision], list[int], list[int], list[int]]:
+    """(new titled decisions, new index-only numbers, register numbers the ledger lacks,
+    numbers inside the ledger's declared D1-Dn range that could not be read).
+
+    A declared-but-unread number is shown as unread, never as "register ahead" — the
+    parser missing a line must not look like the ledger lacking a decision (E9)."""
     seen: dict[int, LedgerDecision] = {}
     for d in led.decisions:
         if d.d_no not in seen or (seen[d.d_no].title is None and d.title is not None):
             seen[d.d_no] = d
     new = [seen[k] for k in sorted(seen) if k not in register and seen[k].title]
     new_idx = [k for k in sorted(seen) if k not in register and not seen[k].title]
-    ahead = sorted(register - set(seen))
-    return new, new_idx, ahead
+    unread = ([k for k in range(1, led.declared_max_d + 1) if k not in seen]
+              if led.declared_max_d else [])
+    ahead = sorted(register - set(seen) - set(unread))
+    return new, new_idx, ahead, unread
 
 
 def _register_row(t: LedgerTrigger, rows: list[TriggerRow]) -> list[TriggerRow]:
@@ -178,15 +193,23 @@ def _register_row(t: LedgerTrigger, rows: list[TriggerRow]) -> list[TriggerRow]:
 
 def diff_triggers(led: ParsedLedger, resolver: NameResolver, triggers: list[TriggerRow]
                   ) -> tuple[list[TriggerCompare], list[ReviewItem], list[ReviewItem]]:
-    """(compared rows, needs-review items, names not in the register) for §7 levels."""
+    """(compared rows, needs-review items, names not in the register) for §7 levels.
+
+    E6: when several ledger entries land on the same register trigger row with different
+    levels, the row is LEDGER_CONFLICT (review, never drafted). E3 / D56: when the
+    register row was set AFTER the ledger date and the levels differ, the register is
+    the newer record — REGISTER_NEWER (review), never drafted back to the older level."""
     by_sym: dict[str, list[TriggerRow]] = {}
     for r in triggers:
         by_sym.setdefault(r.symbol, []).append(r)
-    compared: list[TriggerCompare] = []
+    matched: dict[tuple[str, str], tuple[TriggerRow, list[LedgerTrigger]]] = {}
     review: list[ReviewItem] = []
     unknown: list[ReviewItem] = []
     for t in led.triggers:
-        res = Resolution(t.symbol_hint) if t.symbol_hint else resolver.resolve(t.name)
+        if t.symbol_hint:
+            res = Resolution(t.symbol_hint if resolver.known(t.symbol_hint) else None)
+        else:
+            res = resolver.resolve(t.name)
         detail = f"ledger {t.kind.lower()} {t.level.value}; {t.note}".strip("; ")
         if res.symbol is None and not res.candidates:
             unknown.append(ReviewItem(t.name, "NOT_IN_REGISTER", detail=detail))
@@ -202,7 +225,25 @@ def diff_triggers(led: ParsedLedger, resolver: NameResolver, triggers: list[Trig
                                      candidates=tuple(r.kind for r in rows), detail=detail))
             continue
         r = rows[0]
-        compared.append(TriggerCompare(t.name, res.symbol, r.kind, r.level, t.level.value,
+        matched.setdefault((r.symbol, r.kind), (r, []))[1].append(t)
+    compared: list[TriggerCompare] = []
+    for (sym, kind), (r, ts) in matched.items():
+        levels = sorted({t.level.value for t in ts})
+        if len(levels) > 1:
+            review.append(ReviewItem(
+                " / ".join(dict.fromkeys(t.name for t in ts)), "LEDGER_CONFLICT", symbol=sym,
+                candidates=(kind,),
+                detail=f"ledger gives {', '.join(str(v) for v in levels)} for one "
+                       f"register {kind} row (register {r.level})"))
+            continue
+        t = ts[0]
+        if t.level.value != r.level and r.set_on > led.ledger_date:
+            review.append(ReviewItem(
+                t.name, "REGISTER_NEWER", symbol=sym, candidates=(kind,),
+                detail=f"register {kind} {r.level} set {r.set_on} is newer than ledger "
+                       f"v{led.version.value} ({led.ledger_date}) level {t.level.value}"))
+            continue
+        compared.append(TriggerCompare(t.name, sym, kind, r.level, t.level.value,
                                        r.active, t.note))
     return compared, review, unknown
 
@@ -290,7 +331,8 @@ def _diff(rep: SyncReport, led: ParsedLedger, repo: PattazRepo) -> None:
     names = repo.load_names()
     resolver = NameResolver(names, repo.load_ledger_aliases())
     register = {d.d_no for d in repo.load_decisions()}
-    rep.new_decisions, rep.new_index_only, rep.register_ahead = diff_decisions(led, register)
+    (rep.new_decisions, rep.new_index_only, rep.register_ahead,
+     rep.declared_unread) = diff_decisions(led, register)
     rep.compared, rep.trigger_review, rep.unknown_names = diff_triggers(
         led, resolver, repo.load_triggers())
     rep.trigger_changes = [c for c in rep.compared if c.register_level != c.ledger_level]
@@ -314,8 +356,8 @@ def run_ledger_sync(db_path: str | Path, folder: str | Path | None = None,
         else:
             try:
                 led = parse_ledger(path)
-            except ValueError as exc:
-                rep.error = str(exc)
+            except (ValueError, OSError) as exc:   # unreadable / undated → NO ACTION (E9)
+                rep.error = f"ledger file unreadable: {exc}"
             else:
                 rep.ledger_file, rep.version = str(path), led.version.value
                 rep.ledger_date, rep.declared_max_d = led.ledger_date, led.declared_max_d
@@ -335,7 +377,9 @@ def _record(repo: PattazRepo, rep: SyncReport) -> None:
             {"symbol": c.symbol, "kind": c.kind, "register": str(c.register_level),
              "ledger": str(c.ledger_level)} for c in rep.trigger_changes],
         "cell_diffs": [asdict(c) for c in rep.cell_diffs],
-        "compared": len(rep.compared), "unparsed": len(rep.unparsed),
+        "cell_unclear": rep.cell_unclear, "declared_unread": rep.declared_unread,
+        "unmatched_mentions": rep.unmatched_mentions,
+        "compared": len(rep.compared), "unparsed": rep.unparsed,
         "draft_path": str(rep.draft_path) if rep.draft_path else None,
     }
     drops: list[dict[str, object]] = [
@@ -346,7 +390,12 @@ def _record(repo: PattazRepo, rep: SyncReport) -> None:
         rep.run_id, rep.ran_at, USECASE,
         {"ledger_file": rep.ledger_file, "version": rep.version,
          "ledger_date": rep.ledger_date, "declared_max_d": rep.declared_max_d},
-        outputs, drops, _RULES)
+        outputs, drops, _rules_fired(rep))
+
+
+def _rules_fired(rep: SyncReport) -> list[str]:
+    extra = {_REASON_RULES[r.reason] for r in rep.trigger_review if r.reason in _REASON_RULES}
+    return _RULES + sorted(extra) + (["E9_NO_ACTION"] if rep.error else [])
 
 
 # ------------------------------------------------------------------ report ---
@@ -355,11 +404,17 @@ def _verdict(rep: SyncReport) -> str:
     if rep.error:
         return f"NO ACTION — {rep.error}."
     n_new, n_lvl = len(rep.new_decisions), len(rep.trigger_changes)
+    unread = ""
+    if rep.declared_unread:
+        unread = (f" CANNOT CONFIRM the decision register: {len(rep.declared_unread)} "
+                  "declared D-number(s) could not be read (listed below).")
+    if not n_new and not n_lvl and unread:
+        return f"Nothing unambiguous to draft from ledger v{rep.version}.{unread}"
     if not n_new and not n_lvl:
         return (f"The register is in step with ledger v{rep.version} on decisions and "
                 "trigger levels. Nothing to draft.")
     return (f"The register is BEHIND ledger v{rep.version}: {n_new} new decision(s), "
-            f"{n_lvl} trigger level change(s). A DRAFT is ready for review.")
+            f"{n_lvl} trigger level change(s). A DRAFT is ready for review.{unread}")
 
 
 def format_report(rep: SyncReport) -> str:
@@ -372,6 +427,10 @@ def format_report(rep: SyncReport) -> str:
     if rep.new_decisions:
         L += ["", "New decisions (in the ledger, not in the register):"]
         L += [f"  D{d.d_no} ({d.decided_on or 'undated'}) {d.title}" for d in rep.new_decisions]
+    if rep.declared_unread:
+        L.append("Declared in the ledger's register range but NOT read (fix the line or "
+                 "the parser; nothing assumed): "
+                 + ", ".join(f"D{k}" for k in rep.declared_unread))
     if rep.new_index_only:
         L.append(f"Index-only numbers missing from the register: {rep.new_index_only}")
     if rep.register_ahead:
@@ -414,6 +473,10 @@ def _why(r: ReviewItem) -> str:
         return f"name matches several register rows {list(r.candidates)}"
     if r.reason == "NO_REGISTER_TRIGGER":
         return f"{r.symbol} is in the register but has no matching trigger row"
+    if r.reason == "LEDGER_CONFLICT":
+        return f"CONFLICT (E6) — the ledger gives {r.symbol} two different levels; HALT"
+    if r.reason == "REGISTER_NEWER":
+        return f"{r.symbol}: the register row is newer than this ledger (kept)"
     return f"{r.symbol} has several trigger rows {list(r.candidates)}"
 
 

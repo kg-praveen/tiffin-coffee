@@ -19,9 +19,13 @@ local file `PATTAZ_MASTER_LEDGER_v<x.y>_<date>.txt`, by default in
    - each new decision (D-number, date, one line);
    - each trigger level that moved (name, old → new);
    - the review list — names that match several register rows, names with no trigger
-     row, board names not in the register, cell seats that differ — and say plainly
-     that these were NOT drafted because they need his call;
-   - the lines it could not read (shown, never guessed).
+     row, board names not in the register, cell seats that differ, a register row
+     the ledger gives two different levels (E6 CONFLICT — halt), a register level set
+     after the ledger date (register is newer — kept) — and say plainly that these
+     were NOT drafted because they need his call;
+   - the lines it could not read (shown, never guessed), including any D-number in
+     the ledger's declared range that was not read (then the register cannot be
+     called "in step").
    If the register has decisions the ledger lacks (e.g. D69/D70), say the next ledger
    release should carry them.
 3. **Never apply without his yes.** The draft is never auto-applied. On a clear yes,
