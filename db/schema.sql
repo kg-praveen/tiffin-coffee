@@ -31,7 +31,8 @@ CREATE TABLE names (
   p_mult_book       REAL,                      -- pattaz-book §4 roster P-mult (interim until holdings sync)
   flag_no_add       INTEGER NOT NULL DEFAULT 0,-- hold-only / museum: builds blocked, first-bite allowed
   nse_sector        TEXT,                      -- NSE's official "Industry" (migration 005); NULL = not in NSE list
-  nse_sector_as_of  TEXT                       -- date of the db/reference/nse_industry_*.csv used
+  nse_sector_as_of  TEXT,                      -- date of the db/reference/nse_industry_*.csv used
+  brand_owned       INTEGER CHECK (brand_owned IN (0, 1)) -- FMCG brand gate (migration 006); NULL = not recorded
 );
 
 -- Trigger board. A trigger is ARMABLE only if active=1 AND basis_eps_date is fresh (E3).

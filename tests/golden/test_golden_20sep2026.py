@@ -131,7 +131,9 @@ class TestGolden20Sep:
         assert result.total_with_sweep <= Decimal(40000)
 
     def test_hold_only_refused(self, result) -> None:  # type: ignore[no-untyped-def]
-        assert _drop(result, "ITC").reason == PlateDropReason.NO_ADD_HOLD_ONLY
+        # 26-Sep-2026: the FMCG brand gate (osep v7 §G) runs before hold-only; ITC's
+        # brand ownership is not recorded yet, so it is raised for Praveen. Still refused.
+        assert _drop(result, "ITC").reason == PlateDropReason.BRAND_UNVERIFIED
         assert _drop(result, "WIPRO").reason == PlateDropReason.CELL_FULL
         assert _drop(result, "HCLTECH").reason == PlateDropReason.NOT_ELIGIBLE
 

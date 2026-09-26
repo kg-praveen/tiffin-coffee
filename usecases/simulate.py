@@ -143,8 +143,8 @@ def run_scenario(db: Path, base: MarketSnapshot, sc: Scenario, ctx: SimContext,
     if again.plate != run.plate:
         checks.append(Check("DETERMINISM", Severity.VIOLATION, "*",
                             "two runs on identical inputs produced different plates"))
-    board = run_morning_board(db, prices=snap.prices.prices, today=today,
-                              record_session=False)
+    board = run_morning_board(db, prices=snap.prices.prices, results=snap.results,
+                              today=today, record_session=False)
     p = run.plate
     return ScenarioOutcome(
         scenario=sc.name, title=sc.title, spec_ref=sc.spec_ref, amount=amount, today=today,

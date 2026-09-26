@@ -6,6 +6,7 @@ No I/O, no network, no datetime.now(), no DB.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -28,6 +29,8 @@ class DropReason(Enum):
     STATUS_BLOCKED = "name status blocks adds"
     PRICE_FETCH_FAILED = "price not fetched this run (E3/E9)"
     EXIT_DECIDED = "on the sell list (flag_exit_decided)"
+    STALE_BASIS = "trigger basis predates the latest results — re-derive on fresh EPS (E3)"
+    RESULT_DATE_UNKNOWN = "latest results date unknown — basis freshness unproven (E3/E9)"
 
 
 @dataclass(frozen=True)
@@ -60,6 +63,27 @@ class BoardEntry:
 NEAR_THRESHOLD_PCT = Decimal(5)
 
 
+def last_result_on(result_dates: Sequence[str], today: str) -> str | None:
+    """The latest results announcement on or before `today` (ISO dates compare as text)."""
+    past = [d for d in result_dates if d <= today]
+    return max(past) if past else None
+
+
+def check_basis_fresh(basis_eps_date: str, result_dates: Sequence[str] | None,
+                      today: str) -> tuple[DropReason | None, str]:
+    """E3 (osep v7 ENGINE CONTRACT): a trigger is armable only on a fresh-EPS basis
+    younger than the last result. Unknown results date → not armable (E9: no path
+    from missing data to a buy). Defined once here; the plate usecase calls it (E7)."""
+    if result_dates is None:
+        return DropReason.RESULT_DATE_UNKNOWN, "results dates not fetched this run"
+    last = last_result_on(result_dates, today)
+    if last is None:
+        return DropReason.RESULT_DATE_UNKNOWN, f"no results on record before {today}"
+    if basis_eps_date < last:
+        return DropReason.STALE_BASIS, f"basis {basis_eps_date} < latest results {last}"
+    return None, f"basis {basis_eps_date} >= latest results {last}"
+
+
 def check_armability(
     symbol: str,
     kind: str,
@@ -70,12 +94,14 @@ def check_armability(
     yf_ticker: str | None,
     name_status: str,
     flag_exit_decided: bool,
+    *,
+    result_dates: Sequence[str] | None,
 ) -> ArmabilityResult:
     """Spec: trigger-check v2 step 2 (VALIDITY GATE, E3).
 
     A trigger is ARMABLE only if:
     (a) active=1 in DB
-    (b) basis_eps_date is not NULL (fresh-EPS basis exists)
+    (b) basis_eps_date is not NULL and not older than the latest results (E3)
     (c) verdict is inside the decay clock (decay_expiry >= today)
     (d) has a fetchable ticker
     (e) name status allows adds
@@ -102,6 +128,10 @@ def check_armability(
             symbol, kind, False, DropReason.NO_BASIS_EPS,
             "basis_eps_date is NULL — re-derive trigger from fresh EPS"
         )
+
+    stale, why = check_basis_fresh(basis_eps_date, result_dates, today)
+    if stale is not None:
+        return ArmabilityResult(symbol, kind, False, stale, why)
 
     if decay_expiry is not None and decay_expiry < today:
         return ArmabilityResult(

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -23,6 +23,7 @@ from tools.fundamentals import (
 )
 from tools.gsec import fetch_gsec_yield
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
+from tools.results_dates import BatchResultDates, fetch_result_dates_batch
 from tools.stamped import Stamped
 
 _FUND_FIELDS = ("pe_trailing", "pb_ratio", "eps_ttm", "book_value_ps", "roe_pct")
@@ -36,6 +37,7 @@ class MarketSnapshot:
     prices: BatchPriceResult
     fundamentals: BatchFundamentalsResult
     gsec: Stamped[Decimal] | None
+    results: BatchResultDates = field(default_factory=BatchResultDates)
 
 
 # ------------------------------------------------------------ (de)serialise ---
@@ -72,6 +74,11 @@ def snapshot_to_json(snap: MarketSnapshot) -> dict[str, Any]:
             for sym, fs in sorted(snap.fundamentals.fundamentals.items())
         },
         "fundamental_failures": dict(sorted(snap.fundamentals.failures.items())),
+        "result_dates": {
+            sym: {"value": list(st.value), "source": st.source, "as_of": st.as_of}
+            for sym, st in sorted(snap.results.dates.items())
+        },
+        "result_date_failures": dict(sorted(snap.results.failures.items())),
     }
 
 
@@ -92,6 +99,11 @@ def snapshot_from_json(d: dict[str, Any]) -> MarketSnapshot:
         fundamentals=BatchFundamentalsResult(
             fundamentals=funds, failures=dict(d.get("fundamental_failures", {}))),
         gsec=_st_from_json(d.get("gsec")),
+        results=BatchResultDates(
+            dates={sym: Stamped(value=tuple(r["value"]), source=r["source"], as_of=r["as_of"])
+                   for sym, r in d.get("result_dates", {}).items()},
+            failures=dict(d.get("result_date_failures", {})),
+        ),
     )
 
 
@@ -124,4 +136,5 @@ def record_snapshot(yf_tickers: Sequence[str]) -> MarketSnapshot:
         prices=fetch_prices_batch(yf_tickers),
         fundamentals=fetch_fundamentals_batch(yf_tickers),
         gsec=gsec,
+        results=fetch_result_dates_batch(yf_tickers),
     )

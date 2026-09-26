@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
+from engine.morning_board import check_basis_fresh
 from engine.plate import (
     CellInfo,
     NameInput,
@@ -40,6 +41,7 @@ from tools.fundamentals import (
 from tools.gsec import fetch_gsec_yield
 from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
+from tools.results_dates import BatchResultDates, fetch_result_dates_batch
 
 log = logging.getLogger(__name__)
 
@@ -185,6 +187,7 @@ def _build_name_input(
         flag_no_add=name.flag_no_add,
         owned_per_book=(name.bucket == "OWNED" or name.status == "HOLD"),
         register_note=name.notes or "",
+        brand_owned=name.brand_owned,
     )
     return ni, gate_result
 
@@ -297,12 +300,32 @@ def run_plate(
         policy = repo.load_policy()
 
         names_map: dict[str, NameRow] = {n.symbol: n for n in all_names}
-        # E3: a trigger is armable only on a dated fresh-EPS basis
+
+        # --- latest results dates for triggered names (E3 basis check) ---
+        trig_tickers = sorted({names_map[t.symbol].yf_ticker or "" for t in all_triggers
+                               if t.symbol in names_map and names_map[t.symbol].yf_ticker})
+        results: BatchResultDates
+        if market is not None:
+            results = market.results
+        elif fetch_prices:
+            results = fetch_result_dates_batch(trig_tickers)
+        else:
+            results = BatchResultDates()
+
+        # E3: a trigger is armable only on a dated basis not older than the latest results
         triggers_map: dict[str, TriggerRow] = {}
         unarmable: list[str] = []
         for t in all_triggers:
             if t.basis_eps_date is None:
-                unarmable.append(t.symbol)
+                unarmable.append(f"{t.symbol} (no basis date)")
+                continue
+            nm = names_map.get(t.symbol)
+            stem = (nm.yf_ticker or t.symbol).removesuffix(".NS") if nm else t.symbol
+            dates = results.dates.get(stem)
+            stale, why = check_basis_fresh(t.basis_eps_date,
+                                           dates.value if dates else None, today)
+            if stale is not None:
+                unarmable.append(f"{t.symbol} ({why})")
                 continue
             if t.symbol not in triggers_map:
                 triggers_map[t.symbol] = t
@@ -445,7 +468,7 @@ def run_plate(
             )
         if unarmable:
             advisory.append(
-                f"WARN: triggers without a basis date, not armed: {', '.join(unarmable)}"
+                f"WARN: triggers not armed (E3 — re-derive on fresh EPS): {', '.join(unarmable)}"
             )
         if not gsec_source.startswith(("cnbc", "yfinance")):
             advisory.append(f"WARN: GoI yield not live — {gsec_source}")
@@ -469,6 +492,12 @@ def run_plate(
                 f"BUDGET: {_inr(session_amount)} is not enough for 1 share of each of the "
                 f"{len(plate_result.entries)} ranked stocks — this plate needs "
                 f"{_inr(plate_result.plan_amount)} ({_inr(more)} more)")
+        brand = sorted(d.symbol for d in plate_result.drops
+                       if d.reason == PlateDropReason.BRAND_UNVERIFIED)
+        if brand:
+            advisory.append(
+                f"BRAND CHECK: FMCG names eligible today but brand ownership not recorded "
+                f"— confirm who owns the brand: {', '.join(brand)}")
         review = sorted(d.symbol for d in plate_result.drops
                         if d.reason == PlateDropReason.REVIEW_FIRST)
         if review:
@@ -576,6 +605,7 @@ _NEAR_MISS_ALWAYS = frozenset({
     PlateDropReason.E6_CAPS_OFF_CONFLICT,
     PlateDropReason.E6_PEAK_CYCLE_CONFLICT,
     PlateDropReason.REVIEW_FIRST,
+    PlateDropReason.BRAND_UNVERIFIED,
     PlateDropReason.DECAY_EXPIRED,
     PlateDropReason.P_BLOCKED,
     PlateDropReason.NO_ADD_HOLD_ONLY,

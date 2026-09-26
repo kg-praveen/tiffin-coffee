@@ -336,7 +336,9 @@ def build() -> None:
         DB.unlink()
     con = sqlite3.connect(DB)
     con.executescript(SCHEMA.read_text())
-    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL)", N)
+    con.executemany("INSERT INTO names VALUES (?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL)", N)
+    # osep v7 §G brand-ownership gate (migration 006): only VBL is stated
+    con.execute("UPDATE names SET brand_owned = 0 WHERE symbol = 'VBL'")
     # NSE official sector (migration 005) from the newest committed reference list
     ref = newest_reference(HERE / "reference")
     if ref is not None:

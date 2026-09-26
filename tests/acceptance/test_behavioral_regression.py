@@ -126,21 +126,29 @@ def case_03_icici_gtt_cannot_rearm() -> None:
         assert con.execute("SELECT count(*) c FROM triggers WHERE symbol='ICICIBANK' "
                            "AND active=1").fetchone()["c"] == 0
     a = check_armability("ICICIBANK", "BUY", True, "2026-09-01", None, TODAY,
-                         "ICICIBANK.NS", "SOLD", False)
+                         "ICICIBANK.NS", "SOLD", False, result_dates=("2026-07-19",))
     assert not a.armable and a.drop_reason == DropReason.STATUS_BLOCKED
 
 
 def case_04_basis_predates_last_result() -> None:
-    """NOT BUILT: armability needs the last quarterly result date (E3 basis check)."""
+    """Stale-basis trigger (the 5-week invalid-trigger incident): basis older than the
+    latest results → NOT ARMABLE, price never classified (E3). Unknown dates → same (E9)."""
     a = check_armability("X", "BUY", True, "2026-07-01", None, TODAY, "X.NS", "ADD",
-                         False, last_result_date="2026-08-10")  # type: ignore[call-arg]
-    assert not a.armable
+                         False, result_dates=("2026-04-20", "2026-08-10", "2026-10-23"))
+    assert not a.armable and a.drop_reason == DropReason.STALE_BASIS
+    b = check_armability("X", "BUY", True, "2026-08-15", None, TODAY, "X.NS", "ADD",
+                         False, result_dates=("2026-08-10", "2026-10-23"))
+    assert b.armable                       # basis after the latest results; Oct is future
+    c = check_armability("X", "BUY", True, "2026-08-15", None, TODAY, "X.NS", "ADD",
+                         False, result_dates=None)
+    assert not c.armable and c.drop_reason == DropReason.RESULT_DATE_UNKNOWN
 
 
 def case_05_corporate_action_stale() -> None:
     """NOT BUILT: armability needs trailing-12m corporate actions (HDFC 560-vs-419)."""
-    a = check_armability("X", "BUY", True, "2026-07-01", None, TODAY, "X.NS", "ADD",
-                         False, corporate_action_on="2026-08-20")  # type: ignore[call-arg]
+    a = check_armability("X", "BUY", True, "2026-09-01", None, TODAY, "X.NS", "ADD",
+                         False, result_dates=("2026-07-20",),
+                         corporate_action_on="2026-08-20")  # type: ignore[call-arg]
     assert not a.armable
 
 
@@ -234,11 +242,17 @@ def case_15_income_sleeve() -> None:
 
 
 def case_16_vbl_brand_gate() -> None:
-    """NOT BUILT: FMCG brand-OWNERSHIP hard gate (ledger §3) — VBL fails adds even when
-    cheap. Today an owned VBL at its low with a passing P/E ladder would first-bite."""
+    """VBL: FMCG brand-OWNERSHIP hard gate (osep v7 §G) fails adds even when cheap; an
+    FMCG name whose ownership is not recorded is raised, not bought (E4/E9)."""
     r = _plate(_n("VBL", "450", "450", sector="FMCG", status="HOLD", bucket="OWNED",
-                  held=20, gate=True))
-    assert "VBL" not in _entry_syms(r)
+                  held=20, gate=True, brand_owned=False))
+    assert _reason(r, "VBL") == PlateDropReason.BRAND_NOT_OWNED
+    with _ro() as con:
+        assert con.execute("SELECT brand_owned FROM names WHERE symbol='VBL'"
+                           ).fetchone()["brand_owned"] == 0
+    hul = _plate(_n("HINDUNILVR", "2400", "2400", sector="FMCG", status="HOLD",
+                    bucket="OWNED", held=5, gate=True))
+    assert _reason(hul, "HINDUNILVR") == PlateDropReason.BRAND_UNVERIFIED
 
 
 def case_17_doctrine_not_live() -> None:
@@ -315,9 +329,7 @@ CASES: list[object] = [
     pytest.param(case_01_muthoot_add, id="01-muthoot-add"),
     pytest.param(case_02_hdfc_first_bite_zero, id="02-hdfc-first-bite-zero"),
     pytest.param(case_03_icici_gtt_cannot_rearm, id="03-icici-gtt"),
-    pytest.param(case_04_basis_predates_last_result, id="04-stale-basis",
-                 marks=pytest.mark.xfail(raises=TypeError, strict=True,
-                                         reason=_NOT_BUILT + "last-result date in E3")),
+    pytest.param(case_04_basis_predates_last_result, id="04-stale-basis"),
     pytest.param(case_05_corporate_action_stale, id="05-corporate-action",
                  marks=pytest.mark.xfail(raises=TypeError, strict=True,
                                          reason=_NOT_BUILT + "corporate-action validity")),
@@ -333,9 +345,7 @@ CASES: list[object] = [
     pytest.param(case_13_goldbees_non_earning, id="13-goldbees"),
     pytest.param(case_14_ntpc_gbn, id="14-ntpc"),
     pytest.param(case_15_income_sleeve, id="15-income-sleeve"),
-    pytest.param(case_16_vbl_brand_gate, id="16-vbl",
-                 marks=pytest.mark.xfail(raises=AssertionError, strict=True,
-                                         reason=_NOT_BUILT + "FMCG brand-ownership gate")),
+    pytest.param(case_16_vbl_brand_gate, id="16-vbl"),
     pytest.param(case_17_doctrine_not_live, id="17-manappuram"),
     pytest.param(case_18_drl_guardrail, id="18-drl"),
     pytest.param(case_19_missing_price_names_input, id="19-missing-price"),

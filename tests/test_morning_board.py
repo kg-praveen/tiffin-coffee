@@ -5,12 +5,16 @@ for integration tests against the actual seed data.
 """
 from __future__ import annotations
 
+from collections.abc import Iterator
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from engine.morning_board import TriggerStatus
 from tools.prices import PriceSnapshot
+from tools.results_dates import BatchResultDates
 from tools.stamped import Stamped
 from usecases.morning_board import format_board, run_morning_board
 
@@ -59,6 +63,18 @@ PRICE_MAP: dict[str, PriceSnapshot] = {
     "PARADEEP.NS": _snap("PARADEEP", "125"),
     "BAJAJ-AUTO.NS": _snap("BAJAJ-AUTO", "6500"),
 }
+
+
+def mock_results(tickers: list[str]) -> BatchResultDates:
+    """Every triggered name reported Q1 on 20-Jul — before the 01-Sep EPS basis."""
+    st = Stamped(value=("2026-04-20", "2026-07-20"), source="test", as_of=NOW)
+    return BatchResultDates(dates={t.removesuffix(".NS"): st for t in tickers})
+
+
+@pytest.fixture(autouse=True)
+def _no_network_results() -> Iterator[None]:
+    with patch("usecases.morning_board.fetch_result_dates_batch", side_effect=mock_results):
+        yield
 
 
 def mock_fetch(ticker: str) -> PriceSnapshot:
