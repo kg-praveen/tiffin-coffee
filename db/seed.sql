@@ -1,4 +1,12 @@
 BEGIN TRANSACTION;
+CREATE TABLE caps_off_waivers (
+  symbol    TEXT NOT NULL,
+  valid_on  TEXT NOT NULL,
+  decision  TEXT NOT NULL,
+  note      TEXT,
+  PRIMARY KEY (symbol, valid_on)
+);
+INSERT INTO "caps_off_waivers" VALUES('WIPRO','2026-09-28','D70','IT two-add cell block + hold-no-add waived for ONE first bite; 1-10 clamp');
 CREATE TABLE cells (
   cell            TEXT PRIMARY KEY,
   members         TEXT NOT NULL,               -- comma-separated symbols
@@ -8,7 +16,7 @@ CREATE TABLE cells (
   notes           TEXT,
   as_of           TEXT NOT NULL
 );
-INSERT INTO "cells" VALUES('IT','INFY,TCS,WIPRO,HCLTECH','INFY,TCS',2,0,'Wipro hold-no-add (D48); HCL museum','2026-09-17');
+INSERT INTO "cells" VALUES('IT','INFY,RSYSTEMS,TCS,WIPRO,HCLTECH','INFY,RSYSTEMS',2,0,'D65: R Systems add #2, TCS hold-no-add; Wipro hold-no-add (D48; D70 one-day waiver); HCL museum','2026-09-17');
 INSERT INTO "cells" VALUES('ENERGY_GAS','PETRONET,RELIANCE','PETRONET',2,0,'Reliance P5 AGREE = hold','2026-09-17');
 INSERT INTO "cells" VALUES('POWER','NTPC,POWERGRID,TATAPOWER,COALINDIA','NTPC,POWERGRID',2,0,'Coal India EXIT pending; PSU cap 25% (D36)','2026-09-17');
 INSERT INTO "cells" VALUES('LENDING_BANKS','SBIN,HDFCBANK,IDFCFIRSTB,CUB,SOUTHBANK,FIVESTAR','SBIN',2,0,'HDFC crash-only; Federal/KVB watch; SIB→KVB swap','2026-09-17');
@@ -103,6 +111,12 @@ INSERT INTO "decisions" VALUES(61,'2026-09-17','Adventz six-name: Chambal only',
 INSERT INTO "decisions" VALUES(62,'2026-09-17','Skill engine v8 installed; defects 1/2/3 killed; HDFC control exception',NULL,'CLOSED');
 INSERT INTO "decisions" VALUES(63,'2026-09-17','Ledger delta-chain incident; v4.9 consolidation; wholesale test',NULL,'CLOSED');
 INSERT INTO "decisions" VALUES(64,'2026-09-17','Sector gate evidence base; NOT-FOUND fallback sectors',NULL,'CLOSED');
+INSERT INTO "decisions" VALUES(65,'2026-09-25','IT cell swap: R Systems becomes IT add #2 (GBN 251, spec <=1%); TCS HOLD-no-add','Praveen decision (a). Infosys stays add #1. TCS at fair, flat USD revenue FY26.','CLOSED');
+INSERT INTO "decisions" VALUES(66,'2026-09-25','Trigger source: ledger §7 is authoritative; local board_config.csv is a derivative','Superseded 21-Sep local levels are NOT on the board unless re-proposed and confirmed.','CLOSED');
+INSERT INTO "decisions" VALUES(67,'2026-09-25','One-time overrides: Jyothy 10, Manappuram 5, Natco 4, HDFC Bank 5 — rules stand','Deliberate buys outside the rules; the crossed rules stay in force for future plates.','CLOSED');
+INSERT INTO "decisions" VALUES(68,'2026-09-25','20/22-Sep plates executed; 25-Sep Rs10K plate carried to Mon 28-Sep','Broker exports 25-Sep. Re-price before placing.','CLOSED');
+INSERT INTO "decisions" VALUES(69,'2026-09-26','IT gate change: USD operating profit per share + margin + bookings (not USD revenue)','Rupee drift = upside, never a gate input. osep skill patch queued; engine note only until data exists.','CLOSED');
+INSERT INTO "decisions" VALUES(70,'2026-09-26','Wipro caps-off first bite, Mon 28-Sep ONLY (Anand live consider 20-Sep, D6/D44)','IT two-add cell block waived for one first bite, 1-10 clamp. D48 HOLD stands afterwards; permanent call at Q2 FY27.','CLOSED');
 CREATE TABLE fundamentals (
   symbol          TEXT NOT NULL REFERENCES names(symbol),
   as_of           TEXT NOT NULL,               -- result date the numbers belong to
@@ -279,6 +293,135 @@ INSERT INTO "holdings" VALUES('INTEGRATED_V','JIOFIN',0,NULL,'2026-09-21','CSV:h
 INSERT INTO "holdings" VALUES('ZERODHA_P','ARE&M',0,NULL,'2026-09-21','CSV:household_equity_21sep2026.csv');
 INSERT INTO "holdings" VALUES('ZERODHA_P','SBIN',0,NULL,'2026-09-21','CSV:household_equity_21sep2026.csv');
 INSERT INTO "holdings" VALUES('ZERODHA_P','TATASTEEL',0,NULL,'2026-09-21','CSV:household_equity_21sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','HDFCBANK',126,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','HDFCBANK',34,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','HDFCBANK',29,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ITC',416,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','ITC',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','ITC',12,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','HYUNDAI',49,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','AVALON',35,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','GOLDBEES',389,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','GOLDBEES',178,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','HEROMOTOCO',7,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','HEROMOTOCO',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','CDSL',40,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','CDSL',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','CUB',262,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','RELIANCE',41,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','RELIANCE',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','MUTHOOTFIN',7,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','MUTHOOTFIN',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','MUTHOOTFIN',8,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','INFY',13,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','INFY',12,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','INFY',20,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','AGARIND',100,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','TCS',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','TCS',8,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','TCS',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','DRREDDY',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','DRREDDY',23,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','WIPRO',24,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','WIPRO',113,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','WIPRO',48,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','NIFTYBEES',107,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','NIFTYBEES',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','PETRONET',82,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','PETRONET',20,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BSE',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','BSE',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','SOUTHBANK',515,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','SOUTHBANK',60,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','GROWW',150,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','VBL',46,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','VBL',17,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','MANKIND',11,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','LT',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','LT',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','NATCOPHARM',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','NATCOPHARM',22,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','NATCOPHARM',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','TATAPOWER',28,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','TATAPOWER',30,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','TATAPOWER',7,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','CIPLA',17,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','TMCV',45,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','TMCV',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','TMCV',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','BEL',20,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BEL',38,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','BAJAJ-AUTO',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','SBIN',13,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','SBIN',7,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ICICIAMC',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','M&M',3,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','M&M',3,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','MANAPPURAM',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','MANAPPURAM',46,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','IRFC',200,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','INDUSINDBK',9,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','INDUSINDBK',8,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','TATASTEEL',82,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','BALKRISIND',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BALKRISIND',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','HCLTECH',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','HCLTECH',7,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','SILVERBEES',60,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ASHOKLEY',40,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','ASHOKLEY',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','ASHOKLEY',30,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','COALINDIA',15,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','COALINDIA',12,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','NTPC',25,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','NTPC',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','JUNIORBEES',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','JUNIORBEES',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BAJAJFINSV',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','EIDPARRY',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','JKPAPER',15,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','ADANIPOWER',30,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','SUNPHARMA',3,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ACC',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','HAL',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ITCHOTELS',27,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','ITCHOTELS',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','DATAPATTNS',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','HINDOILEXP',25,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','RTNINDIA',150,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','ARE&M',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','TMPV',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','TMPV',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','TMPV',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','POWERGRID',12,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','GESHIP',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BHEL',7,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ICICIBANK',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','JSWSTEEL',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','SHRIRAMPPS',35,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','ZYDUSLIFE',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BDL',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','BDL',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','IDEAFORGE',3,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','CANBK',17,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','AUBANK',2,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','AMBUJACEM',5,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','JYOTHYLAB',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BPCL',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','ADANIPORTS',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','BHARTIARTL',1,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','HINDZINC',3,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','INOXGREEN',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','SUNTV',3,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','BIOCON',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','PFC',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','ENGINERSIN',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','RITES',6,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_P','IREDA',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('ZERODHA_P','IDFCFIRSTB',10,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','SAIL',4,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','JUNIORBEES',0,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
+INSERT INTO "holdings" VALUES('INTEGRATED_V','NIFTYBEES',0,NULL,'2026-09-25','CSV:household_equity_25sep2026.csv');
 CREATE TABLE market_snapshot (
   run_id          TEXT NOT NULL REFERENCES sessions(run_id),
   symbol          TEXT NOT NULL,
@@ -321,19 +464,19 @@ CREATE TABLE names (
   nse_sector_as_of  TEXT,                      -- date of the db/reference/nse_industry_*.csv used
   brand_owned       INTEGER CHECK (brand_owned IN (0, 1)) -- FMCG brand gate (migration 006); NULL = not recorded
 );
-INSERT INTO "names" VALUES('PETRONET','Petronet LNG','PETRONET.NS',0,'ENERGY_GAS','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,0,0,0,'Tranches gated on Dahej funding disclosure; re-underwrite if D/E>0.5','2026-09-17',1.0,0,'Oil Gas & Consumable Fuels','2026-09-26',NULL);
-INSERT INTO "names" VALUES('NTPC','NTPC','NTPC.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,0,0,0,'CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen','2026-09-17',NULL,0,'Power','2026-09-26',NULL);
+INSERT INTO "names" VALUES('PETRONET','Petronet LNG','PETRONET.NS',0,'ENERGY_GAS','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,1,0,0,'Reserve decision pending (ledger §14 1(v)): H>1.15 is HOCKEY = reserve, not the daily ticket; needs explicit yes + Dahej funding disclosure. Tranches gated on Dahej funding disclosure; re-underwrite if D/E>0.5','2026-09-17',1.0,0,'Oil Gas & Consumable Fuels','2026-09-26',NULL);
+INSERT INTO "names" VALUES('NTPC','NTPC','NTPC.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,1,0,1,0,0,'E6 OPEN (ledger §14 0b): literal osep solvency kill-switch vs tariff-recovered-debt carve-out — NO ACTION until Praveen rules. CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen','2026-09-17',NULL,0,'Power','2026-09-26',NULL);
 INSERT INTO "names" VALUES('INFY','Infosys','INFY.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,0,0,0,0,0,'Gate on USD/CC revenue, never INR PAT','2026-09-17',1.0,0,'Information Technology','2026-09-26',NULL);
-INSERT INTO "names" VALUES('TCS','Tata Consultancy Services','TCS.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,0,0,0,0,0,'Re-verify at Oct Q2','2026-09-17',1.0,0,'Information Technology','2026-09-26',NULL);
+INSERT INTO "names" VALUES('TCS','Tata Consultancy Services','TCS.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','HOLD','GBN','2026-09-12','2026-10-12',NULL,NULL,0,0,0,0,0,0,'D65 (25-Sep): HOLD-no-add — add slot moved to R Systems. At fair; flat USD revenue FY26.','2026-09-17',1.0,1,'Information Technology','2026-09-26',NULL);
 INSERT INTO "names" VALUES('ITC','ITC','ITC.NS',0,'FMCG','FMCG','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED','2026-09-12',NULL,'BUY',NULL,0,0,0,0,0,0,'Hold, no add; crash-shelf 228; income-floor claim withdrawn until dividend prints','2026-09-17',0.5,1,'Fast Moving Consumer Goods','2026-09-26',1);
 INSERT INTO "names" VALUES('ARE&M','Amara Raja Energy & Mobility','ARE&M.NS',0,'ANCILLARY','AUTO_ANCILLARY','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,0,0,0,0,0,'HALF-PLATE only (EBITDA margin compression); universe veto at reduced weight','2026-09-17',NULL,0,'Automobile and Auto Components','2026-09-26',NULL);
 INSERT INTO "names" VALUES('RELIANCE','Reliance Industries','RELIANCE.NS',0,'ENERGY_GAS',NULL,NULL,NULL,'HOLD','OWNED','2026-09-12',NULL,'AGREE_NOTE','ledger §8 05-Sep',0,0,0,0,0,0,'Conglomerate: classify at runtime (SC edge rule, strictest gate); P5 AGREE = hold','2026-09-17',NULL,0,'Oil Gas & Consumable Fuels','2026-09-26',NULL);
-INSERT INTO "names" VALUES('WIPRO','Wipro','WIPRO.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED','2026-09-12',NULL,NULL,NULL,0,0,0,0,0,0,'D48 hold-no-add; swap SOURCE (shrinks in USD)','2026-09-17',NULL,1,'Information Technology','2026-09-26',NULL);
+INSERT INTO "names" VALUES('WIPRO','Wipro','WIPRO.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED','2026-09-12',NULL,NULL,NULL,0,0,0,0,0,0,'D48 hold-no-add. D70: one caps-off first bite allowed on Mon 28-Sep only; permanent IT-cell call at Q2 FY27 (needs USD revenue turning, EBIT toward 17%).','2026-09-17',NULL,1,'Information Technology','2026-09-26',NULL);
 INSERT INTO "names" VALUES('M&M','Mahindra & Mahindra','M&M.NS',0,'AUTO_PV_FARM','AUTO_OEM','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,0,0,0,0,0,'Designated add','2026-09-17',1.0,0,'Automobile and Auto Components','2026-09-26',NULL);
 INSERT INTO "names" VALUES('HCLTECH','HCL Technologies','HCLTECH.NS',0,'IT','IT_SERVICES','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED','2026-09-12',NULL,NULL,NULL,0,0,0,0,0,0,'Museum (Varshu); no add','2026-09-17',NULL,1,'Information Technology','2026-09-26',NULL);
 INSERT INTO "names" VALUES('ENGINERSIN','Engineers India','ENGINERSIN.NS',0,'CAPGOODS_PSU','DEFAULT','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,1,0,0,0,0,'Prices commercially (regulated≠directed)','2026-09-17',NULL,0,'Construction','2026-09-26',NULL);
 INSERT INTO "names" VALUES('RITES','RITES','RITES.NS',0,'CAPGOODS_PSU','DEFAULT','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,1,0,0,0,0,NULL,'2026-09-17',NULL,0,'Construction','2026-09-26',NULL);
-INSERT INTO "names" VALUES('POWERGRID','Power Grid Corp','POWERGRID.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,1,0,0,0,0,'Was ABOVE trigger on 12-Sep — dropped from buy band; trigger stands','2026-09-17',NULL,0,'Power','2026-09-26',NULL);
+INSERT INTO "names" VALUES('POWERGRID','Power Grid Corp','POWERGRID.NS',0,'POWER','REGULATED','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,1,0,1,0,0,'E6 OPEN (ledger §14 0b): literal osep solvency kill-switch vs tariff-recovered-debt carve-out — NO ACTION until Praveen rules. Was ABOVE trigger on 12-Sep — dropped from buy band; trigger stands','2026-09-17',NULL,0,'Power','2026-09-26',NULL);
 INSERT INTO "names" VALUES('SBIN','State Bank of India','SBIN.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','ADD','GBL','2026-09-12','2026-12-11',NULL,NULL,0,1,0,0,0,0,'At justified P/B ~1.6x; PSU cap applies','2026-09-17',NULL,0,'Financial Services','2026-09-26',NULL);
 INSERT INTO "names" VALUES('HDFCBANK','HDFC Bank','HDFCBANK.NS',0,'LENDING_BANKS','LENDER','2026-09-17','ledger v4.9 §5/§7','HOLD','OWNED','2026-09-12',NULL,'AGREE_NOTE','ledger §8 05-Sep',0,0,0,0,0,0,'P-board BLOCKED (at/over target); crash-shelf ~419 (D47); 10-Sep 5sh = control exception D62','2026-09-17',0.0,0,'Financial Services','2026-09-26',NULL);
 INSERT INTO "names" VALUES('MUTHOOTFIN','Muthoot Finance','MUTHOOTFIN.NS',0,'GOLD_NBFC','LENDER','2026-09-17','ledger v4.9 §5/§7','ADD','GBN','2026-09-12','2026-10-12','DISAGREE_NOTE','ledger §8 05-Sep (approved, unlocked)',0,0,0,0,0,0,'Starter only; tripwires: gold -20% · RBI LTV · ROE floor · P/B above his objection','2026-09-17',1.0,0,'Financial Services','2026-09-26',NULL);
@@ -447,6 +590,7 @@ INSERT INTO "names" VALUES('HINDUNILVR','Hindustan Unilever','HINDUNILVR.NS',0,'
 INSERT INTO "names" VALUES('ASIANPAINT','Asian Paints','ASIANPAINT.NS',0,'FMCG','DEFAULT','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17',NULL,0,'Consumer Durables','2026-09-26',NULL);
 INSERT INTO "names" VALUES('MARUTI','Maruti Suzuki','MARUTI.NS',0,'AUTO_PV_FARM','AUTO_OEM','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17',NULL,0,'Automobile and Auto Components','2026-09-26',NULL);
 INSERT INTO "names" VALUES('ICICIPRULI','ICICI Prudential Life','ICICIPRULI.NS',0,'INSURANCE','INSURER','2026-09-17','ledger v4.9 §5/§7','WATCH',NULL,NULL,NULL,NULL,NULL,0,0,0,0,0,0,NULL,'2026-09-17',NULL,0,'Financial Services','2026-09-26',NULL);
+INSERT INTO "names" VALUES('RSYSTEMS','R Systems International','RSYSTEMS.NS',1,'IT','IT_SERVICES','2026-09-25','ledger v4.10 §5/§7 (D65)','ADD','GBN','2026-09-25','2026-10-25',NULL,NULL,0,0,0,0,0,0,'D65 IT add #2, spec <=1% household. Blackstone 51.85% promoter (PE sponsor, future OFS overhang). Novigo acquisition inflates growth until Q4 CY26. Solvency passes.','2026-09-26',NULL,0,NULL,NULL,NULL);
 CREATE TABLE policy (
   key             TEXT PRIMARY KEY,
   value           TEXT NOT NULL,
@@ -542,7 +686,7 @@ CREATE TABLE triggers (
 INSERT INTO "triggers" VALUES('PETRONET','BUY',383.0,'2026-09-01','14.2x fair on TTM EPS (D54 anchor 7.04%)','2026-09-12','2026-11-15',NULL,1,NULL);
 INSERT INTO "triggers" VALUES('NTPC','BUY',407.0,'2026-09-01','14.2x fair; regulated≠directed','2026-09-12','2026-11-15',NULL,1,'CONVICTION-OVERRIDE 2026-09-20: Coal India exit condition waived by Praveen');
 INSERT INTO "triggers" VALUES('INFY','BUY',1099.0,'2026-09-01','~15x band; USD/CC guard','2026-09-12','2026-11-15',NULL,1,NULL);
-INSERT INTO "triggers" VALUES('TCS','BUY',1939.0,'2026-09-01','~fair on TTM EPS','2026-09-12','2026-11-15',NULL,1,'Re-verify at Oct Q2');
+INSERT INTO "triggers" VALUES('TCS','BUY',1939.0,'2026-09-01','~fair on TTM EPS','2026-09-12','2026-11-15',NULL,0,'D65: TCS HOLD-no-add — no longer a trigger item');
 INSERT INTO "triggers" VALUES('ITC','CRASH_SHELF',228.0,'2026-09-01','fwd EPS ~12-13 post tax shock','2026-09-12','2026-11-15',NULL,1,'Hold-only name: shelf, not an add');
 INSERT INTO "triggers" VALUES('ARE&M','BUY',790.0,'2026-09-01','re-derived on margin compression','2026-09-12','2026-11-15',NULL,1,'HALF-PLATE');
 INSERT INTO "triggers" VALUES('RELIANCE','BUY',854.0,'2026-09-01','14.2x fair','2026-09-12','2026-11-15',NULL,1,'Name status HOLD blocks adds (P5 AGREE)');
@@ -578,4 +722,5 @@ INSERT INTO "triggers" VALUES('INDIGRID','BUY',167.0,'2026-07-04','dip band 165-
 INSERT INTO "triggers" VALUES('ZYDUSLIFE','BUY',737.0,NULL,'provisional','2026-09-01',NULL,NULL,0,'NOT ARMABLE: basis unknown; universe BUY + OSEP pass = NO ACTION');
 INSERT INTO "triggers" VALUES('PARADEEP','ALERT',120.0,'2026-09-17','D61 revisit level','2026-09-17',NULL,NULL,1,'Revisit only, with gates');
 INSERT INTO "triggers" VALUES('TEXRAIL','ALERT',80.0,'2026-09-17','D61 revisit level','2026-09-17',NULL,NULL,1,'Revisit only');
+INSERT INTO "triggers" VALUES('RSYSTEMS','BUY',251.0,'2026-09-24','14.18x fair x TTM EPS ~17.7 (ledger v4.10 §7, D65)','2026-09-25','2026-10-25',NULL,1,'24-Sep price 237, P/E 13.4, 52wk 214-447');
 COMMIT;

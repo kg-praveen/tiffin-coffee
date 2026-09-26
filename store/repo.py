@@ -143,6 +143,16 @@ class PattazRepo:
 
     # --- policy ---
 
+    def caps_off_waivers_on(self, day: str) -> dict[str, str]:
+        """symbol → decision for waivers valid on `day` (migration 009); {} on older DBs."""
+        try:
+            rows = self._con.execute(
+                "SELECT symbol, decision FROM caps_off_waivers WHERE valid_on = ?", (day,)
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return {}
+        return {r["symbol"]: r["decision"] for r in rows}
+
     def load_results_verified(self) -> list[VerifiedResult]:
         """Results dates verified online (migration 007); empty on older databases."""
         try:

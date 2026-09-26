@@ -157,9 +157,9 @@ class TestClassificationAccuracy:
 
     @patch("usecases.morning_board.fetch_price", side_effect=mock_fetch)
     def test_far_trigger(self, _mock: object, scratch_db: Path) -> None:
-        """TCS trigger=1939, price=2100 → FAR (8.3% above)."""
+        """M&M trigger=2061, price=2200 → FAR (6.7% above). (TCS left the board: D65.)"""
         result = run_morning_board(scratch_db)
-        tcs = [e for e in result.far if e.symbol == "TCS"]
-        assert len(tcs) == 1
-        assert tcs[0].distance_pct is not None
-        assert tcs[0].distance_pct > Decimal(5)
+        mm = [e for e in result.far if e.symbol == "M&M"]
+        assert len(mm) == 1
+        assert mm[0].distance_pct is not None
+        assert mm[0].distance_pct > Decimal(5)
