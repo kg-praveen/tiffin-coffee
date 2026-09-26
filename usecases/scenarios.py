@@ -15,6 +15,7 @@ from dataclasses import dataclass, field, replace
 from decimal import ROUND_HALF_UP, Decimal
 
 from tools.fundamentals import BatchFundamentalsResult, FundamentalsSnapshot
+from tools.index_moves import NIFTY_TICKER, IndexMoves
 from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot
 from tools.results_dates import BatchResultDates
@@ -64,9 +65,13 @@ def _restamp(s: Stamped[Decimal], value: Decimal, tag: str) -> Stamped[Decimal]:
 
 
 def move_prices(snap: MarketSnapshot, pct_for: Callable[[str], Decimal | None],
-                tag: str) -> MarketSnapshot:
+                tag: str, *, day_move: bool = False) -> MarketSnapshot:
     """Move each price by pct_for(symbol)% (None = untouched). The 52-week range
-    stretches to include the new price; P/E and P/B scale with price."""
+    stretches to include the new price; P/E and P/B scale with price.
+
+    day_move=True: the move happened TODAY (tiffin v6 §H "a name -10% in a day") — the
+    previous close stays put (or becomes the recorded price if none was recorded).
+    Otherwise the previous close moves with the price: the move is not a one-day fall."""
     prices: dict[str, PriceSnapshot] = {}
     ratio: dict[str, Decimal] = {}
     for sym, p in snap.prices.prices.items():
@@ -77,11 +82,18 @@ def move_prices(snap: MarketSnapshot, pct_for: Callable[[str], Decimal | None],
         old = p.price.value
         new = (old * (1 + pct / 100)).quantize(_CENT, rounding=ROUND_HALF_UP)
         ratio[sym] = new / old
+        prev = p.prev_close
+        if day_move:
+            prev = prev if prev is not None else _restamp(p.price, old, tag)
+        elif prev is not None:
+            prev = _restamp(prev, (prev.value * ratio[sym]).quantize(
+                _CENT, rounding=ROUND_HALF_UP), tag)
         prices[sym] = PriceSnapshot(
             symbol=sym,
             price=_restamp(p.price, new, tag),
             low_52w=_restamp(p.low_52w, min(p.low_52w.value, new), tag),
             high_52w=_restamp(p.high_52w, max(p.high_52w.value, new), tag),
+            prev_close=prev,
         )
     funds: dict[str, FundamentalsSnapshot] = {}
     for sym, f in snap.fundamentals.fundamentals.items():
@@ -102,6 +114,38 @@ def move_prices(snap: MarketSnapshot, pct_for: Callable[[str], Decimal | None],
         fundamentals=BatchFundamentalsResult(
             fundamentals=funds, failures=dict(snap.fundamentals.failures)),
     )
+
+
+def move_nifty(snap: MarketSnapshot, pct: Decimal, tag: str) -> MarketSnapshot:
+    """Move the Nifty with a market scenario (tiffin v6 §H / ledger D37 inputs).
+
+    With a recorded Nifty the move composes onto the recorded week change and drawdown.
+    Without one, the scenario's own move is measured from the recorded day (week change
+    = the move, drawdown = the move if a fall) and the stamp says so — no level invented."""
+    f = 1 + pct / 100
+    base = snap.nifty
+    if base is None:
+        src = f"sim:{tag} (no Nifty recorded — move measured from the recorded day)"
+
+        def st(v: Decimal) -> Stamped[Decimal]:
+            return Stamped(value=v.quantize(_CENT), source=src, as_of=snap.recorded_at)
+
+        return replace(snap, nifty=IndexMoves(NIFTY_TICKER, None, st(pct),
+                                              st(min(Decimal(0), pct))))
+
+    def compose(s: Stamped[Decimal], floor_zero: bool) -> Stamped[Decimal]:
+        v = (((1 + s.value / 100) * f - 1) * 100).quantize(_CENT, rounding=ROUND_HALF_UP)
+        return _restamp(s, min(Decimal(0), v) if floor_zero else v, tag)
+
+    level = base.level
+    moved = IndexMoves(
+        symbol=base.symbol,
+        level=(_restamp(level, (level.value * f).quantize(_CENT, rounding=ROUND_HALF_UP), tag)
+               if level is not None else None),
+        week_change_pct=compose(base.week_change_pct, floor_zero=False),
+        drawdown_pct=compose(base.drawdown_pct, floor_zero=True),
+    )
+    return replace(snap, nifty=moved)
 
 
 def drop_prices(snap: MarketSnapshot, lose: Callable[[str], bool], tag: str) -> MarketSnapshot:
@@ -163,8 +207,9 @@ def reset_lows(snap: MarketSnapshot, tag: str) -> MarketSnapshot:
 def market_move(pct: Decimal, tag: str) -> Shock:
     """Broad market move: every equity/ETF except non-earning metal proxies."""
     def _shock(snap: MarketSnapshot, ctx: SimContext) -> MarketSnapshot:
-        return move_prices(
+        moved = move_prices(
             snap, lambda s: None if ctx.sector_of.get(s) in _NO_MARKET_BETA else pct, tag)
+        return move_nifty(moved, pct, tag)
     return _shock
 
 
@@ -187,8 +232,9 @@ def _slug(text: str) -> str:
 
 
 def name_move(symbol: str, pct: Decimal, tag: str) -> Shock:
+    """One name moves TODAY (a day move — tiffin v6 §H 'a name -10% in a day')."""
     def _shock(snap: MarketSnapshot, _ctx: SimContext) -> MarketSnapshot:
-        return move_prices(snap, lambda s: pct if s == symbol else None, tag)
+        return move_prices(snap, lambda s: pct if s == symbol else None, tag, day_move=True)
     return _shock
 
 
@@ -212,11 +258,11 @@ def build_catalog(ctx: SimContext) -> list[Scenario]:
         Scenario("baseline", "Recorded day, unchanged", "—", _identity),
         Scenario("nifty_week_-5", f"Market {NIFTY_WEEK_PCT}% in a week",
                  "tiffin v6 §H HOCKEY (Nifty -5% wk)", market_move(NIFTY_WEEK_PCT, "nifty-5"),
-                 tags=("hockey-gap",)),
+                 tags=("hockey",)),
         Scenario("hockey_rung1", f"Market {rung1}% (hockey rung 1)", "ledger §4 D37 rung 1",
-                 market_move(rung1, "rung1")),
+                 market_move(rung1, "rung1"), tags=("hockey",)),
         Scenario("hockey_rung2", f"Market {rung2}% (hockey rung 2)", "ledger §4 D37 rung 2",
-                 market_move(rung2, "rung2")),
+                 market_move(rung2, "rung2"), tags=("hockey",)),
         Scenario("melt_up_+10", f"Market +{MELT_UP_PCT}%", "E9 — nothing cheap, nothing forced",
                  market_move(MELT_UP_PCT, "meltup")),
         Scenario("fresh_lows_everywhere", "Every name at a fresh 52-week low (L=0)",
@@ -266,7 +312,7 @@ def build_catalog(ctx: SimContext) -> list[Scenario]:
     cats.extend(
         Scenario(f"flash_{s}_-10", f"{s} {NAME_DAY_PCT}% in a day",
                  "tiffin v6 §H HOCKEY (name -10% day)", name_move(s, NAME_DAY_PCT, f"{s}-10"),
-                 tags=("hockey-gap", "flash"))
+                 tags=("hockey", "flash"))
         for s in ctx.seats
     )
     return cats

@@ -107,6 +107,23 @@ class TestStampedEnforcement:
         assert isinstance(snap.low_52w.value, Decimal)
         assert isinstance(snap.high_52w.value, Decimal)
 
+    @patch("tools.prices.yf.Ticker")
+    def test_prev_close_is_stamped_for_the_day_move(self, mock_ticker_cls: MagicMock) -> None:
+        """tiffin v6 §H HOCKEY 'name -10% in a day' needs the previous session's close."""
+        mock_ticker_cls.return_value = _make_mock_ticker("yf_infy.json")
+        snap = fetch_price("INFY.NS")
+        assert snap.prev_close is not None
+        assert snap.prev_close.value == Decimal("1858.30")
+        assert snap.prev_close.source == "yfinance:INFY.NS"
+
+    @patch("tools.prices.yf.Ticker")
+    def test_prev_close_missing_is_none_not_a_guess(self, mock_ticker_cls: MagicMock) -> None:
+        mock = MagicMock()
+        mock.info = {"regularMarketPrice": 100.0, "fiftyTwoWeekLow": 90.0,
+                     "fiftyTwoWeekHigh": 120.0}
+        mock_ticker_cls.return_value = mock
+        assert fetch_price("X.NS").prev_close is None
+
 
 class TestFetchPricesBatch:
     """Tests for batch price fetching — spec: tiffin-coffee v6 §4 full sweep."""

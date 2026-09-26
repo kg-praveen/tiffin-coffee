@@ -16,6 +16,14 @@ from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
+from engine.hockey import (
+    HockeyConfig,
+    HockeyKind,
+    HockeyReport,
+    IndexInput,
+    detect_hockey,
+    parse_two_pocket_split,
+)
 from engine.morning_board import check_basis_fresh
 from engine.plate import (
     CellInfo,
@@ -39,6 +47,7 @@ from tools.fundamentals import (
     fetch_fundamentals_batch,
 )
 from tools.gsec import fetch_gsec_yield
+from tools.index_moves import IndexMoves, fetch_nifty_moves
 from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 from tools.results_dates import BatchResultDates, fetch_result_dates_batch
@@ -84,6 +93,12 @@ class PlateRunResult:
     name_inputs: tuple[NameInput, ...] = ()
     config: PlateConfig | None = None
     unpriced: tuple[PlateDrop, ...] = ()
+    hockey: HockeyReport | None = None
+    nifty: IndexMoves | None = None
+    confirmed_surplus: Decimal | None = None
+    two_pocket: tuple[Decimal, Decimal] | None = None
+    reserve_floor: Decimal | None = None
+    hockey_config: HockeyConfig | None = None
 
 
 def _aggregate_holdings(
@@ -192,6 +207,7 @@ def _build_name_input(
         register_note=name.notes or "",
         brand_owned=name.brand_owned,
         next_result_date=next_result_date,
+        prev_close=snap.prev_close.value if snap.prev_close else None,
     )
     return ni, gate_result
 
@@ -249,6 +265,83 @@ def _policy_decimal(policy: dict, key: str) -> Decimal:
     return Decimal(policy[key].value)
 
 
+def _policy_optional(policy: dict, key: str) -> Decimal | None:
+    """A policy row a newer migration adds (e.g. 012): missing → that check is not run
+    and the report says so (E9), never a default invented here (E2)."""
+    row = policy.get(key)
+    return Decimal(row.value) if row else None
+
+
+def _hockey_config(policy: dict) -> HockeyConfig:
+    """tiffin v6 §H HOCKEY thresholds (migration 012) + ledger D37 rungs."""
+    return HockeyConfig(
+        nifty_week_fall_pct=_policy_optional(policy, "hockey_nifty_week_fall_pct"),
+        name_day_fall_pct=_policy_optional(policy, "hockey_name_day_fall_pct"),
+        rung1_drawdown_pct=_policy_optional(policy, "hockey_rung1_nifty_drawdown_pct"),
+        rung2_drawdown_pct=_policy_optional(policy, "hockey_rung2_nifty_drawdown_pct"),
+    )
+
+
+def _resolve_nifty(market: MarketSnapshot | None, fetch_live: bool) -> IndexMoves | None:
+    """Nifty moves: the replayed snapshot, else a live fetch, else none (E9: the hockey
+    check then reports itself not run — it never assumes a calm market)."""
+    if market is not None:
+        return market.nifty
+    if not fetch_live:
+        return None
+    try:
+        return fetch_nifty_moves()
+    except ValueError as exc:
+        log.warning("Nifty moves unavailable: %s", exc)
+        return None
+
+
+def index_input(nifty: IndexMoves | None) -> IndexInput | None:
+    if nifty is None:
+        return None
+    return IndexInput(week_change_pct=nifty.week_change_pct.value,
+                      drawdown_pct=nifty.drawdown_pct.value)
+
+
+def _hockey_advisory(report: HockeyReport, reserve_floor: Decimal | None) -> list[str]:
+    """Plain-language hockey lines. Detection only: the spec sizes hockey from a
+    pre-committed thali menu in the ledger, so every reserve move needs Praveen's yes."""
+    floor = f" (reserve floor {_inr(reserve_floor)})" if reserve_floor is not None else ""
+    out: list[str] = []
+    for sig in report.of(HockeyKind.NIFTY_WEEK):
+        out.append(
+            f"HOCKEY: Nifty {sig.move_pct}% in a week (≤ -{sig.threshold_pct}%, tiffin §H) — "
+            f"hockey mode: bring the pre-committed thali menu, sized from the reserve"
+            f"{floor}; first reserve tranche goes to NIFTYBEES. Needs your yes — the daily "
+            f"plate below is unchanged.")
+    for sig in [*report.of(HockeyKind.RUNG_2), *report.of(HockeyKind.RUNG_1)]:
+        n = "2" if sig.kind == HockeyKind.RUNG_2 else "1"
+        out.append(
+            f"HOCKEY rung {n} reached: Nifty {sig.move_pct}% from its 52-week high "
+            f"(≤ -{sig.threshold_pct}%, ledger D37) — reserve deployment for this rung needs "
+            f"your yes{floor}.")
+    live = [sg for sg in report.of(HockeyKind.NAME_DAY) if sg.blocked_by is None]
+    if live:
+        out.append(
+            "HOCKEY name fell in a day: "
+            + ", ".join(f"{sg.symbol} {sg.move_pct}%" for sg in live)
+            + " — hockey only if there is no Stage-0 cause (the headline check is yours); "
+              "a thali from the reserve needs your yes.")
+    gated = [sg for sg in report.of(HockeyKind.NAME_DAY) if sg.blocked_by is not None]
+    if gated:
+        out.append(
+            "Fell in a day but already dropped — hockey never overrides the gates: "
+            + ", ".join(f"{sg.symbol} {sg.move_pct}% ({sg.blocked_by})" for sg in gated))
+    h_above = report.of(HockeyKind.H_ABOVE)
+    if h_above:
+        out.append(
+            "HOCKEY level (H > 1.15) on the plate: " + ", ".join(sg.symbol for sg in h_above)
+            + " — the plate shows the daily-ticket size only; a reserve thali needs your yes.")
+    if report.not_checked:
+        out.append("WARN: hockey check incomplete — " + "; ".join(report.not_checked))
+    return out
+
+
 def _resolve_gsec_yield(
     policy: dict,
     gsec_yield_override: Decimal | None,
@@ -291,6 +384,7 @@ def run_plate(
     today: str | None = None,
     record_session: bool = True,
     event_opt_in: frozenset[str] = frozenset(),
+    confirmed_surplus: Decimal | None = None,
 ) -> PlateRunResult:
     """Execute UC2: build a tiffin-coffee buy plate.
 
@@ -307,6 +401,10 @@ def run_plate(
 
     `event_opt_in`: names Praveen buys despite results inside the event-hold window
     (tiffin v6 §procedure step 6 — "event risk, your call").
+
+    `confirmed_surplus`: investable surplus Praveen confirms THIS run (tiffin v4
+    SINGLE-DEPLOYMENT CAP — never stored, never remembered). Without it the cap is
+    reported as not checked; with it a plate over the cap is NO ACTION.
     """
     now = datetime.now(UTC).isoformat(timespec="seconds")
     run_id = f"UC2_{uuid.uuid4().hex[:12]}"
@@ -480,9 +578,19 @@ def run_plate(
             event_hold_days=int(_policy_decimal(policy, "event_hold_days")),
             event_opt_in=event_opt_in,
             caps_off_waived=frozenset(waivers),
+            confirmed_surplus=confirmed_surplus,
+            single_deployment_cap_pct=_policy_decimal(policy, "single_deployment_cap_pct"),
         )
 
         plate_result = build_plate(name_inputs, config)
+
+        # --- HOCKEY detection (tiffin v6 §H + D37 ladder): reported, never sized ---
+        nifty = _resolve_nifty(market, fetch_prices)
+        hockey_cfg = _hockey_config(policy)
+        hockey = detect_hockey(name_inputs, plate_result, index_input(nifty), hockey_cfg)
+        reserve_floor = _policy_optional(policy, "hockey_reserve_floor")
+        split_row = policy.get("two_pocket_split")
+        two_pocket = parse_two_pocket_split(split_row.value) if split_row else None
 
         # --- advisory flags (E9: a plate on flagged inputs is NO ACTION) ---
         stale = [d.symbol for d in plate_result.drops
@@ -553,6 +661,13 @@ def run_plate(
             advisory.append(
                 f"REVIEW FIRST: marked don't-buy but passing every gate — analyse before "
                 f"buying: {', '.join(review)}")
+        advisory.extend(_hockey_advisory(hockey, reserve_floor))
+        if plate_result.halt_reason is not None:
+            advisory.insert(0,
+                f"HALT — NO ACTION (tiffin v4 single-deployment cap): "
+                f"{plate_result.halt_reason}. Lower the ticket to within "
+                f"{_inr(plate_result.deployment_cap or Decimal(0))} or confirm a larger "
+                f"surplus.")
 
         # --- write session ---
         gate_details = {
@@ -570,6 +685,17 @@ def run_plate(
             "residual": str(plate_result.residual),
             "advisory_flags": advisory,
             "gate_details": gate_details,
+            "deployment_cap": (str(plate_result.deployment_cap)
+                               if plate_result.deployment_cap is not None else None),
+            "halt_reason": plate_result.halt_reason,
+            "hockey": {
+                "signals": [{"kind": sg.kind.name, "symbol": sg.symbol,
+                             "move_pct": str(sg.move_pct) if sg.move_pct is not None else None,
+                             "threshold_pct": (str(sg.threshold_pct)
+                                               if sg.threshold_pct is not None else None),
+                             "blocked_by": sg.blocked_by} for sg in hockey.signals],
+                "not_checked": list(hockey.not_checked),
+            },
         })
         inputs: dict = {
             "today": today,
@@ -584,6 +710,11 @@ def run_plate(
             "gsec_yield_pct": str(gsec_yield_pct),
             "gsec_source": gsec_source,
             "triggers_unarmable": unarmable,
+            "confirmed_surplus": (str(confirmed_surplus) if confirmed_surplus is not None
+                                  else None),
+            "nifty": ({"week_change_pct": nifty.week_change_pct.model_dump(mode="json"),
+                       "drawdown_pct": nifty.drawdown_pct.model_dump(mode="json")}
+                      if nifty is not None else None),
         }
         drops_json = [
             {"symbol": d.symbol, "reason": d.reason.name, "detail": d.detail,
@@ -624,6 +755,12 @@ def run_plate(
             name_inputs=tuple(name_inputs),
             config=config,
             unpriced=tuple(unpriced),
+            hockey=hockey,
+            nifty=nifty,
+            confirmed_surplus=confirmed_surplus,
+            two_pocket=two_pocket,
+            reserve_floor=reserve_floor,
+            hockey_config=hockey_cfg,
         )
     finally:
         repo.close()
@@ -689,6 +826,36 @@ def _is_near_miss(d: PlateDrop, h_min: Decimal, l_max: Decimal) -> bool:
     return False
 
 
+def _guardrail_extras(result: PlateRunResult) -> list[str]:
+    """Guardrail lines for the single-deployment cap, hockey and two-pocket rules."""
+    p = result.plate
+    pct = result.config.single_deployment_cap_pct if result.config else None
+    out: list[str] = []
+    if result.confirmed_surplus is None or p.deployment_cap is None:
+        out.append(f"  [ ] single-deployment cap {pct}% of surplus — not checked: no confirmed "
+                   f"surplus this run (give it each session; never a remembered figure)")
+    elif p.halt_reason is not None:
+        out.append(f"  [!] single-deployment cap {pct}% of {_inr(result.confirmed_surplus)} = "
+                   f"{_inr(p.deployment_cap)} — plate over the cap: HALTED, NO ACTION")
+    else:
+        out.append(f"  [x] single-deployment cap {pct}% of {_inr(result.confirmed_surplus)} = "
+                   f"{_inr(p.deployment_cap)} — plate {_inr(p.total_with_sweep)} within")
+    h = result.hockey
+    if h is not None:
+        if h.signals:
+            out.append("  [!] hockey — signal(s) today, see ADVISORY (reserve needs your yes)")
+        elif h.not_checked:
+            out.append("  [ ] hockey — check incomplete (see ADVISORY)")
+        else:
+            out.append("  [x] hockey — no Nifty week fall, no ladder rung, no name day fall")
+    if result.two_pocket is not None:
+        t, r = result.two_pocket
+        floor = f", reserve floor {_inr(result.reserve_floor)}" if result.reserve_floor else ""
+        out.append(f"  [ ] two-pocket {t}/{r} — pocket balances not in the register, not "
+                   f"checked; the reserve is untouchable outside hockey{floor}")
+    return out
+
+
 def format_plate(result: PlateRunResult) -> str:
     """Report for Praveen. Spec E8: inputs with stamps · rules fired · the plate ·
     every drop with its reason · what would change the verdict."""
@@ -715,13 +882,18 @@ def format_plate(result: PlateRunResult) -> str:
     L.append("")
 
     if result.advisory_flags:
-        L.append("!! ADVISORY — DO NOT EXECUTE !!" if blocked else "ADVISORY")
+        L.append("!! ADVISORY — DO NOT EXECUTE !!" if blocked or p.halt_reason else "ADVISORY")
         for f in result.advisory_flags:
             L.append(f"  - {f}")
         L.append("")
 
     # --- the plate ---
-    if p.entries:
+    if p.halt_reason is not None:
+        halted = [d for d in p.drops if d.reason == PlateDropReason.DEPLOYMENT_CAP_HALT]
+        L.append("PLATE — NO ACTION (single-deployment cap). Nothing to execute.")
+        if halted:
+            L.append("  would have been: " + ", ".join(d.symbol for d in halted))
+    elif p.entries:
         L.append(f"PLATE — {len(p.entries)} name(s) · {_inr(p.total_stock_amount)}")
         L.append(
             f"  {'#':>2} {'Name':12s} {'Qty':>3} {'LTP':>9} {'Amount':>10} "
@@ -801,7 +973,7 @@ def format_plate(result: PlateRunResult) -> str:
     )
     L.append("  [x] BeES floor NEVER_SKIP — residual swept")
     L.append("  [x] no buy+sell in one session (EXIT_DECIDED enforced)")
-    L.append("  [ ] single-deployment cap 15% of surplus — surplus not in the register yet")
+    L.extend(_guardrail_extras(result))
     held = [d.symbol for d in p.drops if d.reason == PlateDropReason.EVENT_HOLD]
     L.append(f"  [x] results-week pause — held: {', '.join(held) if held else 'none'}")
     if blocked:

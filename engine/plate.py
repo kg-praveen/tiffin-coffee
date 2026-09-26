@@ -6,7 +6,7 @@ No I/O, no network, no datetime.now(), no DB.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
@@ -73,6 +73,7 @@ class PlateDropReason(Enum):
     PRICE_FETCH_FAILED = "price fetch failed this run"
     P_BLOCKED = "P-tier is BLOCKED (at cap/target)"
     NO_TICKER = "no yf_ticker — cannot fetch price"
+    DEPLOYMENT_CAP_HALT = "plate exceeds the single-deployment cap — NO ACTION (tiffin v4 cap)"
 
 
 # --------------------------------------------------------------- inputs ---
@@ -120,6 +121,8 @@ class NameInput:
     register_note: str = ""
     brand_owned: bool | None = None
     next_result_date: str | None = None
+    # previous session's close (tiffin v6 §H HOCKEY "a name -10% in a day"); None = unknown
+    prev_close: Decimal | None = None
 
 
 @dataclass(frozen=True)
@@ -145,6 +148,10 @@ class PlateConfig:
     # 28-Sep). Waives portfolio construction only — cell cap, hold-only, P=0 — never a
     # quality overlay, valuation gate, ban or event hold.
     caps_off_waived: frozenset[str] = frozenset()
+    # tiffin v4 SINGLE-DEPLOYMENT CAP: investable surplus confirmed by Praveen THIS run
+    # (never a remembered figure, never in the register). None = the cap cannot be checked.
+    confirmed_surplus: Decimal | None = None
+    single_deployment_cap_pct: Decimal = Decimal(15)
 
 
 # -------------------------------------------------------------- outputs ---
@@ -202,6 +209,10 @@ class PlateResult:
     # what the plate actually needs: the session, or more if 1 share of each ranked
     # name costs more (Praveen 26-Sep-2026). Residual is measured against this.
     plan_amount: Decimal = Decimal(0)
+    # single-deployment cap in rupees for this run (None = no confirmed surplus given)
+    deployment_cap: Decimal | None = None
+    # set when a law stopped the whole plate (E9: NO ACTION) — says which and why
+    halt_reason: str | None = None
 
 
 # ----------------------------------------- classification functions ---
@@ -563,10 +574,17 @@ def build_plate(
     names: list[NameInput],
     config: PlateConfig,
 ) -> PlateResult:
-    """Build the full buy plate. Spec: tiffin-coffee v6 §procedure steps 4-7.
-
-    Scans ALL names, computes H/L/P, applies overlays, scores, sizes, sweeps.
+    """Build the full buy plate. Spec: tiffin-coffee v6 §procedure steps 4-7, then the
+    tiffin v4 single-deployment cap, which "binds INDEPENDENTLY of HxP".
     """
+    return apply_single_deployment_cap(_build_uncapped(names, config), config)
+
+
+def _build_uncapped(
+    names: list[NameInput],
+    config: PlateConfig,
+) -> PlateResult:
+    """Scans ALL names, computes H/L/P, applies overlays, scores, sizes, sweeps."""
     drops: list[PlateDrop] = []
     _ScoredRow = tuple[
         NameInput, Decimal | None, Mode, LowBand,
@@ -828,4 +846,54 @@ def build_plate(
         residual=plan - total_stock - bees_amount,
         rules_fired=rules_fired,
         plan_amount=plan,
+    )
+
+
+# ------------------------------------------------- single-deployment cap ---
+
+
+def single_deployment_cap(surplus: Decimal, cap_pct: Decimal) -> Decimal:
+    """tiffin v4 §SINGLE-DEPLOYMENT CAP: "no single plate may exceed 15% of confirmed
+    investable surplus" (the % comes from policy single_deployment_cap_pct)."""
+    return (surplus * cap_pct / 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def apply_single_deployment_cap(result: PlateResult, config: PlateConfig) -> PlateResult:
+    """tiffin v4 HARD CAP: "no single plate may exceed 15% of confirmed investable
+    surplus" + guardrail "never exceed 15% of investable surplus in one name in one
+    session" (a plate within the cap keeps every name within it too).
+
+    The spec names the cap but not what happens when a plate is over it (trim or
+    stop). It is not ours to invent a trim (E6/E9): the whole plate becomes NO ACTION,
+    every ranked name is dropped with DEPLOYMENT_CAP_HALT, nothing is swept.
+    No confirmed surplus → the plate is returned unchanged (the report says the cap
+    could not be checked).
+    """
+    if config.confirmed_surplus is None:
+        return result
+    cap = single_deployment_cap(config.confirmed_surplus, config.single_deployment_cap_pct)
+    if result.total_with_sweep <= cap:
+        return replace(result, deployment_cap=cap)
+    why = (f"plate {result.total_with_sweep} > single-deployment cap {cap} "
+           f"({config.single_deployment_cap_pct}% of confirmed surplus "
+           f"{config.confirmed_surplus})")
+    halted = [
+        PlateDrop(e.symbol, e.name, PlateDropReason.DEPLOYMENT_CAP_HALT,
+                  f"ranked #{i} ({e.qty} sh = {e.amount}) — {why}", h=e.h, l_pct=e.l_pct,
+                  what_would_change=f"a plate ≤ {cap} (smaller ticket), or Praveen "
+                                    f"confirms a larger investable surplus")
+        for i, e in enumerate(result.entries, 1)
+    ]
+    return replace(
+        result,
+        entries=[],
+        drops=[*result.drops, *halted],
+        bees_sweep_qty=0,
+        bees_sweep_amount=Decimal(0),
+        total_stock_amount=Decimal(0),
+        total_with_sweep=Decimal(0),
+        residual=result.plan_amount,
+        rules_fired=[*result.rules_fired, "HALT:SINGLE_DEPLOYMENT_CAP"],
+        deployment_cap=cap,
+        halt_reason=why,
     )

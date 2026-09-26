@@ -17,6 +17,16 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
+from engine.hockey import (
+    MARKET,
+    HockeyConfig,
+    HockeyKind,
+    HockeyReport,
+    IndexInput,
+    compute_change_pct,
+    highest_rung,
+    is_fall_at_least,
+)
 from engine.plate import (
     BRAND_GATE_SECTORS,
     REVIEW_FIRST_BUCKETS,
@@ -27,6 +37,7 @@ from engine.plate import (
     compute_l,
     days_until_results,
     in_event_window,
+    single_deployment_cap,
 )
 
 
@@ -199,6 +210,25 @@ def find_budget_and_breadth(result: PlateResult, breadth_min: int,
     return out
 
 
+def inv_deployment_cap(result: PlateResult, config: PlateConfig) -> list[Check]:
+    """tiffin v4 §SINGLE-DEPLOYMENT CAP: with a confirmed surplus, no plate — and no one
+    name — exceeds the cap; a halted plate buys and sweeps nothing (E9)."""
+    out: list[Check] = []
+    if result.halt_reason is not None and (result.entries or result.bees_sweep_qty):
+        out.append(Check("DEPLOYMENT_CAP", Severity.VIOLATION, "*",
+                         "plate halted but still carries entries or a sweep"))
+    if config.confirmed_surplus is None:
+        return out
+    cap = single_deployment_cap(config.confirmed_surplus, config.single_deployment_cap_pct)
+    if result.total_with_sweep > cap:
+        out.append(Check("DEPLOYMENT_CAP", Severity.VIOLATION, "*",
+                         f"plate {result.total_with_sweep} > cap {cap}"))
+    out.extend(Check("DEPLOYMENT_CAP", Severity.VIOLATION, e.symbol,
+                     f"{e.amount} in one name > cap {cap}")
+               for e in result.entries if e.amount > cap)
+    return out
+
+
 def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult,
                 breadth_min: int, breadth_max: int) -> list[Check]:
     """Run every single-plate invariant. Order is stable (deterministic output)."""
@@ -211,6 +241,7 @@ def check_plate(names: list[NameInput], config: PlateConfig, result: PlateResult
         *inv_eligibility(names, result, config),
         *inv_totals(result),
         *inv_budget(result, config),
+        *inv_deployment_cap(result, config),
         *find_budget_and_breadth(result, breadth_min, breadth_max),
     ]
 
@@ -241,3 +272,35 @@ def drop_counts(result: PlateResult) -> dict[str, int]:
         counts[d.reason.name] = counts.get(d.reason.name, 0) + 1
     return dict(sorted(counts.items()))
 
+
+
+# ------------------------------------------------------------------ hockey ---
+
+
+def inv_hockey_seen(names: list[NameInput], index: IndexInput | None, cfg: HockeyConfig,
+                    report: HockeyReport) -> list[Check]:
+    """tiffin v6 §H: a hockey day must never pass unseen — every input past a HOCKEY
+    threshold (Nifty week fall, ladder rung, name day fall) appears as a signal."""
+    seen = {(s.kind, s.symbol) for s in report.signals}
+    out: list[Check] = []
+    if index is not None and index.week_change_pct is not None \
+            and cfg.nifty_week_fall_pct is not None \
+            and is_fall_at_least(index.week_change_pct, cfg.nifty_week_fall_pct) \
+            and (HockeyKind.NIFTY_WEEK, MARKET) not in seen:
+        out.append(Check("HOCKEY_SEEN", Severity.VIOLATION, MARKET,
+                         f"Nifty {index.week_change_pct}% in a week not flagged"))
+    if index is not None and index.drawdown_pct is not None:
+        rung = highest_rung(index.drawdown_pct, cfg)
+        if rung is not None and (rung[0], MARKET) not in seen:
+            out.append(Check("HOCKEY_SEEN", Severity.VIOLATION, MARKET,
+                             f"Nifty {index.drawdown_pct}% off its high — {rung[0].name} "
+                             f"not flagged"))
+    if cfg.name_day_fall_pct is not None:
+        for n in names:
+            move = (compute_change_pct(n.price, n.prev_close)
+                    if n.prev_close is not None else None)
+            if move is not None and is_fall_at_least(move, cfg.name_day_fall_pct) \
+                    and (HockeyKind.NAME_DAY, n.symbol) not in seen:
+                out.append(Check("HOCKEY_SEEN", Severity.VIOLATION, n.symbol,
+                                 f"{move}% in a day not flagged"))
+    return out
