@@ -42,6 +42,7 @@ from tools.gsec import fetch_gsec_yield
 from tools.market_snapshot import MarketSnapshot
 from tools.prices import BatchPriceResult, PriceSnapshot, fetch_prices_batch
 from tools.results_dates import BatchResultDates, fetch_result_dates_batch
+from usecases.results import effective_results
 
 log = logging.getLogger(__name__)
 
@@ -311,6 +312,10 @@ def run_plate(
             results = fetch_result_dates_batch(trig_tickers)
         else:
             results = BatchResultDates()
+        results = effective_results(
+            results, repo.load_results_verified(),
+            {n.symbol: (n.yf_ticker or n.symbol).removesuffix(".NS") for n in all_names}, today)
+        max_age = int(_policy_decimal(policy, "results_max_age_days"))
 
         # E3: a trigger is armable only on a dated basis not older than the latest results
         triggers_map: dict[str, TriggerRow] = {}
@@ -323,7 +328,7 @@ def run_plate(
             stem = (nm.yf_ticker or t.symbol).removesuffix(".NS") if nm else t.symbol
             dates = results.dates.get(stem)
             stale, why = check_basis_fresh(t.basis_eps_date,
-                                           dates.value if dates else None, today)
+                                           dates.value if dates else None, today, max_age)
             if stale is not None:
                 unarmable.append(f"{t.symbol} ({why})")
                 continue
